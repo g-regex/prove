@@ -1,2 +1,3 @@
-# prove
-[prove]: proof verification system using bracketed expressions
+# [prove]:
+
+[prove] is a proof verification system using bracketed expressions
