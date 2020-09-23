@@ -1,9 +1,21 @@
+#23/09/2020
+#Author: Louise Beyers
+# functions: identify takes:
+#       -forml(formula) and 
+#       -num(the user should enter 0 for now, this represents the level of unpacking that forml has gone through)
+#
+#stt is a list of the statements on the basic level
+#ops is a list of the operators on the basic level
+#
+#
+#this can probably be done more elegantly and also it does not work as it should if you have multiple nested brackets in your initial formula
+
 def identify(forml, num):
     lvl = 0
     stt = []
     ops = ''
     next_lvl = []
-
+    
     for char in forml:
         if (lvl == 0):
             if (char == '['):
