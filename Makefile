@@ -30,6 +30,7 @@ clean:
 
 .ONESHELL:
 check:
+	S=0
 	for T in `ls testcases/valid/*.prove |  sort -V`
 	do
 		echo -ne "$$T: \t"
@@ -37,6 +38,7 @@ check:
 		if (test $$? -eq 1)
 		then
 			echo -e "\t[\033[0;31m failure \033[0;0m]"
+			S=1
 		else
 			echo -e "\t[\033[0;32m success \033[0;0m]"
 		fi
@@ -48,7 +50,9 @@ check:
 		if (test $$? -eq 0)
 		then
 			echo -e "\t[\033[0;31m failure \033[0;0m]"
+			S=1
 		else
 			echo -e "\t[\033[0;32m success \033[0;0m]"
 		fi
 	done
+	exit $$S
