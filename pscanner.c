@@ -4,6 +4,10 @@
 #include <string.h>
 #include "pscanner.h"
 #include "token.h"
+#include "debug.h"
+
+#define TRUE 1
+#define FALSE 0
 
 static FILE *file; /* [prove] source file                */
 static int   col;  /* column number of current character */
@@ -19,6 +23,7 @@ static void process_word(Token *token);
 /* initialises the scanner */
 void init_scanner(FILE *f)
 {
+	quiet = FALSE;
 	file = f;
 	cursor.line = 1;
 	cursor.col = 0;
@@ -73,9 +78,11 @@ void next_token(Token *token)
 				next_char();
 				if (!isalpha(ch)) {
 					/* ERROR */
-					printf("\nillegal character '%c' at line %d, column %d\n",
-							ch, cursor.line, cursor.col);
-					exit(1);
+					if (!quiet) {
+						printf("\nillegal character '%c' at line %d, column %d\n",
+								ch, cursor.line, cursor.col);
+					}
+					exit(EXIT_FAILURE);
 				}
 				token->type = TOK_SYM;
 				process_word(token);
@@ -83,9 +90,11 @@ void next_token(Token *token)
 			default:
 				cursor.col = col;
 				/* ERROR */
-				printf("\nillegal character '%c' at line %d, column %d\n",
-						ch, cursor.line, cursor.col);
-				exit(1);
+				if (!quiet) {
+					printf("\nillegal character '%c' at line %d, column %d\n",
+							ch, cursor.line, cursor.col);
+				}
+				exit(EXIT_FAILURE);
 				token->type = TOK_EOF;
 		}
 	} else {
@@ -157,8 +166,10 @@ void process_number(Token *token)
 		d = atoi((char*) &ch);
 		if (token->value > (INT_MAX - d) / 10) {
 			/* ERROR */
-			printf("\nnumber too large\n");
-			exit(1);
+			if (!quiet) {
+				printf("\nnumber too large\n");
+			}
+			exit(EXIT_FAILURE);
 		} else {
 			token->value = 10 * token->value + d;
 		}

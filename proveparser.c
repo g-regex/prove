@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "pscanner.h"
+#include "debug.h"
 
 #define TRUE 1
 #define FALSE 0
@@ -24,12 +25,21 @@ void expect(TType type);
 
 int main(int argc, char *argv[])
 {
-	if (argc != 2 && argc != 3) {
-		printf("usage: %s <filename> [<output_level>]", argv[0]);
-		exit(1);
+	if (argc < 2 && argc > 4) {
+		printf("usage: %s <filename> [<output_level>] [quiet]",
+				argv[0]);
+		exit(EXIT_FAILURE);
 	} else if ((file = fopen(argv[1], "r")) == NULL) {
 		printf("error opening '%s'", argv[1]);
-		exit(1);
+		exit(EXIT_FAILURE);
+	}
+
+	lvl = 0;
+	init_scanner(file);
+	next_token(&token);
+
+	if (argc == 4) {
+		quiet = TRUE;
 	}
 
 	if (argc == 3) {
@@ -38,11 +48,6 @@ int main(int argc, char *argv[])
 		output_lvl = 0;
 	}
 
-	init_scanner(file);
-	next_token(&token);
-
-	lvl = 0;
-
 	/* <expressions> */
 	while (token.type != TOK_EOF) {
 		parse_chain();
@@ -50,7 +55,7 @@ int main(int argc, char *argv[])
 
 	fclose(file);
 
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 /* --- parser functions ------------------------------------------------------*/
@@ -64,18 +69,18 @@ void parse_chain(void)
 	unsigned short int proceed = TRUE;
 	while (proceed) {
 		if (IS_SYMBOL(token.type)) {
-			if (lvl == output_lvl) {
+			if (lvl == output_lvl && !quiet) {
 				printf("%s", token.id);
 			}
 			next_token(&token);
 		} else if (STARTS_STATEMENT(token.type)) {
-			if (lvl == output_lvl - 1) {
+			if (lvl == output_lvl - 1 && !quiet) {
 				printf("(");
-			} else if (lvl == output_lvl) {
+			} else if (lvl == output_lvl && !quiet) {
 				printf(".");
 			}
 			parse_statement();
-			if (lvl == output_lvl - 1) {
+			if (lvl == output_lvl - 1 && !quiet) {
 				printf(")");
 			}
 			stmnt_encountered = TRUE;
@@ -86,9 +91,11 @@ void parse_chain(void)
 
 	if (!stmnt_encountered) {
 		/* ERROR */
-		printf("\nexpected <statement> on line %d, column %d\n",
+		if (!quiet) {
+			printf("\nexpected <statement> on line %d, column %d\n",
 					 cursor.line, cursor.col);
-		exit(1);
+		}
+		exit(EXIT_FAILURE);
 	}
 }
 
@@ -107,10 +114,12 @@ void parse_statement(void)
 	} else if (STARTS_STATEMENT(token.type) || IS_SYMBOL(token.type)) {
 		parse_chain();
 	} else {
-		printf("\nexpected <operand>, <chain> or \"false\""\
+		if (!quiet) {
+			printf("\nexpected <operand>, <chain> or \"false\""\
 				"on line %d, column %d\n",
 					 cursor.line, cursor.col);
-		exit(1);
+		}
+		exit(EXIT_FAILURE);
 	}
 
 	expect(TOK_RBRACK);
@@ -126,9 +135,11 @@ void parse_operand(void)
 		next_token(&token);
 	} else {
 		/* ERROR */
-		printf("\nexpected <operand> on line %d, column %d\n",
-				 cursor.line, cursor.col);
-		exit(1);
+		if (!quiet) {
+			printf("\nexpected <operand> on line %d, column %d\n",
+					 cursor.line, cursor.col);
+		}
+		exit(EXIT_FAILURE);
 	}
 }
 
@@ -144,8 +155,10 @@ void expect(TType type)
 		next_token(&token);
 	} else {
 		/* ERROR */
-		printf("\nunexpected token on line %d, column %d\n",
-				 cursor.line, cursor.col);
-		exit(1);
+		if (!quiet) {
+			printf("\nunexpected token on line %d, column %d\n",
+					 cursor.line, cursor.col);
+		}
+		exit(EXIT_FAILURE);
 	}
 }
