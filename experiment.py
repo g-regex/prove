@@ -6,7 +6,7 @@
 #
 #stt is a list of the statements on the basic level
 #ops is a list of the operators on the basic level
-#
+#next_lvl is a list of the indices of the statements that have brackets in them
 #
 #this can probably be done more elegantly and also it does not work as it should if you have multiple nested brackets in your initial formula
 
