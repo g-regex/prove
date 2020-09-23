@@ -1,0 +1,34 @@
+def identify(forml, num):
+    lvl = 0
+    stt = []
+    ops = ''
+    next_lvl = []
+
+    for char in forml:
+        if (lvl == 0):
+            if (char == '['):
+                lvl += 1
+                stt.append('')
+                ops = ops + '.'
+            elif (char == ']'):
+                print("Too many closing brackets. Detected at character " + i)
+            else:
+                ops = ops + char
+        elif (lvl > 0):
+            if (char == '['):
+                lvl += 1
+                if not(len(stt) in next_lvl):
+                    next_lvl.append(len(stt))
+            elif (char == ']'):
+                lvl -= 1
+            if (lvl>0):
+                stt[-1] = stt[-1] + char
+    print(next_lvl)
+    unpacked = [stt, ops, num]
+    if (len(next_lvl) == 0):
+        return unpacked
+    else:
+        for i in next_lvl:
+            print(stt[i-1])
+            return[unpacked, identify(stt[i-1], num+1)]
+
