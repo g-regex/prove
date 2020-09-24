@@ -79,7 +79,7 @@ void next_token(Token *token)
 				if (!isalpha(ch)) {
 					/* ERROR */
 					if (!quiet) {
-						printf("\nillegal character '%c' at line %d, column %d\n",
+						fprintf(stderr, "illegal character '%c' at line %d, column %d\n",
 								ch, cursor.line, cursor.col);
 					}
 					exit(EXIT_FAILURE);
@@ -91,7 +91,7 @@ void next_token(Token *token)
 				cursor.col = col;
 				/* ERROR */
 				if (!quiet) {
-					printf("\nillegal character '%c' at line %d, column %d\n",
+					fprintf(stderr, "illegal character '%c' at line %d, column %d\n",
 							ch, cursor.line, cursor.col);
 				}
 				exit(EXIT_FAILURE);
@@ -167,7 +167,7 @@ void process_number(Token *token)
 		if (token->value > (INT_MAX - d) / 10) {
 			/* ERROR */
 			if (!quiet) {
-				printf("\nnumber too large\n");
+				fprintf(stderr, "number too large\n");
 			}
 			exit(EXIT_FAILURE);
 		} else {

@@ -19,7 +19,7 @@ token.o: token.c token.h
 $(BINDIR):
 	mkdir $(BINDIR)
 
-.PHONY: all clean check
+.PHONY: all clean check runchecks
 
 all: proveparser
 
@@ -27,32 +27,63 @@ clean:
 	$(RM) $(foreach EXEFILE, $(EXES), $(BINDIR)/$(EXEFILE))
 	$(RM) *.o
 	$(RM) -rf $(BINDIR)/*.dSYM
+	$(RM) -rf testcases/out
+
+check: clean proveparser runchecks
 
 .ONESHELL:
-check:
+runchecks:
+	mkdir -p testcases/out
 	S=0
 	for T in `ls testcases/valid/*.prove |  sort -V`
 	do
 		echo -ne "$$T: \t"
-		$(BINDIR)/proveparser $$T 0 quiet
+		$(BINDIR)/proveparser $$T 0 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
 		if (test $$? -eq 1)
 		then
 			echo -e "\t[\033[0;31m failure \033[0;0m]"
+			echo ">>> $$(basename $$T):" >> testcases/out/report_failure.txt
+			echo "    "`cat $$T` >> testcases/out/report_failure.txt
+			echo "    "`cat testcases/out/$$(basename $$T).out` >> testcases/out/report_failure.txt
+			echo "    "`cat testcases/out/$$(basename $$T).err` >> testcases/out/report_failure.txt
+			echo >> testcases/out/report_failure.txt
 			S=1
 		else
 			echo -e "\t[\033[0;32m success \033[0;0m]"
+			echo ">>> $$(basename $$T):" >> testcases/out/report_success.txt
+			echo "    "`cat $$T` >> testcases/out/report_success.txt
+			echo "    "`cat testcases/out/$$(basename $$T).out` >> testcases/out/report_success.txt
+			echo "    "`cat testcases/out/$$(basename $$T).err` >> testcases/out/report_success.txt
+			echo >> testcases/out/report_success.txt
 		fi
 	done
 	for T in `ls testcases/invalid/*.prove |  sort -V`
 	do
 		echo -ne "$$T: \t"
-		$(BINDIR)/proveparser $$T 0 quiet
+		$(BINDIR)/proveparser $$T 0 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
 		if (test $$? -eq 0)
 		then
 			echo -e "\t[\033[0;31m failure \033[0;0m]"
+			echo ">>> $$(basename $$T):" >> testcases/out/report_failure.txt
+			echo "    "`cat $$T` >> testcases/out/report_failure.txt
+			echo "    "`cat testcases/out/$$(basename $$T).out` >> testcases/out/report_failure.txt
+			echo "    "`cat testcases/out/$$(basename $$T).err` >> testcases/out/report_failure.txt
+			echo >> testcases/out/report_failure.txt
 			S=1
 		else
 			echo -e "\t[\033[0;32m success \033[0;0m]"
+			echo ">>> $$(basename $$T):" >> testcases/out/report_success.txt
+			echo "    "`cat $$T` >> testcases/out/report_success.txt
+			echo "    "`cat testcases/out/$$(basename $$T).out` >> testcases/out/report_success.txt
+			echo "    "`cat testcases/out/$$(basename $$T).err` >> testcases/out/report_success.txt
+			echo >> testcases/out/report_success.txt
 		fi
 	done
+	if (test $$S -eq 1)
+	then
+		echo "-------- UNSUCCESSFULLY VALIDATED TESTCASES --------" >> testcases/out/report.txt
+		cat testcases/out/report_failure.txt >> testcases/out/report.txt 2> /dev/null
+	fi
+	echo "--------- SUCCESSFULLY VALIDATED TESTCASES ---------" >> testcases/out/report.txt
+	cat testcases/out/report_success.txt >> testcases/out/report.txt 2> /dev/null
 	exit $$S

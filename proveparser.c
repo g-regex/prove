@@ -26,11 +26,11 @@ void expect(TType type);
 int main(int argc, char *argv[])
 {
 	if (argc < 2 && argc > 4) {
-		printf("usage: %s <filename> [<output_level>] [quiet]",
+		fprintf(stderr, "usage: %s <filename> [<output_level>] [quiet]\n",
 				argv[0]);
 		exit(EXIT_FAILURE);
 	} else if ((file = fopen(argv[1], "r")) == NULL) {
-		printf("error opening '%s'", argv[1]);
+		fprintf(stderr, "error opening '%s'\n", argv[1]);
 		exit(EXIT_FAILURE);
 	}
 
@@ -92,7 +92,7 @@ void parse_chain(void)
 	if (!stmnt_encountered) {
 		/* ERROR */
 		if (!quiet) {
-			printf("\nexpected <statement> on line %d, column %d\n",
+			fprintf(stderr, "expected <statement> on line %d, column %d\n",
 					 cursor.line, cursor.col);
 		}
 		exit(EXIT_FAILURE);
@@ -115,7 +115,7 @@ void parse_statement(void)
 		parse_chain();
 	} else {
 		if (!quiet) {
-			printf("\nexpected <operand>, <chain> or \"false\""\
+			fprintf(stderr, "expected <operand>, <chain> or \"false\" "
 				"on line %d, column %d\n",
 					 cursor.line, cursor.col);
 		}
@@ -136,7 +136,7 @@ void parse_operand(void)
 	} else {
 		/* ERROR */
 		if (!quiet) {
-			printf("\nexpected <operand> on line %d, column %d\n",
+			fprintf(stderr, "expected <operand> on line %d, column %d\n",
 					 cursor.line, cursor.col);
 		}
 		exit(EXIT_FAILURE);
@@ -156,7 +156,7 @@ void expect(TType type)
 	} else {
 		/* ERROR */
 		if (!quiet) {
-			printf("\nunexpected token on line %d, column %d\n",
+			fprintf(stderr, "unexpected token on line %d, column %d\n",
 					 cursor.line, cursor.col);
 		}
 		exit(EXIT_FAILURE);
