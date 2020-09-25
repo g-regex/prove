@@ -13,3 +13,42 @@
 $\Big[\dots\Big]$ 	indicate optionality			$\Big\{\dots\Big\}$			indicate zero or more repetitions
 
 Spaces between $\langle$`token`$\rangle$s are ignored.
+
+```mermaid
+sequenceDiagram
+    participant expressions
+    participant chain
+    participant statement
+    participant symbol
+    participant operand
+    
+   
+    loop as long as at least one <statement> follows
+    	expressions ->> chain: descend
+    	loop as long as <statement>s or <symbol>s on same depth follow
+    		rect rgb(240, 240, 240)
+    		alt if <chain> starts with <statement>
+    			rect rgb(230, 230, 230)
+    			chain ->> statement: descend
+    			rect rgb(255, 255, 255)
+    			alt if <statement> is an <operand>
+    				statement ->> operand: descend
+    				operand -->> statement: return
+    				statement -->> chain: return
+    			else else if <statement> is "false"
+    				statement -->> chain: return
+    			else else if <statement> is another <chain>
+    				statement ->> chain: descend
+    				Note left of chain: Recursively process <chain>
+    			end
+    			end
+    			end
+    		else else if <chain> starts with <symbol>
+    			chain ->> symbol: descend
+    			symbol -->> chain: return
+    		end
+    		end
+    	end
+    	chain -->> expressions: return
+    end
+```
