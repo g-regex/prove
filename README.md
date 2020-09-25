@@ -7,7 +7,7 @@ A convenient way of recursively describing CFGs ([context-free grammars](https:/
 The production rules given in the following table can be considered as a draft for formalising the syntactic properties of the [prove] language:
 ![A draft of the EBNF](https://github.com/g-regex/prove/blob/master/doc/EBNF_pic.jpg?raw=true)
 
-A [prove]-source code file is process in a linear manner by the scanner (located in pscanner.c). During this process illegal characters are detected and group of legal character are grouped to tokens. Not every <`production rule`> corresponds to a token. Rather tokens can be thought of being the build blocks of the production rules. In the case of [prove] we have 8 different kinds of tokens:
+A [prove]-source code file is processed in a linear manner by the scanner (located in pscanner.c). During this process illegal characters are detected and group of legal character are grouped to tokens. Not every <`production rule`> corresponds to a token. Rather tokens can be thought of being the build blocks of the production rules. In the case of [prove] we have 8 different kinds of tokens:
 
 | token        | description                                           |
 | ------------ | ----------------------------------------------------- |
