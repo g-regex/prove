@@ -12,7 +12,7 @@
 
 $\Big[\dots\Big]$ 	indicate optionality			$\Big\{\dots\Big\}$			indicate zero or more repetitions
 
-Spaces between $\langle$`token`$\rangle$s are ignored.
+Spaces between tokens are ignored.
 
 ```mermaid
 sequenceDiagram
