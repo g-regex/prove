@@ -51,7 +51,7 @@ runchecks:
 		else
 			echo -e "\t[\033[0;32m success \033[0;0m]"
 			echo ">>> $$(basename $$T):" >> testcases/out/report_success.txt
-			echo "    "`cat $$T` >> testcases/out/report_success.txt
+			echo "    "`sed 's/\\/\//g' $$T` >> testcases/out/report_success.txt
 			echo "    "`cat testcases/out/$$(basename $$T).out` >> testcases/out/report_success.txt
 			echo "    "`cat testcases/out/$$(basename $$T).err` >> testcases/out/report_success.txt
 			echo >> testcases/out/report_success.txt
