@@ -21,4 +21,4 @@ jobs:
         name: report
         path: testcases/out/report.txt
     - name: print report to log
-      run: cat testcases/out/report.txt | sed 's/\\/\\\\/g'
+      run: cat testcases/out/report.txt | sed 's/\\/&#92;/g'
