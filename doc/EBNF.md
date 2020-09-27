@@ -4,7 +4,7 @@
 | :------------------------------ | :----------------------------------------------------------- |
 | $\langle$`chain`$\rangle$       | $\bigg\{\Big(\langle$`statement`$\rangle\Big|\langle$`symbol`$\rangle\Big)\bigg\}$ $\langle$`statement`$\rangle$$\bigg\{\Big(\langle$`statement`$\rangle\Big|\langle$`symbol`$\rangle\Big)\bigg\}$ |
 | $\langle$`statement`$\rangle$   | "["$\Big(\langle$`operand`$\rangle\Big|\langle$`chain`$\rangle\Big|$"false"$\Big)$"]" |
-| $\langle$`symbol`$\rangle$      | ":"$\Big|\bigg\{$"\\"$\big($"a"$|\dots|$"z"$|$"A"$|\dots|$"Z"$\big)\Big\{\big($"a"$|\dots|$"z"$|$"A"$|\dots|$"Z"$|$"0"$|\dots|$"9"$|$"_"$\big)\Big\}\bigg\}$ |
+| $\langle$`symbol`$\rangle$      | ":"$\Big|$"\\"$\big($"a"$|\dots|$"z"$|$"A"$|\dots|$"Z"$\big)\Big\{\big($"a"$|\dots|$"z"$|$"A"$|\dots|$"Z"$|$"0"$|\dots|$"9"$|$"_"$\big)\Big\}$ |
 | $\langle$`operand`$\rangle$     | $\langle$`number`$\rangle \Big| \big($"a"$|\dots|$"z"$|$"A"$|\dots|$"Z"$\big)\Big\{\big($"a"$|\dots|$"z"$|$"A"$|\dots|$"Z"$|$"0"$|\dots|$"9"$|$"_"$\big)\Big\}$ |
 | $\langle$`number`$\rangle$      | $\big($"0"$|\dots|$"9"$\big)\Big\{\big($"0"$|\dots|$"9"$\big)\Big\}$ |
 
