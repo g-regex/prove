@@ -1,0 +1,244 @@
+%\title{Graph}
+%\documentclass[11pt]{article}
+%\usepackage{tikz}
+%\usetikzlibrary{calc}
+%\usetikzlibrary{positioning}
+%\usetikzlibrary{arrows.meta}
+%\usepackage[margin=-5pt, hoffset=0pt, voffset=0pt]{geometry}
+%\addtolength{\topmargin}{20pt}
+%\pagenumbering{gobble}
+%
+%\begin{document} 
+%%\maketitle
+
+\begin{tikzpicture}[node distance = 1pt, auto]
+
+	\begin{scope}[every node/.style={rectangle,inner sep=5pt,minimum width=5pt, text height=5pt,yshift=0pt}]
+		\node[draw] (A1) at (0pt,0pt)   {$ \cdot $};
+		\node[draw, right = 0pt of A1] (A2)  {$ \cdot $};
+		\node[draw, right = 0pt of A2] (A3)  {$ \Rightarrow $};
+		\node[draw, right = 0pt of A3] (A4)  {$ \cdot $};
+		\node[draw, right = 0pt of A4] (A5)  {$ \Rightarrow $};
+		\node[draw, right = 0pt of A5] (A6)  {$ \cdot $};
+		\node[draw, right = 0pt of A6] (A7)  {$ \Rightarrow $};
+		\node[draw, right = 0pt of A7] (A8)  {$ \cdot $};
+		\node[draw, right = 0pt of A8] (A9)  {$ \Rightarrow $};
+		\node[draw, right = 0pt of A9] (A10)  {$ \cdot $};
+		\node[draw, right = 0pt of A10] (A11)  {$ \Rightarrow $};
+		\node[draw, right = 0pt of A11] (A12)  {$ \cdot $};
+		\node[draw, right = 0pt of A12] (A13)  {$ \Rightarrow $};
+		\node[draw, right = 0pt of A13] (A14)  {$ \cdot $};
+
+
+		\node[draw, below right = 40pt and -100pt of A1] (B1)  {A};
+
+		\node[draw, right = 4pt of B1] (B2)  {$ \cdot $};
+		\node[draw, right = 0pt of B2] (B3)  {$ \Rightarrow $};
+		\node[draw, right = 0pt of B3] (B4)  {$ \cdot $};
+
+		\node[draw, right = 4pt of B4] (B5)  {$ \cdot $};
+		\node[draw, right = 0pt of B5] (B6)  {$ \Rightarrow $};
+		\node[draw, right = 0pt of B6] (B7)  {$ \cdot $};
+
+		\node[draw, right = 4pt of B7] (B8)  {$ \cdot $};
+		\node[draw, right = 0pt of B8] (B9)  {$ = $};
+		\node[draw, right = 0pt of B9] (B10)  {$ \cdot $};
+
+		\node[draw, right = 4pt of B10] (B11)  {$ \cdot $};
+		\node[draw, right = 0pt of B11] (B12)  {$ \Rightarrow $};
+		\node[draw, right = 0pt of B12] (B13)  {$ \cdot $};
+		\node[draw, right = 0pt of B13] (B14)  {$ \Rightarrow $};
+		\node[draw, right = 0pt of B14] (B15)  {$ \cdot $};
+
+		\node[draw, right = 4pt of B15] (B16)  {$ \cdot $};
+		\node[draw, right = 0pt of B16] (B17)  {$ \Rightarrow $};
+		\node[draw, right = 0pt of B17] (B18)  {$ \cdot $};
+
+		\node[draw, right = 4pt of B18] (B19)  {$ \cdot $};
+		\node[draw, right = 0pt of B19] (B20)  {in};
+		\node[draw, right = 0pt of B20] (B21)  {$ \cdot $};
+
+		\node[draw, right = 4pt of B21] (B22)  {False};
+
+
+		\node[draw, below right = 40pt and -70pt of B1] (C1)  {x};
+
+		\node[draw, right = 4pt of C1] (C2)  {$ \cdot $};
+		\node[draw, right = 0pt of C2] (C3)  {$ = $};
+		\node[draw, right = 0pt of C3] (C4)  {$ \cdot $};
+
+		\node[draw, right = 4pt of C4] (C5)  {A};
+
+		\node[draw, right = 4pt of C5] (C6)  {$ \cdot $};
+		\node[draw, right = 0pt of C6] (C7)  {$ = $};
+		\node[draw, right = 0pt of C7] (C8)  {$ \cdot $};
+
+		\node[draw, right = 4pt of C8] (C9)  {$ \cdot $};
+		\node[draw, right = 0pt of C9] (C10)  {in};
+		\node[draw, right = 0pt of C10] (C11)  {$ \cdot $};
+
+		\node[draw, right = 4pt of C11] (C12)  {$ \cdot $};
+		\node[draw, right = 0pt of C12] (C13)  {$ \Rightarrow $};
+		\node[draw, right = 0pt of C13] (C14)  {$ \cdot $};
+
+		\node[draw, right = 4pt of C14] (C15)  {$ \cdot $};
+		\node[draw, right = 0pt of C15] (C16)  {in};
+		\node[draw, right = 0pt of C16] (C17)  {$ \cdot $};
+
+		\node[draw, right = 4pt of C17] (C18)  {$ \cdot $};
+		\node[draw, right = 0pt of C18] (C19)  {$ \Rightarrow $};
+		\node[draw, right = 0pt of C19] (C20)  {$ \cdot $};
+
+		\node[draw, right = 4pt of C20] (C21)  {False};
+
+		\node[draw, right = 4pt of C21] (C22)  {$ \cdot $};
+		\node[draw, right = 0pt of C22] (C23)  {in};
+		\node[draw, right = 0pt of C23] (C24)  {$ \cdot $};
+
+		\node[draw, right = 4pt of C24] (C25)  {False};
+
+		\node[draw, right = 4pt of C25] (C26)  {A};
+
+		\node[draw, right = 4pt of C26] (C27)  {A};
+
+
+		\node[draw, below right = 40pt and -20pt of C1] (D1)  {$ \cdot $};
+		\node[draw, right = 0pt of D1] (D2)  {in};
+		\node[draw, right = 0pt of D2] (D3)  {$ \cdot $};
+
+		\node[draw, right = 4pt of D3] (D4)  {$ \cdot $};
+		\node[draw, right = 0pt of D4] (D5)  {$ \Rightarrow $};
+		\node[draw, right = 0pt of D5] (D6)  {$ \cdot $};
+
+		\node[draw, right = 4pt of D6] (D7)  {$ \cdot $};
+		\node[draw, right = 0pt of D7] (D8)  {in};
+		\node[draw, right = 0pt of D8] (D9)  {$ \cdot $};
+
+		\node[draw, right = 4pt of D9] (D10)  {$ \cdot $};
+		\node[draw, right = 0pt of D10] (D11)  {$ \Rightarrow $};
+		\node[draw, right = 0pt of D11] (D12)  {$ \cdot $};
+		
+		\node[draw, right = 4pt of D12] (D13)  {A};
+
+		\node[draw, right = 4pt of D13] (D14)  {A};
+
+		\node[draw, right = 4pt of D14] (D15)  {$ \cdot $};
+		\node[draw, right = 0pt of D15] (D16)  {in};
+		\node[draw, right = 0pt of D16] (D17)  {$ \cdot $};
+
+		\node[draw, right = 4pt of D17] (D18)  {False};
+
+		\node[draw, right = 4pt of D18] (D19)  {A};
+
+		\node[draw, right = 4pt of D19] (D20)  {A};
+
+		\node[draw, right = 4pt of D20] (D21)  {$ \cdot $};
+		\node[draw, right = 0pt of D21] (D22)  {in};
+		\node[draw, right = 0pt of D22] (D23)  {$ \cdot $};
+
+		\node[draw, right = 4pt of D23] (D24)  {False};
+
+		\node[draw, right = 4pt of D24] (D25)  {A};
+
+		\node[draw, right = 4pt of D25] (D26)  {A};
+
+
+		\node[draw, below right = 40pt and -4pt of D1] (E1)  {x};
+
+		\node[draw, right = 4pt of E1] (E2)  {A};
+
+		\node[draw, right = 4pt of E2] (E3)  {$ \cdot $};
+		\node[draw, right = 0pt of E3] (E4)  {in};
+		\node[draw, right = 0pt of E4] (E5)  {$ \cdot $};
+
+		\node[draw, right = 4pt of E5] (E6)  {False};
+
+		\node[draw, right = 4pt of E6] (E7)  {A};
+
+		\node[draw, right = 4pt of E7] (E8)  {A};
+
+		\node[draw, right = 4pt of E8] (E9)  {$ \cdot $};
+		\node[draw, right = 0pt of E9] (E10)  {in};
+		\node[draw, right = 0pt of E10] (E11)  {$ \cdot $};
+
+		\node[draw, right = 4pt of E11] (E12)  {False};
+
+		\node[draw, right = 4pt of E12] (E13)  {A};
+
+		\node[draw, right = 4pt of E13] (E14)  {A};
+
+		\node[draw, right = 80pt of E14] (E15)  {A};
+
+		\node[draw, right = 4pt of E15] (E16)  {A};
+
+
+		\node[draw, below right = 40pt and 40pt of E1] (F1)  {x};
+
+		\node[draw, right = 4pt of F1] (F2)  {x};
+
+		\node[draw, right = 95pt of F2] (F3)  {A};
+
+		\node[draw, right = 4pt of F3] (F4)  {A};
+	\end{scope}
+
+	\begin{scope}[-{Latex[length=5pt,width=5pt]}]
+		\draw (A1.south) -- (B1.north);
+		\draw (A2.south) -- (B2.north);
+		\draw (A4.south) -- (B5.north);
+		\draw (A6.south) -- (B8.north);
+		\draw (A8.south) -- (B11.north);
+		\draw (A10.south) -- (B16.north);
+		\draw (A12.south) -- (B19.north);
+		\draw (A14.south) -- (B22.north);
+
+		\draw (B2.south) -- (C1.north);
+		\draw (B4.south) -- (C2.north);
+		\draw (B5.south) -- (C5.north);
+		\draw (B7.south) -- (C6.north);
+		\draw (B8.south) -- (C9.north);
+		\draw (B10.south) -- (C12.north);
+		\draw (B11.south) -- (C15.north);
+		\draw (B13.south) -- (C18.north);
+		\draw (B15.south) -- (C21.north);
+		\draw (B16.south) -- (C22.north);
+		\draw (B18.south) -- (C25.north);
+		\draw (B19.south) -- (C26.north);
+		\draw (B21.south) -- (C27.north);
+
+		\draw (C2.south) -- (D1.north);
+		\draw (C4.south) -- (D4.north);
+		\draw (C6.south) -- (D7.north);
+		\draw (C8.south) -- (D10.north);
+		\draw (C9.south) -- (D13.north);
+		\draw (C11.south) -- (D14.north);
+		\draw (C12.south) -- (D15.north);
+		\draw (C14.south) -- (D18.north);
+		\draw (C15.south) -- (D19.north);
+		\draw (C17.south) -- (D20.north);
+		\draw (C18.south) -- (D21.north);
+		\draw (C20.south) -- (D24.north);
+		\draw (C22.south) -- (D25.north);
+		\draw (C24.south) -- (D26.north);
+
+		\draw (D1.south) -- (E1.north);
+		\draw (D3.south) -- (E2.north);
+		\draw (D4.south) -- (E3.north);
+		\draw (D6.south) -- (E6.north);
+		\draw (D7.south) -- (E7.north);
+		\draw (D9.south) -- (E8.north);
+		\draw (D10.south) -- (E9.north);
+		\draw (D12.south) -- (E12.north);
+		\draw (D15.south) -- (E13.north);
+		\draw (D17.south) -- (E14.north);
+		\draw (D21.south) -- (E15.north);
+		\draw (D23.south) -- (E16.north);
+
+		\draw (E3.south) -- (F1.north);
+		\draw (E5.south) -- (F2.north);
+		\draw (E9.south) -- (F3.north);
+		\draw (E11.south) -- (F4.north);
+	\end{scope}
+
+\end{tikzpicture}
+
+%\end{document} 

@@ -1,0 +1,1948 @@
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\begin_preamble
+\usepackage{minted}
+\usepackage{xcolor}
+ 	\definecolor{magnolia}{rgb}{0.97, 0.96, 1.0}
+\setminted{
+  bgcolor=magnolia,
+}
+\newcommand\prv{bc}
+\newcommand\m[1]{\mintinline{\prv}{#1}}
+
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usetikzlibrary{positioning}
+\usetikzlibrary{arrows.meta}
+\end_preamble
+\use_default_options true
+\maintain_unincluded_children false
+\language british
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\use_minted 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 2cm
+\rightmargin 2cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style british
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+
+\family typewriter
+\shape smallcaps
+[prove]
+\end_layout
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
+This document is work in progress.
+ The purpose of this document to introduce notation and vocabulary in order
+ to facilitate efficient communication about this project.
+ Underlying concepts are explained verbally and/or formally in order to
+ detect any possible misconceptions of the matter.
+ Furthermore this document could serve as an introduction to the project,
+ if somebody wants to join.
+ Especially with respect to this last point it might be useful to include
+ a short discussion of the following through points at the beginning of
+ this document (this is a TODO list):
+\end_layout
+
+\begin_layout Itemize
+a short verbal explanation of the purpose and form of the 
+\family typewriter
+\shape smallcaps
+[prove]
+\family default
+\shape default
+ language
+\end_layout
+
+\begin_layout Itemize
+a list of terms we have agreed upon to describe certain entities, e.g.
+ statement, formula, formulator, variable, constant, identifier, ...
+ (we might have to have a look at our agreements again)
+\end_layout
+
+\begin_layout Itemize
+the meaning of an implication and an equality
+\end_layout
+
+\begin_layout Itemize
+to be continued ...
+\end_layout
+
+\begin_layout Standard
+At the moment this document starts off right, where we ended our last discussion
+, so no great explanations of things that we have agreed upon are present
+ at the moment.
+\end_layout
+
+\begin_layout Section
+Terminology
+\end_layout
+
+\begin_layout Itemize
+statement
+\end_layout
+
+\begin_layout Itemize
+formula
+\end_layout
+
+\begin_layout Itemize
+formulator
+\end_layout
+
+\begin_layout Itemize
+identifier
+\end_layout
+
+\begin_layout Itemize
+variable
+\end_layout
+
+\begin_layout Itemize
+constant
+\end_layout
+
+\begin_layout Itemize
+implication
+\end_layout
+
+\begin_layout Itemize
+equality
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Syntax
+\end_layout
+
+\begin_layout Subsection
+EBNF
+\end_layout
+
+\begin_layout Subsubsection
+A first sketch
+\end_layout
+
+\begin_layout Standard
+The syntax of the 
+\family typewriter
+\shape smallcaps
+[prove]
+\family default
+\shape default
+ language can conveniently be described by means of the extended Backus-Naur
+ form
+\begin_inset CommandInset citation
+LatexCommand cite
+key "EBNF Wikipedia page"
+literal "false"
+
+\end_inset
+
+ (EBNF), which is a meta syntax notation defined in the ISO/IEC 14977 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "ISO/IEC 14977 standard"
+literal "false"
+
+\end_inset
+
+ standard.
+ Using an EBNF enables us to recursively and unambiguously describe nested
+ patterns by grouping syntactic elements to so called 
+\begin_inset Formula $\langle\texttt{production}\rangle$
+\end_inset
+
+s.
+ It must always be possible to 
+\begin_inset Quotes bld
+\end_inset
+
+unpack
+\begin_inset Quotes brd
+\end_inset
+
+ a production in a unique and finite way, resulting in a (sequence of) 
+\shape italic
+terminal
+\shape default
+ symbols, indicated by quotation marks.
+ In order to correctly interpret the 
+\family typewriter
+\shape smallcaps
+[prove]
+\family default
+\shape default
+-EBNF it is sufficient to understand the meaning of the following meta character
+s:
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace bigskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\paragraph_spacing double
+\begin_inset Tabular
+<lyxtabular version="3" rows="4" columns="2">
+<features tabularvalignment="middle">
+<column alignment="left" valignment="top">
+<column alignment="left" valignment="top">
+<row>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $|$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+indicates 
+\begin_inset Quotes bld
+\end_inset
+
+or
+\begin_inset Quotes brd
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $(\dots)$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+groups productions and/or terminals together; only useful in combination
+ with 
+\begin_inset Formula $|$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $[\dots]$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+indicates optionality
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\{\dots\}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+indicates zero or more repetitions
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\begin_inset VSpace bigskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Using this notation the 
+\family typewriter
+\shape smallcaps
+[prove]
+\family default
+\shape default
+ language can be described by the following EBNF:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+\langle\texttt{formula}\rangle & =\bigg\{\langle\texttt{statement}\rangle\langle\texttt{formulator}\rangle\Big|\langle\texttt{formulator}\rangle\langle\texttt{statement}\rangle\bigg\}\\
+\langle\texttt{statement}\rangle & =\textrm{"["}\Big(\langle\texttt{formula}\rangle\Big|\langle\texttt{string}\rangle\Big|\langle\texttt{statement}\rangle\Big)\textrm{"]"}\bigg\{\textrm{"[" }\Big(\langle\texttt{formula}\rangle\Big|\langle\texttt{string}\rangle\Big|\langle\texttt{statement}\rangle\Big)\textrm{ "]" }\bigg\}\\
+\langle\texttt{formulator\ensuremath{\rangle}} & =\textrm{"="\ensuremath{\Big|\texttt{"=>"}\Big|\langle\texttt{string\ensuremath{\rangle}}}}\\
+\langle\texttt{string\ensuremath{\rangle}} & =\langle\texttt{symbol}\rangle\bigg\{\langle\texttt{symbol}\rangle\bigg\}\\
+\langle\texttt{symbol\ensuremath{\rangle}} & =\Big(\textrm{"a"}\Big|\textrm{"b"}\Big|\dots\Big|\textrm{"z"}\Big|\textrm{"A"}\Big|\textrm{"B"}\Big|\dots\Big|\textrm{"Z"}\Big|\textrm{"0"}\Big|\textrm{"1"}\Big|\dots\Big|\textrm{"9"}\Big|\textrm{"+"\Big|\textrm{"-"}\Big|\textrm{"/"\Big|\textrm{"*"}\Big|\textrm{"\%"\Big|\textrm{"\textasciicircum"}\Big|\textrm{"\&"}\Big|\textrm{"."}\Big|\textrm{"?"}\Big|\textrm{"!"}}}}\Big)
+\end{align*}
+
+\end_inset
+
+
+\begin_inset VSpace defskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Every EBNF needs to have an initial production as a starting point.
+ It is convention that this distinguished production is to be listed first,
+ so in this case, 
+\begin_inset Formula $\langle\texttt{formula}\rangle$
+\end_inset
+
+ is the initial production.
+ One might notice that a 
+\begin_inset Formula $\langle\texttt{formula}\rangle$
+\end_inset
+
+ might be empty and a 
+\begin_inset Formula $\langle\texttt{statement}\rangle$
+\end_inset
+
+ may contain such an empty 
+\begin_inset Formula $\langle\texttt{formula}\rangle$
+\end_inset
+
+.
+ We can reason about whether this makes sense or not, and it might be necessary
+ to revise these definitions, but currently I just regard these situations
+ as edge cases with no harmful implications.
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Examples
+\end_layout
+
+\begin_layout Standard
+Here are some examples of productions and some motivations for the design
+ of the syntax.
+ We will work our way up from bottom to top through the EBNF.
+\end_layout
+
+\begin_layout Itemize
+A 
+\begin_inset Formula $\langle\texttt{symbol}\rangle$
+\end_inset
+
+ can be any letter, number or one of the 10 special characters as indicated
+ in the EBNF.
+ Examples of valid 
+\begin_inset Formula $\langle\texttt{symbol}\rangle$
+\end_inset
+
+s are 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{a}
+\end_layout
+
+\end_inset
+
+, 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{T}
+\end_layout
+
+\end_inset
+
+, 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{7}
+\end_layout
+
+\end_inset
+
+, 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{&}
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+A 
+\begin_inset Formula $\langle\texttt{string}\rangle$
+\end_inset
+
+ is a sequence of one or more symbols.
+ Examples of valid 
+\begin_inset Formula $\langle\texttt{string}\rangle$
+\end_inset
+
+s are: 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{a7we}
+\end_layout
+
+\end_inset
+
+, 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{T}
+\end_layout
+
+\end_inset
+
+, 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{76}
+\end_layout
+
+\end_inset
+
+, 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{&q}
+\end_layout
+
+\end_inset
+
+.
+ Note that 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{T}
+\end_layout
+
+\end_inset
+
+ is a 
+\begin_inset Formula $\langle\texttt{string}\rangle$
+\end_inset
+
+ and a 
+\begin_inset Formula $\langle\texttt{symbol}\rangle$
+\end_inset
+
+ at the same time.
+ This does not mean that the grammar is ambiguous.
+ A single 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{T}
+\end_layout
+
+\end_inset
+
+ will always be interpreted in this way, but it depends on the context,
+ whether we are interested in the fact of 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{T}
+\end_layout
+
+\end_inset
+
+ being a 
+\begin_inset Formula $\langle\texttt{string}\rangle$
+\end_inset
+
+ or 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{T}
+\end_layout
+
+\end_inset
+
+ being a 
+\begin_inset Formula $\langle\texttt{symbol}\rangle$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+A 
+\begin_inset Formula $\langle\texttt{formulator}\rangle$
+\end_inset
+
+ is either a 
+\begin_inset Formula $\langle\texttt{string}\rangle$
+\end_inset
+
+ or any one of the terminals 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=}
+\end_layout
+
+\end_inset
+
+ or 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=>}
+\end_layout
+
+\end_inset
+
+.
+ Examples of valid 
+\begin_inset Formula $\langle\texttt{formulator}\rangle$
+\end_inset
+
+s are 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{a7we}
+\end_layout
+
+\end_inset
+
+, 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{T}
+\end_layout
+
+\end_inset
+
+, 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=}
+\end_layout
+
+\end_inset
+
+, 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=>}
+\end_layout
+
+\end_inset
+
+.
+ Note that 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=T}
+\end_layout
+
+\end_inset
+
+ is not a valid 
+\begin_inset Formula $\langle\texttt{formulator}\rangle$
+\end_inset
+
+.
+ Seeing that 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{T}
+\end_layout
+
+\end_inset
+
+ can be a 
+\begin_inset Formula $\langle\texttt{formulator}\rangle$
+\end_inset
+
+ (comprised of a 
+\begin_inset Formula $\langle\texttt{string}\rangle$
+\end_inset
+
+) in one case and just a 
+\begin_inset Formula $\langle\texttt{string}\rangle$
+\end_inset
+
+ (not packed inside a 
+\begin_inset Formula $\langle\texttt{formulator}\rangle$
+\end_inset
+
+) in another case, one might worry about ambiguity.
+ However, having a close look at the EBNF, we see that 
+\begin_inset Formula $\langle\texttt{formulator}\rangle$
+\end_inset
+
+s only occur in between 
+\begin_inset Formula $\langle\texttt{statement}\rangle$
+\end_inset
+
+s and 
+\begin_inset Formula $\langle\texttt{string}\rangle$
+\end_inset
+
+s only within 
+\begin_inset Formula $\langle\texttt{statement}\rangle$
+\end_inset
+
+s.
+ The user of the language has great freedom in naming formulators and identifier
+s (TODO: define formulators and identifiers in this document, i.e.
+ not the productions, but what they represent), so it is up to the user
+ to choose them wisely.
+ It could for example be confusing to name a formulator 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{7}
+\end_layout
+
+\end_inset
+
+, but 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{add7}
+\end_layout
+
+\end_inset
+
+ makes intuitively sense.
+\end_layout
+
+\begin_layout Itemize
+A 
+\begin_inset Formula $\langle\texttt{statement}\rangle$
+\end_inset
+
+ is a concatenation of one or more pairs of square brackets each containing
+ either a 
+\begin_inset Formula $\langle\texttt{formula}\rangle$
+\end_inset
+
+, a 
+\begin_inset Formula $\langle\texttt{string}\rangle$
+\end_inset
+
+ or a 
+\begin_inset Formula $\langle\texttt{statement}\rangle$
+\end_inset
+
+.
+ Examples of valid 
+\begin_inset Formula $\langle\texttt{statement}\rangle$
+\end_inset
+
+s are 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{[]}
+\end_layout
+
+\end_inset
+
+, 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{[a][b][[a]in[b]]}
+\end_layout
+
+\end_inset
+
+, 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{[[]]}
+\end_layout
+
+\end_inset
+
+, 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{[[a]or[b]]}
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+A 
+\begin_inset Formula $\langle\texttt{formula}\rangle$
+\end_inset
+
+ is comprised of at least one 
+\begin_inset Formula $\langle\texttt{statement}\rangle$
+\end_inset
+
+ and at least one 
+\begin_inset Formula $\langle\texttt{formulator}\rangle$
+\end_inset
+
+.
+ The order of occurence does not matter.
+ Examples of valid 
+\begin_inset Formula $\langle\texttt{formula}\rangle$
+\end_inset
+
+e are 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{[a]in[b]}
+\end_layout
+
+\end_inset
+
+, 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{[a]=[b][c]}
+\end_layout
+
+\end_inset
+
+, 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{[[a]a7we[b]]=>[c]}
+\end_layout
+
+\end_inset
+
+.
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Improving the sketch
+\end_layout
+
+\begin_layout Standard
+As intuitive and beautiful (due to its simplicity) this first sketch might
+ look, there are a few problems with it.
+ Firstly a proof might be given in form of a statement or in form of a formula.
+ Secondly, when parsing a 
+\begin_inset Formula $\langle\texttt{statement}\rangle$
+\end_inset
+
+ we might have to look far ahead after encountering the leading 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{[}
+\end_layout
+
+\end_inset
+
+ in order to determine, whether we are handling a 
+\begin_inset Formula $\langle\texttt{formula}\rangle$
+\end_inset
+
+ or a 
+\begin_inset Formula $\langle\texttt{statement}\rangle$
+\end_inset
+
+.
+ One way to address this issue is, to start parsing a 
+\begin_inset Formula $\langle\texttt{formula}\rangle$
+\end_inset
+
+, after reading a 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{[}
+\end_layout
+
+\end_inset
+
+, but then, when not finding a 
+\begin_inset Formula $\langle\texttt{formulator}\rangle$
+\end_inset
+
+, not to report an error, but to proceed with the steps that would follow
+ when parsing a statement.
+ To encode this behaviour in the EBNF and to address the issue of having
+ the proof as a whole in form of a statement or a formula, we can introduce
+ a helper production 
+\begin_inset Formula $\langle\texttt{expr}\rangle$
+\end_inset
+
+(for expression) containing either a 
+\begin_inset Formula $\langle\texttt{formula}\rangle$
+\end_inset
+
+ or a 
+\begin_inset Formula $\langle\texttt{statement}\rangle$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+\langle\texttt{expr}\rangle & =\langle\texttt{statement}\rangle\Big|\langle\texttt{formula}\rangle\\
+\langle\texttt{formula}\rangle & =\bigg\{\langle\texttt{statement}\rangle\langle\texttt{formulator}\rangle\Big|\langle\texttt{formulator}\rangle\langle\texttt{statement}\rangle\bigg\}\\
+\langle\texttt{statement}\rangle & =\textrm{"["}\Big(\langle\texttt{expr}\rangle\Big|\langle\texttt{string}\rangle\Big)\textrm{"]"}\bigg\{\textrm{"[" }\Big(\langle\texttt{expr}\rangle\Big|\langle\texttt{string}\rangle\Big)\textrm{ "]" }\bigg\}\\
+\langle\texttt{formulator\ensuremath{\rangle}} & =\textrm{"="\ensuremath{\Big|\texttt{"=>"}\Big|\langle\texttt{string\ensuremath{\rangle}}}}\\
+\langle\texttt{string\ensuremath{\rangle}} & =\langle\texttt{symbol}\rangle\bigg\{\langle\texttt{symbol}\rangle\bigg\}\\
+\langle\texttt{symbol\ensuremath{\rangle}} & =\Big(\textrm{"a"}\Big|\textrm{"b"}\Big|\dots\Big|\textrm{"z"}\Big|\textrm{"A"}\Big|\textrm{"B"}\Big|\dots\Big|\textrm{"Z"}\Big|\textrm{"0"}\Big|\textrm{"1"}\Big|\dots\Big|\textrm{"9"}\Big|\textrm{"+"\Big|\textrm{"-"}\Big|\textrm{"/"\Big|\textrm{"*"}\Big|\textrm{"\%"\Big|\textrm{"\textasciicircum"}\Big|\textrm{"\&"}\Big|\textrm{"."}\Big|\textrm{"?"}\Big|\textrm{"!"}}}}\Big)
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Scanning
+\end_layout
+
+\begin_layout Standard
+Briefly discuss the tokenisation.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{minted}[linenos]{c}
+\end_layout
+
+\begin_layout Plain Layout
+
+typedef enum {
+\end_layout
+
+\begin_layout Plain Layout
+
+    TOK_EOF,     /* end-of-file */
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+    TOK_LBRACK,  /* left bracket */
+\end_layout
+
+\begin_layout Plain Layout
+
+    TOK_RBRACK,  /* right bracket */
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+    TOK_IMPLY,   /* implication */
+\end_layout
+
+\begin_layout Plain Layout
+
+    TOK_EQ,      /* equality */
+\end_layout
+
+\begin_layout Plain Layout
+
+    TOK_STR      /* string */
+\end_layout
+
+\begin_layout Plain Layout
+
+} TType;
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{minted}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Semantic
+\end_layout
+
+\begin_layout Standard
+When generating a couple of syntactically correct snippets of 
+\family typewriter
+\shape smallcaps
+[prove]
+\family default
+\shape default
+code, one realises that not all code adhering to the rules of the EBNF makes
+ sense - at least not without introducing more conventions.
+ Consider the following code:
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{minted}{
+\backslash
+prv}
+\end_layout
+
+\begin_layout Plain Layout
+
+[a]and[b]=[c]=>[b][c]
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{minted}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The use of 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=}
+\end_layout
+
+\end_inset
+
+ and 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=>}
+\end_layout
+
+\end_inset
+
+ is ambiguous in this context, since 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=}
+\end_layout
+
+\end_inset
+
+ could refer to everything on its right hand side or just to 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{[c]}
+\end_layout
+
+\end_inset
+
+.
+ Similarly 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=>}
+\end_layout
+
+\end_inset
+
+ could refer to everything to its left hand side or just to 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{[c]}
+\end_layout
+
+\end_inset
+
+.
+ This problem could be addressed by introducing an order of precedence (e.g.
+ non reserved formulators, 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=}
+\end_layout
+
+\end_inset
+
+, 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=>}
+\end_layout
+
+\end_inset
+
+).
+ However, the implications of this approach should be carefully considered.
+ Precedence can easily be encoded in the EBNF, without changing the set
+ of valid code patterns.
+ By doing so we could elegantly encode a part of the language's meaning
+ in its syntactic structure.
+ As tempting as this idea might be, I can see a negative side effect coming
+ along with this approach.
+ Introducing precedence between formulators will set brackets 
+\shape italic
+implicitly.
+ 
+\shape default
+Since the visibility and meaning of identifiers (variables/constants)
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+define identifiers
+\end_layout
+
+\end_inset
+
+ depends on the depth of nesting of statements (i.e.
+ on brackets), the approach of precedence might lead to counter-intuitive
+ code.
+ Therefore I recommend against the precedence approach.
+ 
+\end_layout
+
+\begin_layout Standard
+Instead I suggest the following semantic rules, which will address this
+ and other issues after the code is confirmed to be syntactically correct:
+\end_layout
+
+\begin_layout Itemize
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=}
+\end_layout
+
+\end_inset
+
+, 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=>}
+\end_layout
+
+\end_inset
+
+ and other formulators must not be mixed
+\end_layout
+
+\begin_layout Itemize
+new identifiers must only be introduced before the first 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=>}
+\end_layout
+
+\end_inset
+
+ in a formula
+\end_layout
+
+\begin_layout Itemize
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=>}
+\end_layout
+
+\end_inset
+
+ must not appear at the end of a 
+\begin_inset Formula $\langle\texttt{statement}\rangle$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=}
+\end_layout
+
+\end_inset
+
+ may appear only once in a 
+\begin_inset Formula $\langle\texttt{formula}\rangle$
+\end_inset
+
+ and must not appear at the beginning nor at the end of a 
+\begin_inset Formula $\langle\texttt{formula}\rangle$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Parsing
+\end_layout
+
+\begin_layout Standard
+Briefly discuss the parser functions.
+ Maybe.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Representation
+\end_layout
+
+\begin_layout Subsection
+Example: Russel's Paradox
+\end_layout
+
+\begin_layout Standard
+A first example, we considered is the following proof of Russel's Paradox.
+ The purpose of this 
+\family typewriter
+\shape smallcaps
+[prove]
+\family default
+\shape default
+code is to provide a valid proof as a starting point for investigating further,
+ which rules a data type representation should follow and which properties
+ it must have.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{minted}[linenos]{
+\backslash
+prv}
+\end_layout
+
+\begin_layout Plain Layout
+
+[A] [ [x] => [ [[x]in[A]] = [[[x]in[x]]=>[False]] ] ] =>
+\end_layout
+
+\begin_layout Plain Layout
+
+[ [A] => [[[A]in[A]] = [[[A]in[A]]=>[False]]] ] =>
+\end_layout
+
+\begin_layout Plain Layout
+
+[ [[A]in[A]] = [[[A]in[A]]=>[False]] ] =>
+\end_layout
+
+\begin_layout Plain Layout
+
+[ [[A]in[A]] =>
+\end_layout
+
+\begin_layout Plain Layout
+
+	[[[A]in[A]]=>[False]] =>
+\end_layout
+
+\begin_layout Plain Layout
+
+	[False]] =>
+\end_layout
+
+\begin_layout Plain Layout
+
+[ [[A]in[A]] =>
+\end_layout
+
+\begin_layout Plain Layout
+
+[False]] =>
+\end_layout
+
+\begin_layout Plain Layout
+
+[ [A]in[A] ] =>
+\end_layout
+
+\begin_layout Plain Layout
+
+[False] 
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{minted}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In the following subsections, we will showcase a possible representation
+ of the structure of this proof as a graph and the C implementation of this
+ graph.
+\end_layout
+
+\begin_layout Subsection
+Graph representation
+\end_layout
+
+\begin_layout Subsubsection
+Nodes
+\end_layout
+
+\begin_layout Standard
+Here comes a picture to illustrate the structure as well as the corresponding
+ C code.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{minted}[linenos]{c}
+\end_layout
+
+\begin_layout Plain Layout
+
+typedef struct Pnode {
+\end_layout
+
+\begin_layout Plain Layout
+
+    struct pnode* parent;
+\end_layout
+
+\begin_layout Plain Layout
+
+    struct pnode* child;
+\end_layout
+
+\begin_layout Plain Layout
+
+    struct pnode* left;
+\end_layout
+
+\begin_layout Plain Layout
+
+    struct pnode* right;
+\end_layout
+
+\begin_layout Plain Layout
+
+    char* symbol;
+\end_layout
+
+\begin_layout Plain Layout
+
+    Flags flags;
+\end_layout
+
+\begin_layout Plain Layout
+
+    int varcount;
+\end_layout
+
+\begin_layout Plain Layout
+
+} Pnode;
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{minted}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Graph
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand input
+filename "graph.tex"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+mention context dependence of identifiers
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Flags
+\end_layout
+
+\begin_layout Standard
+Here comes some explanation of the purpose of each flag as well as the correspon
+ding C code.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{minted}[linenos]{c}
+\end_layout
+
+\begin_layout Plain Layout
+
+typedef enum {
+\end_layout
+
+\begin_layout Plain Layout
+
+    FLAG_START = 0,
+\end_layout
+
+\begin_layout Plain Layout
+
+    FLAG_IMPL = 1,
+\end_layout
+
+\begin_layout Plain Layout
+
+    FLAG_EQTY = 2,
+\end_layout
+
+\begin_layout Plain Layout
+
+    FLAG_FMTR = 4,
+\end_layout
+
+\begin_layout Plain Layout
+
+    FLAG_ASMP = 8
+\end_layout
+
+\begin_layout Plain Layout
+
+} Flags; 
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{minted}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Differences between implication and equality
+\end_layout
+
+\begin_layout Standard
+Maybe a table would be helpful here.
+\end_layout
+
+\begin_layout Subsection
+The variable counter
+\end_layout
+
+\begin_layout Standard
+Explain the purpose of the variable counter.
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Creation of the graph
+\end_layout
+
+\begin_layout Standard
+Discuss this code:
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{minted}[linenos]{c}
+\end_layout
+
+\begin_layout Plain Layout
+
+#define IS_CONST_NODE(pnode) (pnode->child->symbol != NULL)
+\end_layout
+
+\begin_layout Plain Layout
+
+#define IS_LEAF_NODE(pnode) (pnode->symbol != NULL)
+\end_layout
+
+\begin_layout Plain Layout
+
+#define IS_LEFTMOST_NODE(pnode) (pnode->left == NULL)
+\end_layout
+
+\begin_layout Plain Layout
+
+#define IS_START_NODE(pnode) (pnode->flags == FLAG_START)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+#define SET_IMPL(pnode) (pnode->flags &= FLAG_IMPL)
+\end_layout
+
+\begin_layout Plain Layout
+
+#define SET_EQTY(pnode) (pnode->flags &= FLAG_EQTY)
+\end_layout
+
+\begin_layout Plain Layout
+
+#define SET_FMTR(pnode) (pnode->flags &= FLAG_FMTR)
+\end_layout
+
+\begin_layout Plain Layout
+
+#define SET_ASMP(pnode) (pnode->flags &= FLAG_ASMP)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+#define UNSET_ASMP(pnode) (pnode->flags &= ~FLAG_ASMP)
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{minted}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Verification
+\end_layout
+
+\begin_layout Itemize
+only 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=>}
+\end_layout
+
+\end_inset
+
+ triggers verification
+\end_layout
+
+\begin_layout Itemize
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=>}
+\end_layout
+
+\end_inset
+
+ is an assumption (i.e.
+ does not trigger verification), if statements to the left contain 
+\shape italic
+new 
+\shape default
+constants but no variables
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "EBNF Wikipedia page"
+literal "false"
+
+\end_inset
+
+
+\begin_inset CommandInset href
+LatexCommand href
+name "https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form"
+target "https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "ISO/IEC 14977 standard"
+literal "false"
+
+\end_inset
+
+
+\begin_inset CommandInset href
+LatexCommand href
+name "https://www.cl.cam.ac.uk/~mgk25/iso-14977.pdf"
+target "https://www.cl.cam.ac.uk/~mgk25/iso-14977.pdf"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "BNF Wikipedia page"
+literal "false"
+
+\end_inset
+
+
+\begin_inset CommandInset href
+LatexCommand href
+name "https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_Form"
+target "https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_Form"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
