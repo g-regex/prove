@@ -3,24 +3,19 @@
 
 #define MAX_ID_LENGTH 32
 
+#define IS_FORMULATOR(type) \
+	(type == TOK_STR || type == TOK_IMPLY || type == TOK_EQ)
+
 /* recognisable tokens */
 typedef enum {
-
 	TOK_EOF,     /* end-of-file */
 
 	TOK_LBRACK,  /* left bracket */
 	TOK_RBRACK,  /* right bracket */
 
-	/* operands */
-	TOK_VAR,     /* variable */
-	TOK_NUM,     /* number */
-
-	/* symbols */
-	TOK_IMPLY,   /* implication symbol */
-	TOK_SYM,     /* other symbol */
-
-	TOK_FALSE, /*< false */
-
+	TOK_IMPLY,   /* implication */
+	TOK_EQ,		 /* equality */
+	TOK_STR      /* string */
 } TType;
 
 typedef struct {
@@ -32,6 +27,7 @@ typedef struct {
 } Token;
 
 int search(char *pat);
+int isspecial(char ch);
 TType get_token_type(int cmp);
 
 #endif /* TOKEN_H */

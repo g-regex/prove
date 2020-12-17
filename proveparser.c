@@ -2,24 +2,30 @@
 #include <stdlib.h>
 #include "pscanner.h"
 #include "debug.h"
+#include "pgraph.h"
 
 #define TRUE 1
 #define FALSE 0
 
-#define IS_SYMBOL(type) \
-	(type == TOK_IMPLY || type == TOK_SYM)
+#define DPARSER
 
-#define STARTS_STATEMENT(type) \
-	(type == TOK_LBRACK)
+#ifdef DPARSER
+#define DBG(enable, msg) \
+	if (!quiet && ((output_lvl == -1 && enable) || output_lvl == lvl)) \
+	printf("%s", msg);
+#else
+#define DBG(msg)
+#endif
 
-Token    token;                       /* current token               */
-FILE    *file;                        /* [prove] source file         */
-static unsigned short int lvl;        /* indentation level           */
-static unsigned short int output_lvl; /* print, when on this level   */
+Token    token;                     /* current token               */
+Pnode    pnode;                     /* current node in graph       */
+FILE    *file;                      /* [prove] source file         */
+static unsigned short int lvl;      /* indentation level           */
+static short int output_lvl;		/* print, when on this level   */
 
-void parse_chain(void);
+void parse_expr(void);
+int parse_formula(void);
 void parse_statement(void);
-void parse_operand(void);
 
 void expect(TType type);
 
@@ -36,6 +42,7 @@ int main(int argc, char *argv[])
 
 	lvl = 0;
 	init_scanner(file);
+	init_pgraph(&pnode);
 	next_token(&token);
 
 	if (argc == 4) {
@@ -45,12 +52,13 @@ int main(int argc, char *argv[])
 	if (argc == 3) {
 		output_lvl = atoi(argv[2]);
 	} else {
-		output_lvl = 0;
+		output_lvl = -1;
 	}
 
-	/* <expressions> */
+	/* <expr>
+	 * (loop probably not needed) */
 	while (token.type != TOK_EOF) {
-		parse_chain();
+		parse_expr();
 	}
 
 	fclose(file);
@@ -60,86 +68,112 @@ int main(int argc, char *argv[])
 
 /* --- parser functions ------------------------------------------------------*/
 
-/*
- * {(<statement>|<symbol>)} <statement> {(<statement>|<symbol>)}
- */
-void parse_chain(void)
+void parse_expr(void)
 {
-	unsigned short int stmnt_encountered = FALSE;
-	unsigned short int proceed = TRUE;
-	while (proceed) {
-		if (IS_SYMBOL(token.type)) {
-			if (lvl == output_lvl && !quiet) {
-				printf("%s", token.id);
-			}
-			next_token(&token);
-		} else if (STARTS_STATEMENT(token.type)) {
-			if (lvl == output_lvl - 1 && !quiet) {
-				printf("(");
-			} else if (lvl == output_lvl && !quiet) {
-				printf(".");
-			}
-			parse_statement();
-			if (lvl == output_lvl - 1 && !quiet) {
-				printf(")");
-			}
-			stmnt_encountered = TRUE;
-		} else {
-			proceed = FALSE;
-		}
-	}
-
-	if (!stmnt_encountered) {
-		/* ERROR */
-		if (!quiet) {
-			fprintf(stderr, "expected <statement> on line %d, column %d\n",
-					 cursor.line, cursor.col);
-		}
-		exit(EXIT_FAILURE);
+	if (parse_formula()) {
+	} else {
 	}
 }
 
 /*
  * "[" (<operand>|<chain>|"false") "]"
  */
-void parse_statement(void)
+int parse_formula(void)
 {
-	expect(TOK_LBRACK);
-	lvl++;
-
-	if (token.type == TOK_FALSE) {
-		next_token(&token);
-	} else if (token.type == TOK_VAR || token.type == TOK_NUM) {
-		parse_operand();
-	} else if (STARTS_STATEMENT(token.type) || IS_SYMBOL(token.type)) {
-		parse_chain();
-	} else {
-		if (!quiet) {
-			fprintf(stderr, "expected <operand>, <chain> or \"false\" "
-				"on line %d, column %d\n",
-					 cursor.line, cursor.col);
+	for (int proceed = TRUE; proceed;) {
+		if (IS_FORMULATOR(token.type)) {
+			DBG(TRUE, token.id)
+			next_token(&token);
+			DBG(FALSE, ".")
+			parse_statement();
+			if (!IS_FORMULATOR(token.type)) {
+				proceed = FALSE;
+			}
+		} else {
+			DBG(FALSE, ".")
+			parse_statement();
+			if (!IS_FORMULATOR(token.type)) {
+				/*if (!quiet) {
+					fprintf(stderr, "expected <formulator> "
+						"on line %d, column %d\n",
+							 cursor.line, cursor.col);
+				}
+				exit(EXIT_FAILURE);*/
+				return FALSE;
+			} else {
+				DBG(TRUE, token.id)
+				next_token(&token);
+				if (token.type != TOK_LBRACK) {
+					proceed = FALSE;
+				}
+			}
 		}
-		exit(EXIT_FAILURE);
 	}
-
-	expect(TOK_RBRACK);
-	lvl--;
+	return TRUE;
 }
 
-/*
- * <number>| /variable name/
- */
-void parse_operand(void)
+void parse_statement(void)
 {
-	if (token.type == TOK_NUM || token.type == TOK_VAR) {
-		next_token(&token);
-	} else {
-		/* ERROR */
-		if (!quiet) {
-			fprintf(stderr, "expected <operand> on line %d, column %d\n",
-					 cursor.line, cursor.col);
+	for (int proceed = TRUE; proceed;) {
+		lvl++;
+		DBG(TRUE, token.id)
+		expect(TOK_LBRACK);
+		/*if (lvl == output_lvl && !quiet) {
+			printf("%s", token.id);
+			printf("[");
+		}*/
+
+		if (token.type == TOK_STR) {
+#ifdef DPARSER
+			char prev_id[MAX_ID_LENGTH];
+			strcpy(prev_id, token.id); //remember previous token id for debugging
+#endif
+			next_token(&token);
+			if (token.type == TOK_RBRACK) {
+				/* token is an identifier */
+				DBG(TRUE, prev_id)
+			} else if (token.type == TOK_LBRACK) {
+				/* token is a formulator */
+				DBG(TRUE, prev_id)
+				parse_expr();
+			} else {
+				/* formulators must not be mixed/identifiers must not contain = */
+				/* ERROR */
+			}
+		} else if (token.type == TOK_IMPLY) {
+			DBG(TRUE, token.id)
+			/* token is an implication symbol */
+			next_token(&token);
+			if (token.type == TOK_RBRACK) {
+				/* implications must not appear at the end */
+				/* ERROR */
+			} else if (token.type == TOK_LBRACK) {
+				/* only valid option */
+				parse_expr();
+			} else {
+				/* formulators must not be mixed/identifiers must not contain = */
+				/* ERROR */
+			}
+		} else if (token.type == TOK_EQ) {
+			DBG(TRUE, token.id)
+			/* statements must not begin with an equality token */
+			/* ERROR */
+		} else if (token.type == TOK_LBRACK) {
+			parse_expr();
+		} else if (token.type == TOK_RBRACK) {
+			/* empty statement */
+		} else {
+			/* cannot go here, undefined behaviour */
+			/* ERROR */
 		}
-		exit(EXIT_FAILURE);
+
+		DBG(TRUE, token.id)
+		expect(TOK_RBRACK);
+		lvl--;
+
+		if (token.type != TOK_LBRACK) {
+			proceed = FALSE;
+		}
 	}
 }
 

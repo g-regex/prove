@@ -8,8 +8,23 @@ typedef struct {
 
 /* representation of reserved keywords */
 Reserved reserved[] = {
-	{ "false",   TOK_FALSE     },
+	{ "=>",		TOK_IMPLY   },
+	{ "=",		TOK_EQ		},
 };
+
+int isspecial(char ch)
+{
+	/* permitted special characters */
+	char special[] = {'+', '-', '/', '*', '%', '^', '&', '.', '?', '!'};
+	int num_special = 10;
+	
+	for (int i = 0; i < num_special; i++) {
+		if (ch == special[i]) {
+			return 1;
+		}
+	}
+	return 0;
+}
 
 TType get_token_type(int cmp)
 {

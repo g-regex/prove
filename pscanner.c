@@ -15,10 +15,8 @@ static int   ch;   /* current character                  */
 
 static void next_char(void); /* advances the "cursor" to the next character */
 
-/* reads a <number> token and stores its integer value to token->value */
-static void process_number(Token *token);
 /* reads an identifier for a <symbol> or <operand> and stores it to token->id */
-static void process_word(Token *token);
+static void process_string(Token *token);
 
 /* initialises the scanner */
 void init_scanner(FILE *f)
@@ -46,46 +44,34 @@ void next_token(Token *token)
 
 	/* get the next token */
 	if (ch != EOF) {
-		if (isalpha(ch) && ch != '\\') {
-			/* process an <operand> */
-			token->type = TOK_VAR;
-			process_word(token);
-		} else if (isdigit(ch)) {
-
-			/* process a <number> */
-			process_number(token);
-
+		if (isalpha(ch) || isdigit(ch) || isspecial(ch)) {
+			/* process a <string> */
+			token->type = TOK_STR;
+			process_string(token);
 		} else switch (ch) {
 			case '[':
 				cursor.col = col;
 				token->type = TOK_LBRACK;
+				strcpy(token->id, "[");
 				next_char();
 				break;
 			case ']':
 				cursor.col = col;
 				token->type = TOK_RBRACK;
+				strcpy(token->id, "]");
 				next_char();
 				break;
-			case ':':
-				cursor.col = col;
-				token->type = TOK_IMPLY;
-				strcpy(token->id, ":");
-				next_char();
-				break;
-			case '\\':
-				/* process a <symbol> */
+			case '=':
 				cursor.col = col;
 				next_char();
-				if (!isalpha(ch)) {
-					/* ERROR */
-					if (!quiet) {
-						fprintf(stderr, "illegal character '%c' at line %d, column %d\n",
-								ch, cursor.line, cursor.col);
-					}
-					exit(EXIT_FAILURE);
+				if (ch == '>') {
+					token->type = TOK_IMPLY;
+					strcpy(token->id, "=>");
+					next_char();
+				} else {
+					token->type = TOK_EQ;
+					strcpy(token->id, "=");
 				}
-				token->type = TOK_SYM;
-				process_word(token);
 				break;
 			default:
 				cursor.col = col;
@@ -124,56 +110,34 @@ void next_char(void)
 	col++;
 }
 
-void process_word(Token *token)
+void process_string(Token *token)
 {
-	char word[MAX_ID_LENGTH+1];
+	char string[MAX_ID_LENGTH+1];
 	int i, cmp;
 
-	word[0] = ch;
+	string[0] = ch;
 	cursor.col = col;
 	next_char();
 
-	for (i = 1; i != MAX_ID_LENGTH && (isalpha(ch) || isdigit(ch) || ch == '_'); i++) {
-		word[i] = ch;
+	for (i = 1; i != MAX_ID_LENGTH && (isalpha(ch) || isdigit(ch) || isspecial(ch)); i++) {
+		string[i] = ch;
 		next_char();
 	}
-	word[i] = '\0';
+	string[i] = '\0';
 
 	/* check that the id length is less than the maximum */
-	if (i == MAX_ID_LENGTH && (isalpha(ch) || ch == '_')) {
+	if (i == MAX_ID_LENGTH && (isalpha(ch) || isdigit(ch) || isspecial(ch))) {
 		/* ERROR */
 		token->type = TOK_EOF;
 	} else {
-		/* is the word reserved? */
-		cmp = search(word);
+		/* is the string reserved? */
+		cmp = search(string);
 
-		/* if the word is not reserved, it is an operator */
+		/* if the string is not reserved, it is an operator */
 		if (cmp == -1) {
-			strcpy(token->id, word);
+			strcpy(token->id, string);
 		} else {
 			token->type = get_token_type(cmp);
 		}
 	}
-}
-
-void process_number(Token *token)
-{
-	int d;
-
-	token->type = TOK_NUM;
-	token->value = 0;
-	while (isdigit(ch)) {
-		d = atoi((char*) &ch);
-		if (token->value > (INT_MAX - d) / 10) {
-			/* ERROR */
-			if (!quiet) {
-				fprintf(stderr, "number too large\n");
-			}
-			exit(EXIT_FAILURE);
-		} else {
-			token->value = 10 * token->value + d;
-		}
-		next_char();
-	}
-
 }
