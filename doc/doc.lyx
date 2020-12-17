@@ -1644,6 +1644,25 @@ end{minted}
 
 \end_layout
 
+\begin_layout Standard
+Every pair of brackets is represented as a node.
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace defskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Note: Currently the dots in the debugging output of the parser do not represent
+ nodes, but statements (which can be a concatenation of multiple pairs of
+ brackets).
+ This behaviour is desired, but might lead to confusion, maybe something
+ else than dots should be chosen in one of the visualisations.
+\end_layout
+
 \begin_layout Subsubsection
 Graph
 \end_layout

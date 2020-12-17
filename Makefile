@@ -3,7 +3,7 @@ OPTIMISE = -O0
 WARNINGS = -Wall -Wextra -Wno-variadic-macros -Wno-overlength-strings -pedantic
 CC       = gcc
 RM       = rm -f
-COMPILE  = $(CC) $(CFLAGS) $(DFLAGS)
+COMPILE  = $(CC) $(CFLAGS) $(DFLAGS) $(DEBUG)
 EXES     = proveparser pscanner
 
 BINDIR   = bin

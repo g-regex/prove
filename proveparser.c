@@ -17,11 +17,12 @@
 #define DBG(msg)
 #endif
 
-Token    token;                     /* current token               */
-Pnode    pnode;                     /* current node in graph       */
-FILE    *file;                      /* [prove] source file         */
-static unsigned short int lvl;      /* indentation level           */
-static short int output_lvl;		/* print, when on this level   */
+Token    token;                     /* current token					*/
+Pnode*   pnode;                     /* current node in graph			*/
+Pnode*   pgroot;                    /* root node of graph (for freeing) */
+FILE*    file;                      /* [prove] source file				*/
+static unsigned short int lvl;      /* indentation level				*/
+static short int output_lvl;		/* print, when on this level		*/
 
 void parse_expr(void);
 int parse_formula(void);
@@ -45,6 +46,8 @@ int main(int argc, char *argv[])
 	init_pgraph(&pnode);
 	next_token(&token);
 
+	pgroot = pnode;
+
 	if (argc == 4) {
 		quiet = TRUE;
 	}
@@ -63,6 +66,8 @@ int main(int argc, char *argv[])
 
 	fclose(file);
 
+	free_graph(pnode);
+
 	return EXIT_SUCCESS;
 }
 
@@ -75,14 +80,66 @@ void parse_expr(void)
 	}
 }
 
-/*
- * "[" (<operand>|<chain>|"false") "]"
- */
+void check_conflict(Pnode* pnode, TType ttype)
+{
+	if (ttype == TOK_IMPLY) {
+		if (!HAS_FFLAGS(pnode)) {
+			SET_IMPL(pnode)
+		} else if (HAS_FLAG_IMPL(pnode)) {
+			return;
+		} else {
+			if (!quiet) {
+				fprintf(stderr, "unexpected TOK_IMPLY "
+					"on line %d, column %d\n",
+						 cursor.line, cursor.col);
+			}
+			exit(EXIT_FAILURE);
+		}
+	} else if (ttype == TOK_EQ) {
+		if (!HAS_FFLAGS(pnode)) {
+			SET_EQTY(pnode)
+		} else if (HAS_FLAG_EQTY(pnode)) {
+			return;
+		} else {
+			if (!quiet) {
+				fprintf(stderr, "unexpected TOK_EQ "
+					"on line %d, column %d\n",
+						 cursor.line, cursor.col);
+			}
+			exit(EXIT_FAILURE);
+		}
+	} else if (ttype == TOK_STR) {
+		if (!HAS_FFLAGS(pnode)) {
+			SET_FMTR(pnode)
+		} else if (HAS_FLAG_FMTR(pnode)) {
+			return;
+		} else {
+			if (!quiet) {
+				fprintf(stderr, "unexpected TOK_STR "
+					"on line %d, column %d\n",
+						 cursor.line, cursor.col);
+			}
+			exit(EXIT_FAILURE);
+		}
+	} else {
+		if (!quiet) {
+			fprintf(stderr, "unexpected error "
+				"on line %d, column %d\n",
+					 cursor.line, cursor.col);
+		}
+		exit(EXIT_FAILURE);
+	}
+}
+
 int parse_formula(void)
 {
+	/* TODO perform some check for ERRORS (wrt to EQ and IMP positioning */
 	for (int proceed = TRUE; proceed;) {
 		if (IS_FORMULATOR(token.type)) {
 			DBG(TRUE, token.id)
+			set_symbol(pnode, token.id);
+			check_conflict(pnode, token.type);
+
 			next_token(&token);
 			DBG(FALSE, ".")
 			parse_statement();
@@ -93,15 +150,14 @@ int parse_formula(void)
 			DBG(FALSE, ".")
 			parse_statement();
 			if (!IS_FORMULATOR(token.type)) {
-				/*if (!quiet) {
-					fprintf(stderr, "expected <formulator> "
-						"on line %d, column %d\n",
-							 cursor.line, cursor.col);
-				}
-				exit(EXIT_FAILURE);*/
+				/**/
 				return FALSE;
 			} else {
 				DBG(TRUE, token.id)
+				create_right(pnode);
+				move_right(&pnode);
+				check_conflict(pnode, token.type);
+				set_symbol(pnode, token.id);
 				next_token(&token);
 				if (token.type != TOK_LBRACK) {
 					proceed = FALSE;
@@ -118,23 +174,25 @@ void parse_statement(void)
 		lvl++;
 		DBG(TRUE, token.id)
 		expect(TOK_LBRACK);
-		/*if (lvl == output_lvl && !quiet) {
-			printf("%s", token.id);
-			printf("[");
-		}*/
+
+		if (IS_CONST_NODE(pnode) || IS_FORMULATOR_NODE(pnode)) {
+			create_right(pnode);
+			move_right(&pnode);
+		}
+		create_child(pnode);
+		move_down(&pnode);
 
 		if (token.type == TOK_STR) {
-#ifdef DPARSER
-			char prev_id[MAX_ID_LENGTH];
-			strcpy(prev_id, token.id); //remember previous token id for debugging
-#endif
+			set_symbol(pnode, token.id);	
 			next_token(&token);
 			if (token.type == TOK_RBRACK) {
 				/* token is an identifier */
-				DBG(TRUE, prev_id)
+				DBG(TRUE, pnode->symbol)
 			} else if (token.type == TOK_LBRACK) {
 				/* token is a formulator */
-				DBG(TRUE, prev_id)
+				/* check for conflicting flags and report ERROR */
+				DBG(TRUE, pnode->symbol)
+				SET_FMTR(pnode)
 				parse_expr();
 			} else {
 				/* formulators must not be mixed/identifiers must not contain = */
@@ -145,10 +203,11 @@ void parse_statement(void)
 			/* token is an implication symbol */
 			next_token(&token);
 			if (token.type == TOK_RBRACK) {
-				/* implications must not appear at the end */
+				/* statements must not contain only an implication symbol */
 				/* ERROR */
 			} else if (token.type == TOK_LBRACK) {
 				/* only valid option */
+				SET_IMPL(pnode)
 				parse_expr();
 			} else {
 				/* formulators must not be mixed/identifiers must not contain = */
@@ -169,6 +228,8 @@ void parse_statement(void)
 
 		DBG(TRUE, token.id)
 		expect(TOK_RBRACK);
+		move_and_sum_up(&pnode);
+
 		lvl--;
 
 		if (token.type != TOK_LBRACK) {
