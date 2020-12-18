@@ -12,9 +12,10 @@ void init_pgraph(Pnode** root)
 {
 	*root = (Pnode*) malloc(sizeof(struct Pnode));
 
-	(*root)->parent = (*root)->child = (*root)->left = (*root)->right = NULL;
+	(*root)->parent = (*root)->child
+		= (*root)->left = (*root)->right = (*root)->prev_const = NULL;
 	(*root)->symbol = NULL;
-	(*root)->flags = 0;
+	(*root)->flags = FLAG_NONE;
 	(*root)->varcount = 0;
 }
 
@@ -28,7 +29,13 @@ void create_child(Pnode* pnode)
 	child->child = child->left = child->right = NULL;
 	child->parent = pnode;
 	child->symbol = NULL;
-	child->flags = FLAG_ASMP;
+	if (HAS_FLAG_ASMP(pnode) || !HAS_FFLAGS(pnode)) {
+		SET_ASMP(child)
+		SET_LOCK(child)
+	} else {
+		child->flags = FLAG_NONE;
+	}
+	child->prev_const = pnode->prev_const;
 	child->varcount = 0;
 }
 
@@ -42,8 +49,20 @@ void create_right(Pnode* pnode)
 	right->child = right->parent = right->right = NULL;
 	right->left = pnode;
 	right->symbol = NULL;
-	right->flags = pnode->flags;
 	right->varcount = 0;
+
+	right->flags = pnode->flags;
+	UNSET_NEWC(right)
+	if (HAS_FLAG_NEWC(pnode)) {
+		SET_ASMP(pnode)
+		right->prev_const = pnode;
+	} else {
+		right->prev_const = pnode->prev_const;
+	}
+
+	if (HAS_FLAG_ASMP(pnode) && HAS_FLAG_LOCK(pnode)) {
+		SET_ASMP(right)
+	}
 }
 
 unsigned short int move_right(Pnode** pnode)
@@ -94,15 +113,17 @@ void move_rightmost(Pnode** pnode)
 unsigned short int move_and_sum_up(Pnode** pnode)
 {
 	int cumulative_vc; /* cumulative variable count of adjacent nodes */
-	
+	int impl;
+
 	cumulative_vc = (*pnode)->varcount;
-	if (IS_CONST_NODE((*pnode))) {
+	if (HAS_FLAG_NEWC((*pnode))) {
 		cumulative_vc++;
+		printf(".");
 	}
 
 	while (move_left(pnode)) {
 		cumulative_vc += (*pnode)->varcount;
-		if (IS_CONST_NODE((*pnode))) {
+		if (HAS_FLAG_NEWC((*pnode))) {
 			cumulative_vc++;
 		}
 	}
@@ -136,11 +157,17 @@ void print_node_info(Pnode* pnode, unsigned short int ncounter)
 	if (HAS_FLAG_EQTY(pnode)) {
 		printf(" EQTY");
 	}
-	if (HAS_FLAG_FMTR(pnode)) {
-		printf(" FMTR");
+	if (HAS_FLAG_FMLA(pnode)) {
+		printf(" FMLA");
 	}
 	if (HAS_FLAG_ASMP(pnode)) {
 		printf(" ASMP");
+	}
+	if (HAS_FLAG_NEWC(pnode)) {
+		printf(" NEWC");
+	}
+	if (HAS_FLAG_LOCK(pnode)) {
+		printf(" LOCK");
 	}
 }
 
@@ -151,13 +178,14 @@ void free_graph(Pnode* pnode)
 	 * we can start there */
 	unsigned short int ncounter = 0;
 
-	while (pnode->left != NULL || pnode->parent != NULL) {
+	while (pnode->left != NULL || pnode->parent != NULL
+			|| pnode->child !=NULL) {
 		while (pnode->right !=NULL || pnode->child !=NULL) {
 			move_down(&pnode);
 			move_rightmost(&pnode);
 		}
 
-		/* print_node_info(pnode, ncounter); */	
+		print_node_info(pnode, ncounter);
 
 		if (pnode->symbol != NULL) {
 			free(pnode->symbol);
@@ -174,4 +202,6 @@ void free_graph(Pnode* pnode)
 		}
 		ncounter++;
 	}
+	print_node_info(pnode, ncounter);
+	free(pnode);
 }

@@ -29,6 +29,7 @@ int parse_formula(void);
 void parse_statement(void);
 
 void expect(TType type);
+void check_conflict(Pnode* pnode, TType ttype);
 
 int main(int argc, char *argv[])
 {
@@ -80,57 +81,6 @@ void parse_expr(void)
 	}
 }
 
-void check_conflict(Pnode* pnode, TType ttype)
-{
-	if (ttype == TOK_IMPLY) {
-		if (!HAS_FFLAGS(pnode)) {
-			SET_IMPL(pnode)
-		} else if (HAS_FLAG_IMPL(pnode)) {
-			return;
-		} else {
-			if (!quiet) {
-				fprintf(stderr, "unexpected TOK_IMPLY "
-					"on line %d, column %d\n",
-						 cursor.line, cursor.col);
-			}
-			exit(EXIT_FAILURE);
-		}
-	} else if (ttype == TOK_EQ) {
-		if (!HAS_FFLAGS(pnode)) {
-			SET_EQTY(pnode)
-		} else if (HAS_FLAG_EQTY(pnode)) {
-			return;
-		} else {
-			if (!quiet) {
-				fprintf(stderr, "unexpected TOK_EQ "
-					"on line %d, column %d\n",
-						 cursor.line, cursor.col);
-			}
-			exit(EXIT_FAILURE);
-		}
-	} else if (ttype == TOK_STR) {
-		if (!HAS_FFLAGS(pnode)) {
-			SET_FMTR(pnode)
-		} else if (HAS_FLAG_FMTR(pnode)) {
-			return;
-		} else {
-			if (!quiet) {
-				fprintf(stderr, "unexpected TOK_STR "
-					"on line %d, column %d\n",
-						 cursor.line, cursor.col);
-			}
-			exit(EXIT_FAILURE);
-		}
-	} else {
-		if (!quiet) {
-			fprintf(stderr, "unexpected error "
-				"on line %d, column %d\n",
-					 cursor.line, cursor.col);
-		}
-		exit(EXIT_FAILURE);
-	}
-}
-
 int parse_formula(void)
 {
 	/* TODO perform some check for ERRORS (wrt to EQ and IMP positioning */
@@ -150,14 +100,16 @@ int parse_formula(void)
 			DBG(FALSE, ".")
 			parse_statement();
 			if (!IS_FORMULATOR(token.type)) {
-				/**/
 				return FALSE;
 			} else {
 				DBG(TRUE, token.id)
+
 				create_right(pnode);
 				move_right(&pnode);
+
 				check_conflict(pnode, token.type);
 				set_symbol(pnode, token.id);
+
 				next_token(&token);
 				if (token.type != TOK_LBRACK) {
 					proceed = FALSE;
@@ -170,12 +122,15 @@ int parse_formula(void)
 
 void parse_statement(void)
 {
+	Pnode* pcompare;
+	unsigned short int found;
+
 	for (int proceed = TRUE; proceed;) {
 		lvl++;
 		DBG(TRUE, token.id)
 		expect(TOK_LBRACK);
 
-		if (IS_CONST_NODE(pnode) || IS_FORMULATOR_NODE(pnode)) {
+		if (HAS_CHILD(pnode) || HAS_SYMBOL(pnode)) {
 			create_right(pnode);
 			move_right(&pnode);
 		}
@@ -192,7 +147,7 @@ void parse_statement(void)
 				/* token is a formulator */
 				/* check for conflicting flags and report ERROR */
 				DBG(TRUE, pnode->symbol)
-				SET_FMTR(pnode)
+				SET_FMLA(pnode)
 				parse_expr();
 			} else {
 				/* formulators must not be mixed/identifiers must not contain = */
@@ -230,6 +185,28 @@ void parse_statement(void)
 		expect(TOK_RBRACK);
 		move_and_sum_up(&pnode);
 
+		/* check whether a new identifier was introduced */
+		if (CONTAINS_ID(pnode)) {
+			pcompare = pnode->prev_const;
+			found = FALSE;
+			while (pcompare != NULL) {
+				if (strcmp(pcompare->child->symbol,
+							pnode->child->symbol) == 0) {
+					found = TRUE;
+					break;
+				}
+				pcompare = pcompare->prev_const;
+			}
+			if (found == FALSE) {
+				if (HAS_FFLAGS(pnode)) {
+					/* ERROR new ids must only occur at the beginning
+					 * of statements */
+				} else {
+					SET_NEWC(pnode)
+				}
+			}
+		}
+
 		lvl--;
 
 		if (token.type != TOK_LBRACK) {
@@ -257,3 +234,60 @@ void expect(TType type)
 		exit(EXIT_FAILURE);
 	}
 }
+
+/*
+ * checks, whether the current formulator type is conflicting with other
+ * formulators in the current formula
+ */
+void check_conflict(Pnode* pnode, TType ttype)
+{
+	if (ttype == TOK_IMPLY) {
+		if (!HAS_FFLAGS(pnode)) {
+			SET_IMPL(pnode)
+		} else if (HAS_FLAG_IMPL(pnode)) {
+			return;
+		} else {
+			if (!quiet) {
+				fprintf(stderr, "unexpected TOK_IMPLY "
+					"on line %d, column %d\n",
+						 cursor.line, cursor.col);
+			}
+			exit(EXIT_FAILURE);
+		}
+	} else if (ttype == TOK_EQ) {
+		if (!HAS_FFLAGS(pnode)) {
+			SET_EQTY(pnode)
+		} else if (HAS_FLAG_EQTY(pnode)) {
+			return;
+		} else {
+			if (!quiet) {
+				fprintf(stderr, "unexpected TOK_EQ "
+					"on line %d, column %d\n",
+						 cursor.line, cursor.col);
+			}
+			exit(EXIT_FAILURE);
+		}
+	} else if (ttype == TOK_STR) {
+		if (!HAS_FFLAGS(pnode)) {
+			SET_FMLA(pnode)
+		} else if (HAS_FLAG_FMLA(pnode)) {
+			return;
+		} else {
+			if (!quiet) {
+				fprintf(stderr, "unexpected TOK_STR "
+					"on line %d, column %d\n",
+						 cursor.line, cursor.col);
+			}
+			exit(EXIT_FAILURE);
+		}
+	} else {
+		if (!quiet) {
+			fprintf(stderr, "unexpected error "
+				"on line %d, column %d\n",
+					 cursor.line, cursor.col);
+		}
+		exit(EXIT_FAILURE);
+	}
+}
+
+

@@ -182,6 +182,16 @@ implication
 
 \begin_layout Itemize
 equality
+\end_layout
+
+\begin_layout Standard
+We might need a word for formulae, which are neither equalities nor implications
+, since they have to be mentioned quite often and it is tedious to always
+ refer to them as
+\shape italic
+ formulae, which are neither equalities nor implications
+\shape default
+.
 \begin_inset Newpage pagebreak
 \end_inset
 
@@ -991,7 +1001,7 @@ m{[[a]a7we[b]]=>[c]}
 \end_layout
 
 \begin_layout Subsection
-Improving the sketch
+Improving the sketch (and second thoughts on this improvement)
 \end_layout
 
 \begin_layout Standard
@@ -1078,6 +1088,26 @@ m{[}
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+Side note: It might be worth considering to disallow proofs to be given
+ in form of a statement.
+ When it comes to 
+\shape italic
+verification, 
+\shape default
+we will see that it makes a difference, whether a formula stands 
+\begin_inset Quotes bld
+\end_inset
+
+freely
+\begin_inset Quotes brd
+\end_inset
+
+ or whether it is inside an assumed statement and might not require verification.
+ Considering a free standing statement as an assumption would than render
+ the whole proof as an assumption and prohibit its verification.
 \end_layout
 
 \begin_layout Section
@@ -1445,6 +1475,50 @@ m{=}
 
 \end_layout
 
+\begin_layout Standard
+Side note: Every formula, involving formulators other than 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=}
+\end_layout
+
+\end_inset
+
+ or 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=>}
+\end_layout
+
+\end_inset
+
+ and comprised of 
+\begin_inset Formula $n$
+\end_inset
+
+ statements, can be viewed as an 
+\begin_inset Formula $n$
+\end_inset
+
+-ary operator.
+ In that sense single identifiers are formulae as well, defining a nullary
+ operation.
+ Maybe it is not necessary to make a difference between formulators and
+ identifiers.
+ One argument against that would be though that formulators never function
+ as variables.
+\end_layout
+
 \begin_layout Section
 Parsing
 \end_layout
@@ -1572,8 +1646,8 @@ Nodes
 \end_layout
 
 \begin_layout Standard
-Here comes a picture to illustrate the structure as well as the corresponding
- C code.
+Here comes a picture (TODO) to illustrate the structure as well as the correspon
+ding C code.
 \end_layout
 
 \begin_layout Standard
@@ -1695,8 +1769,57 @@ Flags
 \end_layout
 
 \begin_layout Standard
-Here comes some explanation of the purpose of each flag as well as the correspon
-ding C code.
+Each node can have one of four flags, namely IMPL, EQTY, FMTR, ASMP.
+ The purpose of these flags is to provide a mechanism for verifying the
+ semantic integrity of formulae.
+ Every node from the first formulator onwards in a formula must have exactly
+ one of the flags IMPL, EQTY or FMTR, depending on whether the formulators
+ in the formula are 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=>}
+\end_layout
+
+\end_inset
+
+, 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=}
+\end_layout
+
+\end_inset
+
+ or other formulators respectively.
+\end_layout
+
+\begin_layout Standard
+When a statement - and thereby every formula or statement included in it
+ is an assumption, the ASMP flag will be set.
+ When child nodes are created, this flag 
+\begin_inset Quotes bld
+\end_inset
+
+trickles down
+\begin_inset Quotes brd
+\end_inset
+
+ in the created tree.
+\end_layout
+
+\begin_layout Standard
+The flags are represented by an enumeration in pgraph.h, and can be set/unset
+ using binary operators.
 \end_layout
 
 \begin_layout Standard
@@ -1717,27 +1840,27 @@ typedef enum {
 
 \begin_layout Plain Layout
 
-    FLAG_START = 0,
+    FLAG_NONE = 0,
 \end_layout
 
 \begin_layout Plain Layout
 
-    FLAG_IMPL = 1,
+    FLAG_IMPL = 1,	/* binary 0001 */
 \end_layout
 
 \begin_layout Plain Layout
 
-    FLAG_EQTY = 2,
+    FLAG_EQTY = 2,	/* binary 0010 */
 \end_layout
 
 \begin_layout Plain Layout
 
-    FLAG_FMTR = 4,
+    FLAG_FMTR = 4,	/* binary 0100 */
 \end_layout
 
 \begin_layout Plain Layout
 
-    FLAG_ASMP = 8
+    FLAG_ASMP = 8 	/* binary 1000 */
 \end_layout
 
 \begin_layout Plain Layout
@@ -1757,12 +1880,86 @@ end{minted}
 
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 Differences between implication and equality
 \end_layout
 
 \begin_layout Standard
-Maybe a table would be helpful here.
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="2" columns="2">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=>}
+\end_layout
+
+\end_inset
+
+ 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+New identifiers become variables at parent level.
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+New identifiers are unknown at parent level.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
@@ -1866,7 +2063,7 @@ Verification
 \end_layout
 
 \begin_layout Itemize
-only 
+Only 
 \begin_inset ERT
 status collapsed
 
@@ -1879,10 +2076,12 @@ m{=>}
 
 \end_inset
 
- triggers verification
+ triggers verification.
 \end_layout
 
 \begin_layout Itemize
+
+\strikeout on
 \begin_inset ERT
 status collapsed
 
@@ -1901,6 +2100,29 @@ m{=>}
 new 
 \shape default
 constants but no variables
+\end_layout
+
+\begin_layout Itemize
+All statements occurring before the first implication in a formula are assumptio
+ns (i.e.
+ implications within them do not trigger verification), if they contain
+ any newly introduced identifiers.
+\end_layout
+
+\begin_layout Itemize
+ASMP flags 
+\begin_inset Quotes bld
+\end_inset
+
+trickle down
+\begin_inset Quotes brd
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+We need a mechanism to loop through known identifiers: Linked List.
 \end_layout
 
 \begin_layout Bibliography
