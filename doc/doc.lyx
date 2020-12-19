@@ -949,7 +949,7 @@ A
 \end_inset
 
 .
- The order of occurence does not matter.
+ The order of occurrence does not matter.
  Examples of valid 
 \begin_inset Formula $\langle\texttt{formula}\rangle$
 \end_inset
@@ -1091,8 +1091,8 @@ m{[}
 \end_layout
 
 \begin_layout Standard
-Side note: It might be worth considering to disallow proofs to be given
- in form of a statement.
+Second thoughts: It might be worth considering to disallow proofs to be
+ given in form of a statement.
  When it comes to 
 \shape italic
 verification, 
@@ -1472,7 +1472,50 @@ m{=}
 \begin_inset Formula $\langle\texttt{formula}\rangle$
 \end_inset
 
+; we might want to restrict equalities to 
+\begin_inset Formula $\langle\texttt{formula}\rangle$
+\end_inset
 
+e of the form 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{[...]=[...]}
+\end_layout
+
+\end_inset
+
+ (as opposed to 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{[...]...[...]=[...]...[...]}
+\end_layout
+
+\end_inset
+
+ ); further we might not want to distinguish between 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+m{=}
+\end_layout
+
+\end_inset
+
+ and other non-implication formulators at all (see verification - TODO)
 \end_layout
 
 \begin_layout Standard
@@ -1540,11 +1583,11 @@ Representation
 \end_layout
 
 \begin_layout Subsection
-Example: Russel's Paradox
+Example: Russell's Paradox
 \end_layout
 
 \begin_layout Standard
-A first example, we considered is the following proof of Russel's Paradox.
+A first example, we considered is the following proof of Russell's Paradox.
  The purpose of this 
 \family typewriter
 \shape smallcaps
@@ -1698,7 +1741,7 @@ typedef struct Pnode {
 
 \begin_layout Plain Layout
 
-    int varcount;
+    Variable* var;
 \end_layout
 
 \begin_layout Plain Layout
@@ -1769,11 +1812,79 @@ Flags
 \end_layout
 
 \begin_layout Standard
-Each node can have one of four flags, namely IMPL, EQTY, FMTR, ASMP.
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{minted}[linenos]{c}
+\end_layout
+
+\begin_layout Plain Layout
+
+typedef enum {
+\end_layout
+
+\begin_layout Plain Layout
+
+	FLAG_NONE = 0,
+\end_layout
+
+\begin_layout Plain Layout
+
+	FLAG_IMPL = 1,
+\end_layout
+
+\begin_layout Plain Layout
+
+	FLAG_EQTY = 2,
+\end_layout
+
+\begin_layout Plain Layout
+
+	FLAG_FMLA = 4,
+\end_layout
+
+\begin_layout Plain Layout
+
+	FLAG_ASMP = 8,
+\end_layout
+
+\begin_layout Plain Layout
+
+	FLAG_LOCK = 16,
+\end_layout
+
+\begin_layout Plain Layout
+
+	FLAG_NEWC = 32,
+\end_layout
+
+\begin_layout Plain Layout
+
+} Flags;
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{minted}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Each node can have one of four flags, namely IMPL, EQTY, FMLA, ASMP.
  The purpose of these flags is to provide a mechanism for verifying the
  semantic integrity of formulae.
  Every node from the first formulator onwards in a formula must have exactly
- one of the flags IMPL, EQTY or FMTR, depending on whether the formulators
+ one of the flags IMPL, EQTY or FMLA, depending on whether the formulators
  in the formula are 
 \begin_inset ERT
 status open
@@ -1815,6 +1926,7 @@ trickles down
 \end_inset
 
  in the created tree.
+ (TODO: some more explanation of the purpose of this flag)
 \end_layout
 
 \begin_layout Standard
@@ -1823,61 +1935,11 @@ The flags are represented by an enumeration in pgraph.h, and can be set/unset
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-begin{minted}[linenos]{c}
+(TODO: explanation of the LOCK and NEWC flags)
 \end_layout
 
-\begin_layout Plain Layout
-
-typedef enum {
-\end_layout
-
-\begin_layout Plain Layout
-
-    FLAG_NONE = 0,
-\end_layout
-
-\begin_layout Plain Layout
-
-    FLAG_IMPL = 1,	/* binary 0001 */
-\end_layout
-
-\begin_layout Plain Layout
-
-    FLAG_EQTY = 2,	/* binary 0010 */
-\end_layout
-
-\begin_layout Plain Layout
-
-    FLAG_FMTR = 4,	/* binary 0100 */
-\end_layout
-
-\begin_layout Plain Layout
-
-    FLAG_ASMP = 8 	/* binary 1000 */
-\end_layout
-
-\begin_layout Plain Layout
-
-} Flags; 
-\end_layout
-
-\begin_layout Plain Layout
-
-
-\backslash
-end{minted}
-\end_layout
-
-\end_inset
-
-
+\begin_layout Standard
+(TODO: distinction between graph flags and node flags - VRFD)
 \end_layout
 
 \begin_layout Subsection
@@ -1887,7 +1949,7 @@ Differences between implication and equality
 \begin_layout Standard
 \align center
 \begin_inset Tabular
-<lyxtabular version="3" rows="2" columns="2">
+<lyxtabular version="3" rows="3" columns="2">
 <features tabularvalignment="middle">
 <column alignment="center" valignment="top">
 <column alignment="center" valignment="top">
@@ -1936,7 +1998,7 @@ m{=}
 </cell>
 </row>
 <row>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -1945,11 +2007,31 @@ New identifiers become variables at parent level.
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
 New identifiers are unknown at parent level.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Unidirectional
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Bidirectional
 \end_layout
 
 \end_inset
@@ -1963,11 +2045,11 @@ New identifiers are unknown at parent level.
 \end_layout
 
 \begin_layout Subsection
-The variable counter
+Variables and constants
 \end_layout
 
 \begin_layout Standard
-Explain the purpose of the variable counter.
+Explain the two linked lists associated with variables and constants.
 \begin_inset Newpage pagebreak
 \end_inset
 
@@ -2063,20 +2145,8 @@ Verification
 \end_layout
 
 \begin_layout Itemize
-Only 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Plain Layout
-
-
-\backslash
-m{=>}
-\end_layout
-
-\end_inset
-
- triggers verification.
+Verification is only triggered in formulae with the IMPL flag set and the
+ ASMP flag unset.
 \end_layout
 
 \begin_layout Itemize
@@ -2094,8 +2164,8 @@ m{=>}
 
 \end_inset
 
- is an assumption (i.e.
- does not trigger verification), if statements to the left contain 
+ is an assumption (i.e., does not trigger verification), if statements to
+ the left contain 
 \shape italic
 new 
 \shape default
@@ -2103,10 +2173,13 @@ constants but no variables
 \end_layout
 
 \begin_layout Itemize
-All statements occurring before the first implication in a formula are assumptio
-ns (i.e.
- implications within them do not trigger verification), if they contain
- any newly introduced identifiers.
+All statements occurring before the first implication or equality in a formula
+ are assumptions (i.e., implications within them do not trigger verification),
+ 
+\strikeout on
+if they contain any newly introduced identifiers
+\strikeout default
+.
 \end_layout
 
 \begin_layout Itemize

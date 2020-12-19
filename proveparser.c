@@ -19,7 +19,6 @@
 
 Token    token;                     /* current token					*/
 Pnode*   pnode;                     /* current node in graph			*/
-Pnode*   pgroot;                    /* root node of graph (for freeing) */
 FILE*    file;                      /* [prove] source file				*/
 static unsigned short int lvl;      /* indentation level				*/
 static short int output_lvl;		/* print, when on this level		*/
@@ -46,8 +45,6 @@ int main(int argc, char *argv[])
 	init_scanner(file);
 	init_pgraph(&pnode);
 	next_token(&token);
-
-	pgroot = pnode;
 
 	if (argc == 4) {
 		quiet = TRUE;
@@ -142,12 +139,12 @@ void parse_statement(void)
 			next_token(&token);
 			if (token.type == TOK_RBRACK) {
 				/* token is an identifier */
-				DBG(TRUE, pnode->symbol)
+				DBG(TRUE, *(pnode->symbol))
 			} else if (token.type == TOK_LBRACK) {
 				/* token is a formulator */
 				/* check for conflicting flags and report ERROR */
-				DBG(TRUE, pnode->symbol)
-				SET_FMLA(pnode)
+				DBG(TRUE, *(pnode->symbol))
+				SET_NFLAG_FMLA(pnode)
 				parse_expr();
 			} else {
 				/* formulators must not be mixed/identifiers must not contain = */
@@ -162,7 +159,7 @@ void parse_statement(void)
 				/* ERROR */
 			} else if (token.type == TOK_LBRACK) {
 				/* only valid option */
-				SET_IMPL(pnode)
+				SET_NFLAG_IMPL(pnode)
 				parse_expr();
 			} else {
 				/* formulators must not be mixed/identifiers must not contain = */
@@ -190,9 +187,13 @@ void parse_statement(void)
 			pcompare = pnode->prev_const;
 			found = FALSE;
 			while (pcompare != NULL) {
-				if (strcmp(pcompare->child->symbol,
-							pnode->child->symbol) == 0) {
+				if (strcmp(*(pcompare->child->symbol),
+							*(pnode->child->symbol)) == 0) {
 					found = TRUE;
+
+					free(*(pnode->child->symbol));
+					free(pnode->child->symbol);
+					pnode->child->symbol = pcompare->child->symbol;
 					break;
 				}
 				pcompare = pcompare->prev_const;
@@ -202,9 +203,15 @@ void parse_statement(void)
 					/* ERROR new ids must only occur at the beginning
 					 * of statements */
 				} else {
-					SET_NEWC(pnode)
+					SET_NFLAG_NEWC(pnode)
 				}
 			}
+		}
+
+		if (HAS_FLAG_IMPL(pnode) && !HAS_FLAG_ASMP(pnode)) {
+			printf("(");
+			init_reachable(pnode);
+			printf(")");
 		}
 
 		lvl--;
@@ -243,7 +250,7 @@ void check_conflict(Pnode* pnode, TType ttype)
 {
 	if (ttype == TOK_IMPLY) {
 		if (!HAS_FFLAGS(pnode)) {
-			SET_IMPL(pnode)
+			SET_NFLAG_IMPL(pnode)
 		} else if (HAS_FLAG_IMPL(pnode)) {
 			return;
 		} else {
@@ -256,7 +263,7 @@ void check_conflict(Pnode* pnode, TType ttype)
 		}
 	} else if (ttype == TOK_EQ) {
 		if (!HAS_FFLAGS(pnode)) {
-			SET_EQTY(pnode)
+			SET_NFLAG_EQTY(pnode)
 		} else if (HAS_FLAG_EQTY(pnode)) {
 			return;
 		} else {
@@ -269,7 +276,7 @@ void check_conflict(Pnode* pnode, TType ttype)
 		}
 	} else if (ttype == TOK_STR) {
 		if (!HAS_FFLAGS(pnode)) {
-			SET_FMLA(pnode)
+			SET_NFLAG_FMLA(pnode)
 		} else if (HAS_FLAG_FMLA(pnode)) {
 			return;
 		} else {

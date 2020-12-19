@@ -15,8 +15,9 @@ void init_pgraph(Pnode** root)
 	(*root)->parent = (*root)->child
 		= (*root)->left = (*root)->right = (*root)->prev_const = NULL;
 	(*root)->symbol = NULL;
-	(*root)->flags = FLAG_NONE;
+	(*root)->flags = NFLAG_NONE;
 	(*root)->varcount = 0;
+	(*root)->var = NULL;
 }
 
 void create_child(Pnode* pnode)
@@ -28,15 +29,16 @@ void create_child(Pnode* pnode)
 	child = pnode->child;
 	child->child = child->left = child->right = NULL;
 	child->parent = pnode;
+	child->varcount = 0;
+	child->var = NULL;
 	child->symbol = NULL;
 	if (HAS_FLAG_ASMP(pnode) || !HAS_FFLAGS(pnode)) {
-		SET_ASMP(child)
-		SET_LOCK(child)
+		SET_NFLAG_ASMP(child)
+		SET_NFLAG_LOCK(child)
 	} else {
-		child->flags = FLAG_NONE;
+		child->flags = NFLAG_NONE;
 	}
 	child->prev_const = pnode->prev_const;
-	child->varcount = 0;
 }
 
 void create_right(Pnode* pnode)
@@ -50,18 +52,30 @@ void create_right(Pnode* pnode)
 	right->left = pnode;
 	right->symbol = NULL;
 	right->varcount = 0;
+	right->var = NULL;
 
 	right->flags = pnode->flags;
-	UNSET_NEWC(right)
+	UNSET_NFLAG_NEWC(right)
 	if (HAS_FLAG_NEWC(pnode)) {
-		SET_ASMP(pnode)
+		//SET_NFLAG_ASMP(pnode)
 		right->prev_const = pnode;
 	} else {
+		//if (!HAS_FFLAGS(pnode)) {
+		//if (!HAS_FLAG_IMPL(pnode)) {
+		//	SET_NFLAG_ASMP(pnode)
+		//}
 		right->prev_const = pnode->prev_const;
 	}
 
-	if (HAS_FLAG_ASMP(pnode) && HAS_FLAG_LOCK(pnode)) {
-		SET_ASMP(right)
+	if (!HAS_FLAG_IMPL(pnode)) {
+		SET_NFLAG_ASMP(pnode)
+	}
+	if (HAS_FLAG_EQTY(pnode) || HAS_FLAG_FMLA(pnode)) {
+		SET_NFLAG_ASMP(right)
+	}
+	if (HAS_FLAG_LOCK(pnode)) {
+		SET_NFLAG_ASMP(right)
+		SET_NFLAG_LOCK(right)
 	}
 }
 
@@ -107,24 +121,37 @@ unsigned short int move_up(Pnode** pnode)
 
 void move_rightmost(Pnode** pnode)
 {
-	while (move_right(pnode)) {}
+	while (move_right(pnode));
 }
 
 unsigned short int move_and_sum_up(Pnode** pnode)
 {
 	int cumulative_vc; /* cumulative variable count of adjacent nodes */
 	int impl;
+	Variable* var;
+	Variable* oldvar;
 
 	cumulative_vc = (*pnode)->varcount;
+	oldvar = (*pnode)->var;
+	var = oldvar;
 	if (HAS_FLAG_NEWC((*pnode))) {
 		cumulative_vc++;
-		printf(".");
+		var = (Variable*) malloc(sizeof(Variable));
+		var->pnode = (*pnode);
+		var->next = oldvar;
+		oldvar = var;
 	}
 
 	while (move_left(pnode)) {
 		cumulative_vc += (*pnode)->varcount;
+		(*pnode)->flags |= GET_NFFLAGS((*pnode)->right);
+
 		if (HAS_FLAG_NEWC((*pnode))) {
 			cumulative_vc++;
+			var = (Variable*) malloc(sizeof(Variable));
+			var->pnode = (*pnode);
+			var->next = oldvar;
+			oldvar = var;
 		}
 	}
 
@@ -133,24 +160,39 @@ unsigned short int move_and_sum_up(Pnode** pnode)
 	} else {
 		*pnode = (*pnode)->parent;
 		(*pnode)->varcount = cumulative_vc;
+		(*pnode)->var = var;
 		return TRUE;
 	}
 }
 
 void set_symbol(Pnode* pnode, char* symbol)
 {
-	pnode->symbol = (char*) malloc(sizeof(char) * MAX_ID_LENGTH);
-	strcpy(pnode->symbol, symbol);
+	pnode->symbol = (char**) malloc(sizeof(char*));
+	*(pnode->symbol) = (char*) malloc(sizeof(char) * MAX_ID_LENGTH);
+	strcpy(*(pnode->symbol), symbol);
+}
+
+
+void init_reachable(Pnode* pnode)
+{
+	reachable = pnode;
+}
+
+void next_reachable()
+{
 }
 
 void print_node_info(Pnode* pnode, unsigned short int ncounter)
 {
+	Variable* var;
+
 	printf("\n\n");
 	printf("Node %d:\n", ncounter);
 	if (pnode->symbol != NULL) {
-		printf("\tSymbol: %s\n", pnode->symbol);
+		printf("\tSymbol: %s\n", *(pnode->symbol));
 	}
-	printf("\tFlags:");
+	printf("\tVarcount: %d\n", pnode->varcount);
+	printf("\tNFlags:");
 	if (HAS_FLAG_IMPL(pnode)) {
 		printf(" IMPL");
 	}
@@ -187,8 +229,12 @@ void free_graph(Pnode* pnode)
 
 		print_node_info(pnode, ncounter);
 
-		if (pnode->symbol != NULL) {
+		if (pnode->parent != NULL && HAS_FLAG_NEWC(pnode->parent)) {
+			free(*(pnode->symbol));
 			free(pnode->symbol);
+		}
+		if (pnode->var != NULL) {
+			free(pnode->var);
 		}
 
 		if (pnode->left != NULL) {
@@ -203,5 +249,8 @@ void free_graph(Pnode* pnode)
 		ncounter++;
 	}
 	print_node_info(pnode, ncounter);
+	if (pnode->var != NULL) {
+		free(pnode->var);
+	}
 	free(pnode);
 }
