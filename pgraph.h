@@ -9,6 +9,7 @@ typedef enum {
 	NFLAG_ASMP = 8,
 	NFLAG_LOCK = 16,
 	NFLAG_NEWC = 32,
+	NFLAG_FRST = 64
 } NFlags;
 
 typedef enum {
@@ -26,6 +27,7 @@ typedef enum {
 #define HAS_FLAG_ASMP(pnode) (pnode->flags & NFLAG_ASMP)
 #define HAS_FLAG_LOCK(pnode) (pnode->flags & NFLAG_LOCK)
 #define HAS_FLAG_NEWC(pnode) (pnode->flags & NFLAG_NEWC)
+#define HAS_FLAG_FRST(pnode) (pnode->flags & NFLAG_FRST)
 
 #define HAS_GFLAG_VRFD (gflags & GFLAG_VRFD)
 #define HAS_GFLAG_SUBD (gflags & GFLAG_SUBD)
@@ -53,6 +55,7 @@ typedef enum {
 #define SET_NFLAG_ASMP(pnode) pnode->flags |= NFLAG_ASMP;
 #define SET_NFLAG_LOCK(pnode) pnode->flags |= NFLAG_LOCK;
 #define SET_NFLAG_NEWC(pnode) pnode->flags |= NFLAG_NEWC;
+#define SET_NFLAG_FRST(pnode) pnode->flags |= NFLAG_FRST;
 
 #define SET_GFLAG_VRFD gflags |= GFLAG_VRFD;
 #define SET_GFLAG_SUBD gflags |= GFLAG_SUBD;
@@ -61,6 +64,7 @@ typedef enum {
 #define UNSET_NFLAG_ASMP(pnode) pnode->flags &= ~NFLAG_ASMP;
 #define UNSET_NFLAG_NEWC(pnode) pnode->flags &= ~NFLAG_NEWC;
 #define UNSET_NFLAG_LOCK(pnode) pnode->flags &= ~NFLAG_LOCK;
+#define UNSET_NFLAG_FRST(pnode) pnode->flags &= ~NFLAG_FRST;
 
 #define UNSET_GFLAG_VRFD gflags &= ~GFLAG_VRFD;
 #define UNSET_GFLAG_SUBD gflags &= ~GFLAG_SUBD;

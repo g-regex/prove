@@ -26,15 +26,20 @@ void bc_push()
 	bctos->pnode = reachable;
 	bctos->above = bc;
 	bc = bctos;
+	//printf("push:{%d}", reachable->num);
 }
 
-void bc_pop()
+Pnode* bc_pop()
 {
 	BC* bcold;
+	Pnode* pnode;
+
 	bcold = bc;
-	reachable = bc->pnode;
+	pnode = bc->pnode;
 	bc = bc->above;
 	free(bcold);
+	//printf("pop:{%d}", pnode->num);
+	return pnode;
 }
 
 void init_pgraph(Pnode** root)
@@ -44,7 +49,7 @@ void init_pgraph(Pnode** root)
 	(*root)->parent = (*root)->child
 		= (*root)->left = (*root)->right = (*root)->prev_const = NULL;
 	(*root)->symbol = NULL;
-	(*root)->flags = NFLAG_NONE;
+	(*root)->flags = NFLAG_FRST;
 	(*root)->varcount = 0;
 	(*root)->var = NULL;
 
@@ -64,11 +69,10 @@ void create_child(Pnode* pnode)
 	child->varcount = 0;
 	child->var = NULL;
 	child->symbol = NULL;
+	child->flags = NFLAG_FRST;
 	if (HAS_FLAG_ASMP(pnode) || !HAS_FFLAGS(pnode)) {
 		SET_NFLAG_ASMP(child)
 		SET_NFLAG_LOCK(child)
-	} else {
-		child->flags = NFLAG_NONE;
 	}
 	child->prev_const = pnode->prev_const;
 
@@ -91,6 +95,10 @@ void create_right(Pnode* pnode)
 
 	right->flags = pnode->flags;
 	UNSET_NFLAG_NEWC(right)
+	UNSET_NFLAG_FRST(right) /* TODO this can be done better */
+	if (!HAS_FFLAGS(pnode)) { /*only works for formulae, but that's sufficient*/
+		SET_NFLAG_FRST(pnode)
+	}
 	//if (HAS_FLAG_NEWC(pnode)) {
 	if (pnode->var == NULL && !HAS_SYMBOL(pnode)) {
 		/* will result in duplicates, but we are lazy */
@@ -311,8 +319,8 @@ unsigned short int same_as_rchbl(Pnode* pnode)
 
 unsigned short int explore_branch()
 {
-	bc_push();
 	if (HAS_FLAG_IMPL(reachable->child) || HAS_FLAG_EQTY(reachable->child)) {
+		bc_push();
 		reachable = reachable->child;
 		/* DEBUG */
 		//if (CONTAINS_ID(reachable)) {
@@ -328,7 +336,10 @@ unsigned short int explore_branch()
 unsigned short int exit_branch()
 {
 	UNSET_GFLAG_BRCH
-	bc_pop();
+	while (bc->above != NULL) {
+		bc_pop();
+	}
+	reachable = bc_pop();
 	//printf("E");
 }
 
@@ -358,12 +369,13 @@ unsigned short int next_in_branch(Pnode* pnode)
 			/* FATAL ERROR, must not happen */
 			return FALSE;
 		} else {
+			//printf("Z");
 			return next_in_branch(pnode);
 		}
 	}
 
 	if (HAS_FLAG_IMPL(reachable)) {
-		if (HAS_FLAG_ASMP(reachable)) {
+		if (HAS_FLAG_FRST(reachable)) {
 			//printf("\\");
 			if (!check_asmp(pnode)) {
 				return FALSE;	
@@ -371,6 +383,7 @@ unsigned short int next_in_branch(Pnode* pnode)
 				/* FATAL ERROR, must not happen */
 				return FALSE;
 			} else {
+				//printf("Y");
 				return next_in_branch(pnode);
 			}
 		} else {
@@ -383,14 +396,21 @@ unsigned short int next_in_branch(Pnode* pnode)
 					return next_in_branch(pnode);
 				}
 			} else {
+			//printf("Q");
 				if (!move_right(&reachable)) {
 					/* move up */
 					if (bc->above == NULL) {
 						return FALSE; /* last pop is done by branch_exit */
 					} else {
-						bc_pop();
+						//printf("U(%d)", rn());
+						reachable = bc_pop();
+						//printf("V(%d)", rn());
+						//if (bc->above == NULL) printf("W");
+						//else printf("B(%d)", bc->above->pnode->num);
+						//return next_in_branch(pnode);
 					}
 				} else {
+					//printf("P");
 					return TRUE;
 				}
 			}
@@ -428,7 +448,13 @@ unsigned short int next_reachable_const(Pnode* pnode)
 			}
 			if (explore_branch()) {
 				//printf("/");
-				next_in_branch(pnode);
+				if (!next_in_branch(pnode)) {
+					//printf("X");
+					exit_branch(); //TODO!!!
+					return next_reachable_const(pnode);
+				}
+			} else {
+				return next_reachable_const(pnode);
 			}
 			return TRUE;
 		}
@@ -465,6 +491,9 @@ void print_node_info(Pnode* pnode, unsigned short int ncounter)
 	}
 	if (HAS_FLAG_LOCK(pnode)) {
 		printf(" LOCK");
+	}
+	if (HAS_FLAG_FRST(pnode)) {
+		printf(" FRST");
 	}
 }
 

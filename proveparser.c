@@ -217,7 +217,8 @@ void parse_statement(void)
 				//printf("<(%d)", pnode->num);
 				//printf(".");
 				if(same_as_rchbl(pnode)) { /* TODO skip unneccessary cmps */
-					// printf("(%d,%d)", pnode->num, rn()); /* DEBUG "reason" */
+					/* TODO remember to exit_branch */
+					printf("(%d,%d)", pnode->num, rn()); /* DEBUG "reason" */
 				}
 				//printf(">");
 			}
