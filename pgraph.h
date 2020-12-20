@@ -14,10 +14,9 @@ typedef enum {
 typedef enum {
 	GFLAG_NONE = 0,
 	GFLAG_VRFD = 1,
-	GFLAG_SUBD = 2
+	GFLAG_SUBD = 2,
+	GFLAG_BRCH = 4
 } GFlags;
-
-static GFlags gflags = GFLAG_NONE;
 
 #define HAS_FLAG_IMPL(pnode) (pnode->flags & NFLAG_IMPL)
 #define HAS_FLAG_EQTY(pnode) (pnode->flags & NFLAG_EQTY)
@@ -30,6 +29,7 @@ static GFlags gflags = GFLAG_NONE;
 
 #define HAS_GFLAG_VRFD (gflags & GFLAG_VRFD)
 #define HAS_GFLAG_SUBD (gflags & GFLAG_SUBD)
+#define HAS_GFLAG_BRCH (gflags & GFLAG_BRCH)
 
 /* bitmasking the NFFLAGS */
 #define GET_NFFLAGS(pnode) (pnode->flags & 7)
@@ -56,6 +56,7 @@ static GFlags gflags = GFLAG_NONE;
 
 #define SET_GFLAG_VRFD gflags |= GFLAG_VRFD;
 #define SET_GFLAG_SUBD gflags |= GFLAG_SUBD;
+#define SET_GFLAG_BRCH gflags |= GFLAG_BRCH;
 
 #define UNSET_NFLAG_ASMP(pnode) pnode->flags &= ~NFLAG_ASMP;
 #define UNSET_NFLAG_NEWC(pnode) pnode->flags &= ~NFLAG_NEWC;
@@ -63,6 +64,7 @@ static GFlags gflags = GFLAG_NONE;
 
 #define UNSET_GFLAG_VRFD gflags &= ~GFLAG_VRFD;
 #define UNSET_GFLAG_SUBD gflags &= ~GFLAG_SUBD;
+#define UNSET_GFLAG_BRCH gflags &= ~GFLAG_BRCH;
 
 typedef struct Variable {
 	struct Pnode* pnode;
@@ -83,25 +85,24 @@ typedef struct Pnode {
 
 void init_pgraph(Pnode** root);
 
+/* for verification */
+static GFlags gflags = GFLAG_NONE;
 static Pnode* reachable;
-static Pnode* known_id;
 void init_reachable(Pnode* pnode);
 unsigned short int next_reachable_const(Pnode* pnode);
-void init_known_id(Pnode* pnode);
-unsigned short int next_known_id();
-unsigned short int substitute_vars();
+unsigned short int same_as_rchbl(Pnode* pnode);
 
+/* graph creation */
 void create_child(Pnode* pnode);
 void create_right(Pnode* pnode);
 
 unsigned short int move_right(Pnode** pnode);
 unsigned short int move_down(Pnode** pnode);
-
 unsigned short int move_and_sum_up(Pnode** pnode);
 
 void set_symbol(Pnode* pnode, char* symbol);
 
+/* graph destruction */
 void free_graph(Pnode* pnode);
-
 
 #endif

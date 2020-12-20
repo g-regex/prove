@@ -215,6 +215,9 @@ void parse_statement(void)
 			init_reachable(pnode);
 			while (next_reachable_const(pnode)) {
 				//printf(".");
+				if(same_as_rchbl(pnode)) { /* TODO skip unneccessary cmps */
+					//printf("#"); 
+				}
 			}
 			//printf(")");
 		}

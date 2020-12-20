@@ -8,6 +8,35 @@
 #define TRUE 1
 #define FALSE 0
 
+static Pnode* known_id; /* current identifier in linked list, known from
+						   stance of current pnode */
+static char* subd_var; /* remembered variable to be substituted */
+
+/* for branch exploration */
+typedef struct branch_checkpoint { /* stack for jumping back to parent levels */
+	Pnode* pnode;
+	struct branch_checkpoint* above;
+} BC;
+static BC* bc = NULL;
+
+void bc_push()
+{
+	BC* bctos; /* top of stack for branch checkpoint, if descending */
+	bctos = (BC*) malloc(sizeof(BC));
+	bctos->pnode = reachable;
+	bctos->above = bc;
+	bc = bctos;
+}
+
+void bc_pop()
+{
+	BC* bcold;
+	bcold = bc;
+	reachable = bc->pnode;
+	bc = bc->above;
+	free(bcold);
+}
+
 void init_pgraph(Pnode** root)
 {
 	*root = (Pnode*) malloc(sizeof(struct Pnode));
@@ -57,13 +86,14 @@ void create_right(Pnode* pnode)
 	right->flags = pnode->flags;
 	UNSET_NFLAG_NEWC(right)
 	//if (HAS_FLAG_NEWC(pnode)) {
-	if (pnode->var == NULL) { /* will result in duplicates, but we are lazy */
+	if (pnode->var == NULL && !HAS_SYMBOL(pnode)) {
+		/* will result in duplicates, but we are lazy */
 		right->prev_const = pnode;
 	} else {
 		right->prev_const = pnode->prev_const;
 	}
 
-	if (!HAS_FLAG_IMPL(pnode)) {
+	if (!HAS_FLAG_IMPL(pnode)) { /* because ASMPs need to trickle down */
 		SET_NFLAG_ASMP(pnode)
 	}
 	if (HAS_FLAG_EQTY(pnode) || HAS_FLAG_FMLA(pnode)) {
@@ -133,7 +163,7 @@ unsigned short int move_and_sum_up(Pnode** pnode)
 	if (HAS_FLAG_NEWC((*pnode))) {
 		cumulative_vc++;
 		var = (Variable*) malloc(sizeof(Variable));
-		var->pnode = (*pnode);
+		var->pnode = (*pnode)->child;
 		var->next = oldvar;
 		oldvar = var;
 	}
@@ -145,7 +175,7 @@ unsigned short int move_and_sum_up(Pnode** pnode)
 		if (HAS_FLAG_NEWC((*pnode))) {
 			cumulative_vc++;
 			var = (Variable*) malloc(sizeof(Variable));
-			var->pnode = (*pnode);
+			var->pnode = (*pnode)->child;
 			var->next = oldvar;
 			oldvar = var;
 		}
@@ -187,26 +217,178 @@ unsigned short int next_known_id()
 	while (known_id != NULL && !CONTAINS_ID(known_id)) {
 		known_id = known_id->prev_const;
 	}
-	//if (known_id != NULL) {
-	//	printf("{%s}", *(known_id->child->symbol));
-	//}
+
+	/* DEBUG */
+	if (known_id != NULL) {
+		//printf("{%s}", *(known_id->child->symbol));
+	}
+
 	return (known_id != NULL);
 }
 
-unsigned short int substitute_vars()
+void init_sub(Pnode* pnode)
 {
-	
+	init_known_id(pnode);
+	next_known_id(); /* TODO add error check */
+
+	subd_var = *(reachable->var->pnode->symbol);
+	SET_GFLAG_SUBD
+}
+
+unsigned short int sub_vars()
+{
+	*(reachable->var->pnode->symbol) = *(known_id->child->symbol);
+}
+
+void finish_sub()
+{
+	*(reachable->var->pnode->symbol) = subd_var;
+	UNSET_GFLAG_SUBD
+}
+
+unsigned short int const_equal(Pnode* p1, Pnode* p2)
+{ /* must be given the top left node of the subtrees to compare */
+	unsigned short int equal;
+
+	equal = TRUE;
+	if (IS_ID(p1)) {
+		//printf(";");
+		if (IS_ID(p2)) {
+			//printf("$");
+			//if (*(p1->symbol) == *(p2->symbol)) printf("!");	
+			return (*(p1->symbol) == *(p2->symbol));	
+		} else {
+			return FALSE;
+		}
+	}
+
+	if (HAS_CHILD(p1)) {
+		//printf("c");
+		equal = HAS_CHILD(p2) ? const_equal(p1->child, p2->child) : FALSE;
+	}
+	if (HAS_RIGHT(p1)) {
+		equal = equal &&
+			(HAS_RIGHT(p2) ? const_equal(p1->right, p2->right) : FALSE);
+	}
+	return equal;
+}
+
+unsigned short int same_as_rchbl(Pnode* pnode)
+{
+	if (!HAS_CHILD(pnode) && !HAS_CHILD(reachable)) {
+		/* ERROR this should not happen!! */
+		//printf("&");
+		return FALSE;
+	}
+	return const_equal(pnode->child, reachable->child);
+}
+
+unsigned short int explore_branch()
+{
+	bc_push();
+	if (HAS_FLAG_IMPL(reachable->child) || HAS_FLAG_EQTY(reachable->child)) {
+		reachable = reachable->child;
+		/* DEBUG */
+		//if (CONTAINS_ID(reachable)) {
+		//	printf("'%s'", *(reachable->child->symbol));
+		//}
+		SET_GFLAG_BRCH
+		return TRUE;
+	} else {
+		return FALSE;
+	}
+}
+
+unsigned short int exit_branch()
+{
+	UNSET_GFLAG_BRCH
+	bc_pop();
+	//printf("E");
+}
+
+unsigned short int check_asmp(Pnode* pnode)
+{ /* checks assumption in 'reachable' from the perspective of pnode */
+	Pnode* pconst;
+
+	for (pconst = pnode->prev_const; pconst != NULL;
+			pconst = pconst->prev_const) {
+		//printf(":");
+		//if (CONTAINS_ID(pconst)) printf("<%s>", *(pconst->child->symbol));
+		//if (HAS_CHILD(pconst)) printf("<C>");
+		//if (HAS_SYMBOL(pconst)) printf("V%sV", *(pconst->symbol));
+		if (same_as_rchbl(pconst)) {
+			//printf("^");
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+unsigned short int next_in_branch(Pnode* pnode)
+{
+
+	if (HAS_SYMBOL(reachable)) {
+		if (!move_right(&reachable)) {
+			/* FATAL ERROR, must not happen */
+			return FALSE;
+		} else {
+			return next_in_branch(pnode);
+		}
+	}
+
+	if (HAS_FLAG_IMPL(reachable)) {
+		if (HAS_FLAG_ASMP(reachable)) {
+			//printf("\\");
+			if (!check_asmp(pnode)) {
+				return FALSE;	
+			} else if (!move_right(&reachable)) {
+				/* FATAL ERROR, must not happen */
+				return FALSE;
+			} else {
+				return next_in_branch(pnode);
+			}
+		} else {
+			if (HAS_CHILD(reachable) && (HAS_FLAG_IMPL(reachable->child) || HAS_FLAG_EQTY(reachable->child))) {
+				bc_push();
+				if (!move_down(&reachable)) {
+					/* FATAL ERROR, must not happen */
+					return FALSE;
+				} else {
+					return next_in_branch(pnode);
+				}
+			} else {
+				if (!move_right(&reachable)) {
+					/* move up */
+					if (bc->above == NULL) {
+						return FALSE; /* last pop is done by branch_exit */
+					} else {
+						bc_pop();
+					}
+				} else {
+					return TRUE;
+				}
+			}
+		}
+	}
+	return FALSE;
 }
 
 unsigned short int next_reachable_const(Pnode* pnode)
 {
+	if (HAS_GFLAG_BRCH) {
+		if (next_in_branch(pnode)) {
+			return TRUE;
+		} else {
+			exit_branch();
+		}
+	}
 	if (HAS_GFLAG_SUBD) {
 		//printf("-");
 		if (next_known_id()) {
-			substitute_vars();
+			sub_vars();
 			return TRUE;
 		} else {
-			UNSET_GFLAG_SUBD
+			finish_sub();
 			//printf("*");
 		}
 	}
@@ -214,11 +396,13 @@ unsigned short int next_reachable_const(Pnode* pnode)
 			(move_up(&reachable) && move_left(&reachable))) {
 		if (HAS_SYMBOL(reachable) ?  move_left(&reachable) :  TRUE) {
 			if (reachable->var != NULL) {
-				init_known_id(pnode);
-				next_known_id(); /* TODO add error check */
-				substitute_vars();
-				SET_GFLAG_SUBD
+				init_sub(pnode);
+				sub_vars();
 				//printf("?");
+			}
+			if (explore_branch()) {
+				//printf("/");
+				next_in_branch(pnode);
 			}
 			return TRUE;
 		}
@@ -226,25 +410,7 @@ unsigned short int next_reachable_const(Pnode* pnode)
 	return FALSE;
 }
 
-unsigned short int const_equal(Pnode* p1, Pnode* p2)
-{
-	unsigned short int equal;
-
-	equal = TRUE;
-	if (IS_ID(p1)) {
-		return (p1->symbol == p2->symbol);	
-	}
-
-	if (HAS_CHILD(p1)) {
-		equal = HAS_CHILD(p2) ? const_equal(p1->child, p2->child) : FALSE;
-	}
-	if (HAS_RIGHT(p1)) {
-		equal = equal &&
-			(HAS_RIGHT(p2) ? const_equal(p1->child, p2->child) : FALSE);
-	}
-	return equal;
-}
-
+/* for debugging */
 void print_node_info(Pnode* pnode, unsigned short int ncounter)
 {
 	Variable* var;
