@@ -80,8 +80,11 @@ typedef struct Pnode {
 	char** symbol;
 	NFlags flags;
 	int varcount; /* TODO: remove this */
+	int num;	/* DEBUG */
 	Variable* var;
 } Pnode;
+
+static short int n = 0; /* DEBUG */
 
 void init_pgraph(Pnode** root);
 
@@ -104,5 +107,8 @@ void set_symbol(Pnode* pnode, char* symbol);
 
 /* graph destruction */
 void free_graph(Pnode* pnode);
+
+/* DEBUG */
+unsigned short int rn();
 
 #endif

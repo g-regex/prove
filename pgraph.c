@@ -47,6 +47,9 @@ void init_pgraph(Pnode** root)
 	(*root)->flags = NFLAG_NONE;
 	(*root)->varcount = 0;
 	(*root)->var = NULL;
+
+	(*root)->num = n; /* DEBUG */
+	n++;
 }
 
 void create_child(Pnode* pnode)
@@ -68,6 +71,9 @@ void create_child(Pnode* pnode)
 		child->flags = NFLAG_NONE;
 	}
 	child->prev_const = pnode->prev_const;
+
+	child->num = n; /* DEBUG */
+	n++;
 }
 
 void create_right(Pnode* pnode)
@@ -103,6 +109,9 @@ void create_right(Pnode* pnode)
 		SET_NFLAG_ASMP(right)
 		SET_NFLAG_LOCK(right)
 	}
+
+	right->num = n; /* DEBUG */
+	n++;
 }
 
 unsigned short int move_right(Pnode** pnode)
@@ -251,12 +260,21 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 	unsigned short int equal;
 
 	equal = TRUE;
+	/* TODO this can be done better */
 	if (IS_ID(p1)) {
 		//printf(";");
 		if (IS_ID(p2)) {
 			//printf("$");
-			//if (*(p1->symbol) == *(p2->symbol)) printf("!");	
+			//if (*(p1->symbol) == *(p2->symbol)) printf("!%s;", *(p1->symbol));	
 			return (*(p1->symbol) == *(p2->symbol));	
+		} else {
+			return FALSE;
+		}
+	} else if (HAS_SYMBOL(p1)) {
+		if (HAS_SYMBOL(p2)) {
+			//printf("$");
+			//if (strcmp(*(p1->symbol), *(p2->symbol)) == 0) printf("X%s;", *(p1->symbol));	
+			return (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
 		} else {
 			return FALSE;
 		}
@@ -270,11 +288,19 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 		equal = equal &&
 			(HAS_RIGHT(p2) ? const_equal(p1->right, p2->right) : FALSE);
 	}
+
 	return equal;
+}
+
+/* DEBUG */
+unsigned short int rn()
+{
+	return reachable->num;
 }
 
 unsigned short int same_as_rchbl(Pnode* pnode)
 {
+	//printf("{%d}", reachable->num);
 	if (!HAS_CHILD(pnode) && !HAS_CHILD(reachable)) {
 		/* ERROR this should not happen!! */
 		//printf("&");
@@ -416,7 +442,7 @@ void print_node_info(Pnode* pnode, unsigned short int ncounter)
 	Variable* var;
 
 	printf("\n\n");
-	printf("Node %d:\n", ncounter);
+	printf("Node %d (%d):\n", ncounter, pnode->num);
 	if (pnode->symbol != NULL) {
 		printf("\tSymbol: %s\n", *(pnode->symbol));
 	}
