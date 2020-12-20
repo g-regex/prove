@@ -187,14 +187,16 @@ void parse_statement(void)
 			pcompare = pnode->prev_const;
 			found = FALSE;
 			while (pcompare != NULL) {
-				if (strcmp(*(pcompare->child->symbol),
-							*(pnode->child->symbol)) == 0) {
-					found = TRUE;
+				if (CONTAINS_ID(pcompare)) {
+					if (strcmp(*(pcompare->child->symbol),
+								*(pnode->child->symbol)) == 0) {
+						found = TRUE;
 
-					free(*(pnode->child->symbol));
-					free(pnode->child->symbol);
-					pnode->child->symbol = pcompare->child->symbol;
-					break;
+						free(*(pnode->child->symbol));
+						free(pnode->child->symbol);
+						pnode->child->symbol = pcompare->child->symbol;
+						break;
+					}
 				}
 				pcompare = pcompare->prev_const;
 			}
@@ -209,9 +211,12 @@ void parse_statement(void)
 		}
 
 		if (HAS_FLAG_IMPL(pnode) && !HAS_FLAG_ASMP(pnode)) {
-			printf("(");
+			//printf("(");
 			init_reachable(pnode);
-			printf(")");
+			while (next_reachable_const(pnode)) {
+				//printf(".");
+			}
+			//printf(")");
 		}
 
 		lvl--;

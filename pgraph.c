@@ -56,14 +56,10 @@ void create_right(Pnode* pnode)
 
 	right->flags = pnode->flags;
 	UNSET_NFLAG_NEWC(right)
-	if (HAS_FLAG_NEWC(pnode)) {
-		//SET_NFLAG_ASMP(pnode)
+	//if (HAS_FLAG_NEWC(pnode)) {
+	if (pnode->var == NULL) { /* will result in duplicates, but we are lazy */
 		right->prev_const = pnode;
 	} else {
-		//if (!HAS_FFLAGS(pnode)) {
-		//if (!HAS_FLAG_IMPL(pnode)) {
-		//	SET_NFLAG_ASMP(pnode)
-		//}
 		right->prev_const = pnode->prev_const;
 	}
 
@@ -178,8 +174,75 @@ void init_reachable(Pnode* pnode)
 	reachable = pnode;
 }
 
-void next_reachable()
+void init_known_id(Pnode* pnode)
 {
+	known_id = pnode;
+}
+
+unsigned short int next_known_id()
+{ /* TODO skip duplicates */
+	if (known_id != NULL) {
+		known_id = known_id->prev_const;
+	}
+	while (known_id != NULL && !CONTAINS_ID(known_id)) {
+		known_id = known_id->prev_const;
+	}
+	//if (known_id != NULL) {
+	//	printf("{%s}", *(known_id->child->symbol));
+	//}
+	return (known_id != NULL);
+}
+
+unsigned short int substitute_vars()
+{
+	
+}
+
+unsigned short int next_reachable_const(Pnode* pnode)
+{
+	if (HAS_GFLAG_SUBD) {
+		//printf("-");
+		if (next_known_id()) {
+			substitute_vars();
+			return TRUE;
+		} else {
+			UNSET_GFLAG_SUBD
+			//printf("*");
+		}
+	}
+	if (move_left(&reachable) || 
+			(move_up(&reachable) && move_left(&reachable))) {
+		if (HAS_SYMBOL(reachable) ?  move_left(&reachable) :  TRUE) {
+			if (reachable->var != NULL) {
+				init_known_id(pnode);
+				next_known_id(); /* TODO add error check */
+				substitute_vars();
+				SET_GFLAG_SUBD
+				//printf("?");
+			}
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+unsigned short int const_equal(Pnode* p1, Pnode* p2)
+{
+	unsigned short int equal;
+
+	equal = TRUE;
+	if (IS_ID(p1)) {
+		return (p1->symbol == p2->symbol);	
+	}
+
+	if (HAS_CHILD(p1)) {
+		equal = HAS_CHILD(p2) ? const_equal(p1->child, p2->child) : FALSE;
+	}
+	if (HAS_RIGHT(p1)) {
+		equal = equal &&
+			(HAS_RIGHT(p2) ? const_equal(p1->child, p2->child) : FALSE);
+	}
+	return equal;
 }
 
 void print_node_info(Pnode* pnode, unsigned short int ncounter)
@@ -227,7 +290,7 @@ void free_graph(Pnode* pnode)
 			move_rightmost(&pnode);
 		}
 
-		print_node_info(pnode, ncounter);
+		//print_node_info(pnode, ncounter);
 
 		if (pnode->parent != NULL && HAS_FLAG_NEWC(pnode->parent)) {
 			free(*(pnode->symbol));
@@ -248,7 +311,7 @@ void free_graph(Pnode* pnode)
 		}
 		ncounter++;
 	}
-	print_node_info(pnode, ncounter);
+	//print_node_info(pnode, ncounter);
 	if (pnode->var != NULL) {
 		free(pnode->var);
 	}
