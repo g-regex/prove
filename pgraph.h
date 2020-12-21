@@ -16,7 +16,8 @@ typedef enum {
 	GFLAG_NONE = 0,
 	GFLAG_VRFD = 1,
 	GFLAG_SUBD = 2,
-	GFLAG_BRCH = 4
+	GFLAG_BRCH = 4,
+	GFLAG_WRAP = 8
 } GFlags;
 
 #define HAS_FLAG_IMPL(pnode) (pnode->flags & NFLAG_IMPL)
@@ -32,6 +33,7 @@ typedef enum {
 #define HAS_GFLAG_VRFD (gflags & GFLAG_VRFD)
 #define HAS_GFLAG_SUBD (gflags & GFLAG_SUBD)
 #define HAS_GFLAG_BRCH (gflags & GFLAG_BRCH)
+#define HAS_GFLAG_WRAP (gflags & GFLAG_WRAP)
 
 /* bitmasking the NFFLAGS */
 #define GET_NFFLAGS(pnode) (pnode->flags & 7)
@@ -60,6 +62,7 @@ typedef enum {
 #define SET_GFLAG_VRFD gflags |= GFLAG_VRFD;
 #define SET_GFLAG_SUBD gflags |= GFLAG_SUBD;
 #define SET_GFLAG_BRCH gflags |= GFLAG_BRCH;
+#define SET_GFLAG_WRAP gflags |= GFLAG_WRAP;
 
 #define UNSET_NFLAG_ASMP(pnode) pnode->flags &= ~NFLAG_ASMP;
 #define UNSET_NFLAG_NEWC(pnode) pnode->flags &= ~NFLAG_NEWC;
@@ -69,6 +72,7 @@ typedef enum {
 #define UNSET_GFLAG_VRFD gflags &= ~GFLAG_VRFD;
 #define UNSET_GFLAG_SUBD gflags &= ~GFLAG_SUBD;
 #define UNSET_GFLAG_BRCH gflags &= ~GFLAG_BRCH;
+#define UNSET_GFLAG_WRAP gflags &= ~GFLAG_WRAP;
 
 typedef struct Variable {
 	struct Pnode* pnode;

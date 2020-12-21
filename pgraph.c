@@ -18,6 +18,10 @@ typedef struct branch_checkpoint { /* stack for jumping back to parent levels */
 	struct branch_checkpoint* above;
 } BC;
 static BC* bc = NULL;
+static Pnode* eqfirst; /* temporarily holds the first node of an equality */
+static Pnode* eqendwrap; /*temporarily holds node at which to stop wrapping*/
+
+unsigned short int next_in_branch(Pnode* pnode);
 
 void bc_push()
 {
@@ -26,7 +30,7 @@ void bc_push()
 	bctos->pnode = reachable;
 	bctos->above = bc;
 	bc = bctos;
-	//printf("push:{%d}", reachable->num);
+	//printf("push:(%d)", reachable->num);
 }
 
 Pnode* bc_pop()
@@ -38,7 +42,7 @@ Pnode* bc_pop()
 	pnode = bc->pnode;
 	bc = bc->above;
 	free(bcold);
-	//printf("pop:{%d}", pnode->num);
+	//printf("pop:(%d)", pnode->num);
 	return pnode;
 }
 
@@ -322,11 +326,6 @@ unsigned short int explore_branch()
 	if (HAS_FLAG_IMPL(reachable->child) || HAS_FLAG_EQTY(reachable->child)) {
 		bc_push();
 		reachable = reachable->child;
-		/* DEBUG */
-		//if (CONTAINS_ID(reachable)) {
-		//	printf("'%s'", *(reachable->child->symbol));
-		//}
-		SET_GFLAG_BRCH
 		return TRUE;
 	} else {
 		return FALSE;
@@ -335,7 +334,6 @@ unsigned short int explore_branch()
 
 unsigned short int exit_branch()
 {
-	UNSET_GFLAG_BRCH
 	while (bc->above != NULL) {
 		bc_pop();
 	}
@@ -361,17 +359,51 @@ unsigned short int check_asmp(Pnode* pnode)
 	return FALSE;
 }
 
+unsigned short int branch_proceed(Pnode* pnode)
+{
+	while (!move_right(&reachable)) {
+		//move up
+		if (bc->above == NULL) {
+			return FALSE; // last pop is done by branch_exit
+		} else {
+			reachable = bc_pop();
+		}
+
+	}
+	if (HAS_SYMBOL(reachable)) {
+		return next_in_branch(pnode);
+	} else {
+		return TRUE;
+	}
+}
+
+void wrap_right() {
+	if (!move_right(&reachable)) {
+		reachable = eqfirst;
+	}
+}
+
 unsigned short int next_in_branch(Pnode* pnode)
 {
-
 	if (HAS_SYMBOL(reachable)) {
 		if (!move_right(&reachable)) {
 			/* FATAL ERROR, must not happen */
 			return FALSE;
 		} else {
 			//printf("Z");
-			return next_in_branch(pnode);
+			//return next_in_branch(pnode);
+			
+			/*if (explore_branch()) {
+				return next_in_branch(pnode);
+			} else {
+				return TRUE;
+			}*/
+			return TRUE;
 		}
+	}
+
+	if (explore_branch()) {
+		return next_in_branch(pnode);
 	}
 
 	if (HAS_FLAG_IMPL(reachable)) {
@@ -387,76 +419,115 @@ unsigned short int next_in_branch(Pnode* pnode)
 				return next_in_branch(pnode);
 			}
 		} else {
-			if (HAS_CHILD(reachable) && (HAS_FLAG_IMPL(reachable->child) || HAS_FLAG_EQTY(reachable->child))) {
+			/*if (HAS_CHILD(reachable) && (HAS_FLAG_IMPL(reachable->child) || HAS_FLAG_EQTY(reachable->child))) {
 				bc_push();
+				//printf("J");
 				if (!move_down(&reachable)) {
-					/* FATAL ERROR, must not happen */
+					// FATAL ERROR, must not happen 
 					return FALSE;
 				} else {
 					return next_in_branch(pnode);
-				}
+				}*/
+			if (explore_branch()) {
+				return next_in_branch(pnode);
 			} else {
-			//printf("Q");
-				if (!move_right(&reachable)) {
-					/* move up */
-					if (bc->above == NULL) {
-						return FALSE; /* last pop is done by branch_exit */
-					} else {
-						//printf("U(%d)", rn());
-						reachable = bc_pop();
-						//printf("V(%d)", rn());
-						//if (bc->above == NULL) printf("W");
-						//else printf("B(%d)", bc->above->pnode->num);
-						//return next_in_branch(pnode);
-					}
+				//printf("Q");
+				return branch_proceed(pnode);	
+			}
+		}
+	}
+
+	if (HAS_FLAG_EQTY(reachable)) {
+		//printf("  >>>  ");
+		if (HAS_GFLAG_WRAP) {
+			wrap_right();
+			if (eqendwrap == reachable) {
+				UNSET_GFLAG_WRAP
+				/* move up */
+				/*if (bc->above == NULL) {
+					return FALSE; // last pop is done by branch_exit
 				} else {
-					//printf("P");
+					reachable = bc_pop();
+					return next_in_branch(pnode);
+				}*/
+				branch_proceed(pnode);
+			}
+			//return TRUE;
+			//if (HAS_SYMBOL(reachable)) printf("'%s'", *(reachable->symbol));
+			return FALSE;
+
+		} else {
+			if (HAS_FLAG_FRST(reachable)) {
+				eqfirst = reachable;
+			}
+
+			while (move_right(&reachable)) {
+				if (HAS_SYMBOL(reachable)){
+					continue;
+				} else if (check_asmp(pnode)) {
+					SET_GFLAG_WRAP
+					eqendwrap = reachable;
+
+					wrap_right();
+					if (HAS_SYMBOL(reachable)) { /* assuming correct syntax */
+						wrap_right();
+					}
 					return TRUE;
 				}
 			}
+			return FALSE;
 		}
 	}
 	return FALSE;
 }
 
+unsigned short int attempt_explore(Pnode* pnode)
+{
+	if (explore_branch()) {
+		SET_GFLAG_BRCH
+		//printf("/");
+		if (!next_in_branch(pnode)) {
+			//printf("X");
+			exit_branch();
+			UNSET_GFLAG_BRCH
+			return next_reachable_const(pnode);
+		}
+	} else {
+		UNSET_GFLAG_BRCH
+	}
+	return TRUE;
+}
+
 unsigned short int next_reachable_const(Pnode* pnode)
 {
 	if (HAS_GFLAG_BRCH) {
-		if (next_in_branch(pnode)) {
-			return TRUE;
-		} else {
+		if (!next_in_branch(pnode)) {
 			exit_branch();
+			UNSET_GFLAG_BRCH
+			//printf("@(%d)", reachable->num);
 		}
-	}
+		return TRUE;
+	} 
+	
 	if (HAS_GFLAG_SUBD) {
-		//printf("-");
 		if (next_known_id()) {
 			sub_vars();
-			return TRUE;
+			return attempt_explore(pnode);
 		} else {
 			finish_sub();
-			//printf("*");
+			return next_reachable_const(pnode);
 		}
 	}
+
 	if (move_left(&reachable) || 
 			(move_up(&reachable) && move_left(&reachable))) {
 		if (HAS_SYMBOL(reachable) ?  move_left(&reachable) :  TRUE) {
+			//printf("![%d]", reachable->num);
 			if (reachable->var != NULL) {
 				init_sub(pnode);
 				sub_vars();
-				//printf("?");
 			}
-			if (explore_branch()) {
-				//printf("/");
-				if (!next_in_branch(pnode)) {
-					//printf("X");
-					exit_branch(); //TODO!!!
-					return next_reachable_const(pnode);
-				}
-			} else {
-				return next_reachable_const(pnode);
-			}
-			return TRUE;
+			return attempt_explore(pnode);
 		}
 	}
 	return FALSE;
