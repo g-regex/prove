@@ -15,6 +15,9 @@ static char* subd_var; /* remembered variable to be substituted */
 /* for branch exploration */
 typedef struct branch_checkpoint { /* stack for jumping back to parent levels */
 	Pnode* pnode;
+	unsigned short int wrap;
+	Pnode* eqfirst;
+	Pnode* eqendwrap;
 	struct branch_checkpoint* above;
 } BC;
 static BC* bc = NULL;
@@ -28,22 +31,31 @@ void bc_push()
 	BC* bctos; /* top of stack for branch checkpoint, if descending */
 	bctos = (BC*) malloc(sizeof(BC));
 	bctos->pnode = reachable;
+	bctos->wrap = HAS_GFLAG_WRAP;
+	bctos->eqfirst = eqfirst;
+	bctos->eqendwrap = eqendwrap;
 	bctos->above = bc;
 	bc = bctos;
 	//printf("push:(%d)", reachable->num);
 }
 
-Pnode* bc_pop()
+void bc_pop(Pnode** pnode)
 {
 	BC* bcold;
-	Pnode* pnode;
+	unsigned short int wrap;
 
 	bcold = bc;
-	pnode = bc->pnode;
+	*pnode = bc->pnode;
+	if (bc->wrap) {
+		SET_GFLAG_WRAP
+	} else {
+		UNSET_GFLAG_WRAP
+	}
+	eqfirst = bc->eqfirst;
+	eqendwrap = bc->eqendwrap;
 	bc = bc->above;
 	free(bcold);
 	//printf("pop:(%d)", pnode->num);
-	return pnode;
 }
 
 void init_pgraph(Pnode** root)
@@ -321,6 +333,11 @@ unsigned short int rn()
 {
 	return reachable->num;
 }
+unsigned short int iswrapped()
+{
+	if (HAS_GFLAG_WRAP) return TRUE;
+	else return FALSE;
+}
 
 unsigned short int same_as_rchbl(Pnode* pnode)
 {
@@ -346,11 +363,9 @@ unsigned short int explore_branch()
 
 unsigned short int exit_branch()
 {
-	while (bc->above != NULL) {
-		bc_pop();
+	while (bc != NULL) {
+		bc_pop(&reachable);
 	}
-	reachable = bc_pop();
-	//printf("E");
 }
 
 unsigned short int check_asmp(Pnode* pnode)
@@ -371,17 +386,37 @@ unsigned short int check_asmp(Pnode* pnode)
 	return FALSE;
 }
 
+unsigned short int wrap_right()
+{
+	if (!move_right(&reachable)) {
+		if (HAS_GFLAG_WRAP) {
+			reachable = eqfirst;
+			return TRUE;
+		} else {
+			return FALSE;
+		}
+	} else {
+		return TRUE;
+	}
+}
+
 unsigned short int branch_proceed(Pnode* pnode)
 {
-	while (!move_right(&reachable)) {
+	do {
 		//move up
 		if (bc->above == NULL) {
 			return FALSE; // last pop is done by branch_exit
 		} else {
-			reachable = bc_pop();
+			bc_pop(&reachable);
+			if (HAS_GFLAG_WRAP) {
+				SET_GFLAG_WRAP
+				wrap_right();
+				break;
+			}
+			//printf("p(%d)", reachable->num);
 		}
-
-	}
+	} while (!wrap_right());
+	//printf(";");
 	if (HAS_SYMBOL(reachable)) {
 		return next_in_branch(pnode);
 	} else {
@@ -389,16 +424,10 @@ unsigned short int branch_proceed(Pnode* pnode)
 	}
 }
 
-void wrap_right() {
-	if (!move_right(&reachable)) {
-		reachable = eqfirst;
-	}
-}
-
 unsigned short int next_in_branch(Pnode* pnode)
 {
 	if (HAS_SYMBOL(reachable)) {
-		if (!move_right(&reachable)) {
+		if (!wrap_right(&reachable)) { /* TODO maybe get rid of wraps in EQTY */
 			/* FATAL ERROR, must not happen */
 			return FALSE;
 		} else {
@@ -419,6 +448,7 @@ unsigned short int next_in_branch(Pnode* pnode)
 	}
 
 	if (HAS_FLAG_IMPL(reachable)) {
+		//printf("I");
 		if (HAS_FLAG_FRST(reachable)) {
 			//printf("\\");
 			if (!check_asmp(pnode)) {
@@ -452,8 +482,9 @@ unsigned short int next_in_branch(Pnode* pnode)
 	if (HAS_FLAG_EQTY(reachable)) {
 		//printf("  >>>  ");
 		if (HAS_GFLAG_WRAP) {
-			wrap_right();
+			//printf(".(%d)", eqendwrap->num);
 			if (eqendwrap == reachable) {
+				//printf("H");
 				UNSET_GFLAG_WRAP
 				/* move up */
 				/*if (bc->above == NULL) {
@@ -462,11 +493,15 @@ unsigned short int next_in_branch(Pnode* pnode)
 					reachable = bc_pop();
 					return next_in_branch(pnode);
 				}*/
-				branch_proceed(pnode);
+
+				return branch_proceed(pnode);
 			}
-			//return TRUE;
+			do {
+				wrap_right();
+			} while (HAS_SYMBOL(reachable));
+			return TRUE;
 			//if (HAS_SYMBOL(reachable)) printf("'%s'", *(reachable->symbol));
-			return FALSE;
+			//return FALSE; /* TODO!! */
 
 		} else {
 			if (HAS_FLAG_FRST(reachable)) {
@@ -474,6 +509,7 @@ unsigned short int next_in_branch(Pnode* pnode)
 			}
 
 			do {
+				//printf("_%d_", reachable->num);
 				if (HAS_SYMBOL(reachable)){
 					continue;
 				} else if (check_asmp(pnode)) {

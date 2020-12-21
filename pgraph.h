@@ -118,5 +118,6 @@ void free_graph(Pnode* pnode);
 
 /* DEBUG */
 unsigned short int rn();
+unsigned short int iswrapped();
 
 #endif
