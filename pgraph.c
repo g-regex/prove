@@ -278,11 +278,23 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 		if (IS_ID(p2)) {
 			//printf("$");
 			//if (*(p1->symbol) == *(p2->symbol)) printf("!%s;", *(p1->symbol));	
-			return (*(p1->symbol) == *(p2->symbol));	
+
+			/******************************************************************/
+			/* BIG TODO!!! We have to decide on how identifiers may be
+			 * introduced. Ideally we'd just have one line here:
+			 * return (*(p1->symbol) == *(p2->symbol));	*/
+
+			 if (*(p1->symbol) != *(p2->symbol)) {
+				return (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
+			 } else {
+				return TRUE;
+			 }
+			/******************************************************************/
+
 		} else {
 			return FALSE;
 		}
-	} else if (HAS_SYMBOL(p1)) {
+	} else if (HAS_SYMBOL(p1)) { /* this is for formulators */
 		if (HAS_SYMBOL(p2)) {
 			//printf("$");
 			//if (strcmp(*(p1->symbol), *(p2->symbol)) == 0) printf("X%s;", *(p1->symbol));	
@@ -461,7 +473,7 @@ unsigned short int next_in_branch(Pnode* pnode)
 				eqfirst = reachable;
 			}
 
-			while (move_right(&reachable)) {
+			do {
 				if (HAS_SYMBOL(reachable)){
 					continue;
 				} else if (check_asmp(pnode)) {
@@ -474,7 +486,8 @@ unsigned short int next_in_branch(Pnode* pnode)
 					}
 					return TRUE;
 				}
-			}
+			} while (move_right(&reachable));
+			//printf("-");
 			return FALSE;
 		}
 	}

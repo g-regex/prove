@@ -211,19 +211,19 @@ void parse_statement(void)
 		}
 
 		if (HAS_FLAG_IMPL(pnode) && !HAS_FLAG_ASMP(pnode)) {
-			//printf("(");
+			printf("(");
 			init_reachable(pnode);
-			//printf("{%d}", pnode->num);
+			printf("{%d}", pnode->num);
 			while (next_reachable_const(pnode)) {
-				//printf("<%d", rn());
+				printf("<%d", rn());
 				if(same_as_rchbl(pnode)) { /* TODO skip unneccessary cmps */
 					/* TODO remember to exit_branch */
 					//printf("(%d,%d)", pnode->num, rn()); /* DEBUG "reason" */
-					//printf("#");
+					printf("#");
 				}
-				//printf(">");
+				printf(">");
 			}
-			//printf(")");
+			printf(")");
 		}
 
 		lvl--;
