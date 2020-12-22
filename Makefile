@@ -40,21 +40,27 @@ runchecks:
 	for T in `ls testcases/valid/*.prove |  sort -V`
 	do
 		echo -ne "$$T: \t"
-		$(BINDIR)/proveparser $$T 0 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
+		$(BINDIR)/proveparser $$T 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
 		if (test $$? -eq 1)
 		then
 			echo -e "\t[\033[0;31m failure \033[0;0m]"
 			echo ">>> $$(basename $$T):" >> testcases/out/report_failure.txt
+			echo " >> original file:" >> testcases/out/report_failure.txt
 			sed 's/\\/\\/g' $$T | sed 's/^/    /g' >> testcases/out/report_failure.txt
-			echo "    "`cat testcases/out/$$(basename $$T).out` >> testcases/out/report_failure.txt
+			echo "" >> testcases/out/report_failure.txt
+			echo " >> [prove] output:" >> testcases/out/report_failure.txt
+			sed 's/\\/\\/g' testcases/out/$$(basename $$T).out | sed 's/^/    /g' >> testcases/out/report_failure.txt
 			echo "    "`cat testcases/out/$$(basename $$T).err` >> testcases/out/report_failure.txt
 			echo >> testcases/out/report_failure.txt
 			S=1
 		else
 			echo -e "\t[\033[0;32m success \033[0;0m]"
 			echo ">>> $$(basename $$T):" >> testcases/out/report_success.txt
+			echo " >> original file:" >> testcases/out/report_success.txt
 			sed 's/\\/\\/g' $$T | sed 's/^/    /g' >> testcases/out/report_success.txt
-			echo "    "`cat testcases/out/$$(basename $$T).out` >> testcases/out/report_success.txt
+			echo "" >> testcases/out/report_success.txt
+			echo " >> [prove] output:" >> testcases/out/report_success.txt
+			sed 's/\\/\\/g' testcases/out/$$(basename $$T).out | sed 's/^/    /g' >> testcases/out/report_success.txt
 			echo "    "`cat testcases/out/$$(basename $$T).err` >> testcases/out/report_success.txt
 			echo >> testcases/out/report_success.txt
 		fi
@@ -62,21 +68,27 @@ runchecks:
 	for T in `ls testcases/invalid/*.prove |  sort -V`
 	do
 		echo -ne "$$T: \t"
-		$(BINDIR)/proveparser $$T 0 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
+		$(BINDIR)/proveparser $$T 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
 		if (test $$? -eq 0)
 		then
 			echo -e "\t[\033[0;31m failure \033[0;0m]"
 			echo ">>> $$(basename $$T):" >> testcases/out/report_failure.txt
+			echo " >> original file:" >> testcases/out/report_failure.txt
 			sed 's/\\/\\/g' $$T | sed 's/^/    /g' >> testcases/out/report_failure.txt
-			echo "    "`cat testcases/out/$$(basename $$T).out` >> testcases/out/report_failure.txt
+			echo "" >> testcases/out/report_failure.txt
+			echo " >> [prove] output:" >> testcases/out/report_failure.txt
+			sed 's/\\/\\/g' testcases/out/$$(basename $$T).out | sed 's/^/    /g' >> testcases/out/report_failure.txt
 			echo "    "`cat testcases/out/$$(basename $$T).err` >> testcases/out/report_failure.txt
 			echo >> testcases/out/report_failure.txt
 			S=1
 		else
 			echo -e "\t[\033[0;32m success \033[0;0m]"
 			echo ">>> $$(basename $$T):" >> testcases/out/report_success.txt
+			echo " >> original file:" >> testcases/out/report_success.txt
 			sed 's/\\/\\/g' $$T | sed 's/^/    /g' >> testcases/out/report_success.txt
-			echo "    "`cat testcases/out/$$(basename $$T).out` >> testcases/out/report_success.txt
+			echo "" >> testcases/out/report_success.txt
+			echo " >> [prove] output:" >> testcases/out/report_success.txt
+			sed 's/\\/\\/g' testcases/out/$$(basename $$T).out | sed 's/^/    /g' >> testcases/out/report_success.txt
 			echo "    "`cat testcases/out/$$(basename $$T).err` >> testcases/out/report_success.txt
 			echo >> testcases/out/report_success.txt
 		fi
