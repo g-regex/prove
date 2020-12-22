@@ -2,5 +2,8 @@
 
 [prove] is a proof verification system using bracketed expressions. It is currently work in progress.
 
-## documentation:
+## Documentation
 Refer to the [doc.pdf](https://github.com/g-regex/prove/blob/master/doc/doc.pdf) in the doc/ folder.
+
+## License
+[prove] is published under the [GPL 3.0 license](https://github.com/g-regex/prove/blob/master/gpl-3.0.md).
