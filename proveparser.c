@@ -210,28 +210,19 @@ void parse_statement(void)
 			}
 		}
 
-		/*if (pnode->num == 107) {
-			if (iswrapped()) printf("TRUE");
-			else printf("FALSE");
-			exit(0);
-		}*/
-
-		if (HAS_FLAG_IMPL(pnode) && !HAS_FLAG_ASMP(pnode)) {
-			//printf("(");
+		if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)) {
 			init_reachable(pnode);
 			printf("{%d}", pnode->num);
 			while (next_reachable_const(pnode)) {
-				//printf("<%d", rn());
-				//if (iswrapped()) printf("T");
-				//else printf("F");
-				if(same_as_rchbl(pnode)) { /* TODO skip unneccessary cmps */
+				printf("<%d", rn());
+				if(same_as_rchbl(pnode)) {
+					/* TODO skip unneccessary cmps */
 					/* TODO remember to exit_branch */
-					printf("(%d)", rn()); /* DEBUG "reason" */
-					//printf("#");
+					//printf("(%d)", rn()); /* DEBUG "reason" */
+					printf("#");
 				}
-				//printf(">");
+				printf(">");
 			}
-			//printf(")");
 		}
 
 		lvl--;
@@ -271,7 +262,7 @@ void check_conflict(Pnode* pnode, TType ttype)
 	if (ttype == TOK_IMPLY) {
 		if (!HAS_FFLAGS(pnode)) {
 			SET_NFLAG_IMPL(pnode)
-		} else if (HAS_FLAG_IMPL(pnode)) {
+		} else if (HAS_NFLAG_IMPL(pnode)) {
 			return;
 		} else {
 			if (!quiet) {
@@ -284,7 +275,7 @@ void check_conflict(Pnode* pnode, TType ttype)
 	} else if (ttype == TOK_EQ) {
 		if (!HAS_FFLAGS(pnode)) {
 			SET_NFLAG_EQTY(pnode)
-		} else if (HAS_FLAG_EQTY(pnode)) {
+		} else if (HAS_NFLAG_EQTY(pnode)) {
 			return;
 		} else {
 			if (!quiet) {
@@ -297,7 +288,7 @@ void check_conflict(Pnode* pnode, TType ttype)
 	} else if (ttype == TOK_STR) {
 		if (!HAS_FFLAGS(pnode)) {
 			SET_NFLAG_FMLA(pnode)
-		} else if (HAS_FLAG_FMLA(pnode)) {
+		} else if (HAS_NFLAG_FMLA(pnode)) {
 			return;
 		} else {
 			if (!quiet) {
