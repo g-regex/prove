@@ -483,6 +483,7 @@ void init_reachable(Pnode* pnode)
 
 unsigned short int next_reachable_const(Pnode* pnode)
 {
+	/* branch exploration */
 	if (HAS_GFLAG_BRCH) {
 		if (!next_in_branch(pnode)) {
 			exit_branch();
@@ -490,7 +491,8 @@ unsigned short int next_reachable_const(Pnode* pnode)
 		}
 		return TRUE;
 	} 
-	
+
+	/* substitution */
 	if (HAS_GFLAG_SUBD) {
 		if (next_known_id()) {
 			sub_vars();
@@ -501,6 +503,7 @@ unsigned short int next_reachable_const(Pnode* pnode)
 		}
 	}
 
+	/* backtracking */
 	if (move_left(&reachable) || 
 			(move_up(&reachable) && move_left(&reachable))) {
 		if (HAS_SYMBOL(reachable) ?  move_left(&reachable) :  TRUE) {

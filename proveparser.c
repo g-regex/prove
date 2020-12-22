@@ -65,6 +65,8 @@ int main(int argc, char *argv[])
 
 void parse_expr(void)
 {
+	/* maybe the EBNF should be altered a bit,
+	 * this seems to be a bit non-sensical */
 	if (parse_formula()) {
 	} else {
 	}
@@ -116,6 +118,9 @@ void parse_statement(void)
 		lvl++;
 		DBG(printf("%s", token.id);)
 		expect(TOK_LBRACK);
+		if (HAS_GFLAG_VRFD) {
+			UNSET_GFLAG_VRFD
+		}
 
 		if (HAS_CHILD(pnode) || HAS_SYMBOL(pnode)) {
 			create_right(pnode);
@@ -124,7 +129,7 @@ void parse_statement(void)
 		create_child(pnode);
 		move_down(&pnode);
 
-		if (token.type == TOK_STR) {
+		if (token.type == TOK_SYM) {
 			set_symbol(pnode, token.id);	
 			next_token(&token);
 			if (token.type == TOK_RBRACK) {
@@ -200,6 +205,7 @@ void parse_statement(void)
 			}
 		}
 
+		/* verification is triggered here */
 		if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)) {
 			init_reachable(pnode);
 			DBG(if(HAS_GFLAG_VRFD) printf("*");)
@@ -257,10 +263,6 @@ void check_conflict(Pnode* pnode, TType ttype)
 			}
 		})
 
-		if (HAS_GFLAG_VRFD) {
-			UNSET_GFLAG_VRFD
-		}
-
 		if (!HAS_FFLAGS(pnode)) {
 			SET_NFLAG_IMPL(pnode)
 		} else if (HAS_NFLAG_IMPL(pnode)) {
@@ -286,14 +288,14 @@ void check_conflict(Pnode* pnode, TType ttype)
 			}
 			exit(EXIT_FAILURE);
 		}
-	} else if (ttype == TOK_STR) {
+	} else if (ttype == TOK_SYM) {
 		if (!HAS_FFLAGS(pnode)) {
 			SET_NFLAG_FMLA(pnode)
 		} else if (HAS_NFLAG_FMLA(pnode)) {
 			return;
 		} else {
 			if (!quiet) {
-				fprintf(stderr, "unexpected TOK_STR "
+				fprintf(stderr, "unexpected TOK_SYM "
 					"on line %d, column %d\n",
 						 cursor.line, cursor.col);
 			}

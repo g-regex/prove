@@ -76,10 +76,12 @@ typedef struct Pnode {
 	struct Pnode* left;
 	struct Pnode* right;
 	struct Pnode* prev_const; /* link to previous constant in the tree */
-	char** symbol;
+	char** symbol; /* using a double pointer to let known identifiers
+					  point to the same char* in memory */
 	NFlags flags;
-	int num;	/* DEBUG */
-	Variable* var;
+	int num; /* number of the current node in pre-order traversal of the tree */
+	Variable* var; /* link to the first variable in
+					  sub-tree (for substitution) */
 } Pnode;
 
 #define CONTAINS_ID(pnode) \

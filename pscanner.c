@@ -46,7 +46,7 @@ void next_token(Token *token)
 	if (ch != EOF) {
 		if (isalpha(ch) || isdigit(ch) || isspecial(ch)) {
 			/* process a <string> */
-			token->type = TOK_STR;
+			token->type = TOK_SYM;
 			process_string(token);
 		} else switch (ch) {
 			case '[':

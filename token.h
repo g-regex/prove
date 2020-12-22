@@ -4,7 +4,7 @@
 #define MAX_ID_LENGTH 32
 
 #define IS_FORMULATOR(type) \
-	(type == TOK_STR || type == TOK_IMPLY || type == TOK_EQ)
+	(type == TOK_SYM || type == TOK_IMPLY || type == TOK_EQ)
 
 /* recognisable tokens */
 typedef enum {
@@ -15,7 +15,7 @@ typedef enum {
 
 	TOK_IMPLY,   /* implication */
 	TOK_EQ,		 /* equality */
-	TOK_STR      /* string */
+	TOK_SYM      /* symbol */
 } TType;
 
 typedef struct {
