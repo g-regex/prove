@@ -202,12 +202,14 @@ void parse_statement(void)
 
 		if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)) {
 			init_reachable(pnode);
+			DBG(if(HAS_GFLAG_VRFD) printf("*");)
 			DBG(printf("{%d}", pnode->num);)
 			while (next_reachable_const(pnode)) {
 				DBG(printf("<%d", rn());)
 				if(same_as_rchbl(pnode)) {
 					/* TODO skip unneccessary cmps */
 					DBG(printf("#");)
+					SET_GFLAG_VRFD
 				}
 				DBG(printf(">");)
 			}
@@ -254,6 +256,10 @@ void check_conflict(Pnode* pnode, TType ttype)
 				printf("\t");
 			}
 		})
+
+		if (HAS_GFLAG_VRFD) {
+			UNSET_GFLAG_VRFD
+		}
 
 		if (!HAS_FFLAGS(pnode)) {
 			SET_NFLAG_IMPL(pnode)
