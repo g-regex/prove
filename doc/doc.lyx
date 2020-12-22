@@ -1195,8 +1195,8 @@ When processing a
 [prove]
 \family default
 \shape default
-source file, we first convert the stream of characters the source file is
- comprised of to a stream of tokens, which have a meaning in the context
+ source file, we first convert the stream of characters the source file
+ is comprised of to a stream of tokens, which have a meaning in the context
  of the grammar.
  The tokens can be enumerated by the following (quite self-explanatory)
  definition in 
@@ -1312,8 +1312,8 @@ When generating a couple of syntactically correct snippets of
 [prove]
 \family default
 \shape default
-code, one realises that not all code adhering to the rules of the EBNF makes
- sense - at least not without introducing more conventions.
+ code, one realises that not all code adhering to the rules of the EBNF
+ makes sense - at least not without introducing more conventions.
 \end_layout
 
 \begin_layout Standard
@@ -1697,7 +1697,7 @@ A first example, we considered is the following proof of Russell's Paradox.
 [prove]
 \family default
 \shape default
--code is to provide a valid proof as a starting point for investigating
+ code is to provide a valid proof as a starting point for investigating
  further, which rules a data type representation should follow and which
  properties it must have.
 \end_layout
@@ -1837,7 +1837,7 @@ status open
 
 
 \backslash
-m{pgraph.h}
+texttt{pgraph.h}
 \end_layout
 
 \end_inset
