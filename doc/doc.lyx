@@ -115,6 +115,23 @@ Introduction
 
 \begin_layout Standard
 This document is work in progress.
+ All source code 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "[prove] GitHub repository"
+literal "false"
+
+\end_inset
+
+ as well as the most recent version of this document 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "latest version of this file on GitHub"
+literal "false"
+
+\end_inset
+
+ can be found on GitHub.
  The purpose of this document to introduce notation and vocabulary in order
  to facilitate efficient communication about this project.
  Underlying concepts are explained verbally and/or formally in order to
@@ -3545,6 +3562,46 @@ Most semantic rules are also still not checked and some of them still have
  For the verification of this proof I had to relax a few restrictions that
  I have originally imposed on this issue, but without further elaboration
  of this, I suggest a proper discussion of the matter.
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "[prove] GitHub repository"
+literal "false"
+
+\end_inset
+
+
+\begin_inset CommandInset href
+LatexCommand href
+name "https://github.com/g-regex/prove"
+target "https://github.com/g-regex/prove"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "latest version of this file on GitHub"
+literal "false"
+
+\end_inset
+
+
+\begin_inset CommandInset href
+LatexCommand href
+name "https://github.com/g-regex/prove/blob/master/doc/doc.pdf"
+target "https://github.com/g-regex/prove/blob/master/doc/doc.pdf"
+literal "false"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Bibliography
