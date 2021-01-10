@@ -13,7 +13,10 @@
 
 \begin{tikzpicture}[node distance = 1pt, auto]
 
-	\begin{scope}[every node/.style={rectangle,inner sep=3pt,minimum width=3pt, text height=5pt,yshift=0pt}]
+	\begin{scope}[
+		every node/.style={rectangle,inner sep=3pt,minimum width=3pt, text height=5pt,yshift=0pt},
+		-{Latex[length=5pt,width=5pt]}]
+
 		\node[draw] (A1) at (0pt,0pt)   {$0$};
 		\node[draw, right = 0pt of A1] (A2)  {$2$};
 		\node[draw, right = 0pt of A2] (A3)  {$24$};
@@ -179,9 +182,7 @@
 		\node[draw, right = 95pt of F2] (F3)  {$40$};
 
 		\node[draw, right = 4pt of F3] (F4)  {$43$};
-	\end{scope}
 
-	\begin{scope}[-{Latex[length=5pt,width=5pt]}]
 		\draw (A1.south) -- (B1.north);
 		\draw (A2.south) -- (B2.north);
 		\draw (A4.south) -- (B5.north);

@@ -16,6 +16,7 @@
  */
 
 #include "pgraph.h"
+#include "tikz.h"
 #include "token.h"
 #include <stddef.h>
 #include <stdlib.h>
@@ -86,11 +87,13 @@ unsigned short int move_up(Pnode** pnode)
 	}
 }
 
+/* move to the right-most node in the current subtree */
 void move_rightmost(Pnode** pnode)
 {
 	while (move_right(pnode));
 }
 
+/* move right; if already at the right-most node, move to the left-most node */ 
 unsigned short int wrap_right()
 {
 	if (!move_right(&reachable)) {
@@ -115,6 +118,9 @@ void init_pgraph(Pnode** root)
 	(*root)->flags = NFLAG_FRST;
 	(*root)->var = NULL;
 
+	fprintf(tikz, "\\node[draw] (0) at (0pt,0pt) {$0$};\n");
+	rightmost_child = 0;
+	subtree_depth = 0;
 	(*root)->num = n; /* DEBUG */
 	n++;
 }
@@ -130,14 +136,22 @@ void create_child(Pnode* pnode)
 	child->parent = pnode;
 	child->var = NULL;
 	child->symbol = NULL;
+
+	/* a newly created child will always be the first (i.e. left-most)
+	 * in the current subtree */
 	child->flags = NFLAG_FRST;
+
+	/* the assumption status of a node "trickles down" */
 	if (HAS_NFLAG_ASMP(pnode) || !HAS_FFLAGS(pnode)) {
 		SET_NFLAG_ASMP(child)
 		SET_NFLAG_LOCK(child)
 	}
 	child->prev_const = pnode->prev_const;
 
-	child->num = n; /* DEBUG */
+	fprintf(tikz, "\\node[draw, below = 40pt of %d]"
+			"(%d) {$%d$};\n", pnode->num, n, n);
+	fprintf(tikz, "\\draw (%d.south) -- (%d.north);\n", pnode->num, n);
+	child->num = n; /* DEBUG: pre-order numbering of the nodes */
 	n++;
 }
 
@@ -153,42 +167,76 @@ void create_right(Pnode* pnode)
 	right->symbol = NULL;
 	right->var = NULL;
 
+	/* flags are carried over to the right hand side */
 	right->flags = pnode->flags;
 	UNSET_NFLAG_NEWC(right)
 	UNSET_NFLAG_FRST(right) /* TODO this can be done better */
-	if (!HAS_FFLAGS(pnode)) { /*only works for formulae, but that's sufficient*/
-		SET_NFLAG_FRST(pnode)
+	if (!HAS_FFLAGS(pnode)) {
+		SET_NFLAG_FRST(pnode) /* FRST flag is not set for identifiers (i.e. when
+								 no right node is created, but it is not needed
+								 for them anyway. */
 	}
 
+	/* If the current node has no variable children and is no formulator,
+	 * let it be the "previous constant" for the next node (linked list). */
 	if (pnode->var == NULL && !HAS_SYMBOL(pnode)) {
-		/* will result in duplicates, but we are lazy */
+		/* This will result in duplicates, but we are lazy.
+		 * It also enables us to "hint" the software, which substitutions
+		 * to do first. */
 		right->prev_const = pnode;
 	} else {
 		right->prev_const = pnode->prev_const;
 	}
 
-	if (!HAS_NFLAG_IMPL(pnode)) { /* because ASMPs need to trickle down */
+	/* All nodes in a subtree before the first implication formulator carry the
+	 * ASMP flag. That is because all statements before that formulator are
+	 * assumptions, when the formula is an implication, and because the ASMP
+	 * flag is ignored if the formula is no implication. */
+	if (!HAS_NFLAG_IMPL(pnode)) {
 		SET_NFLAG_ASMP(pnode)
 	}
 
+	/* All nodes in equalities and ordinary formulae are assumptions. */
 	if (HAS_NFLAG_EQTY(pnode) || HAS_NFLAG_FMLA(pnode)) {
 		SET_NFLAG_ASMP(right)
 	}
 
+	/* All nodes are assumptions in "locked" subtrees. */
 	if (HAS_NFLAG_LOCK(pnode)) {
 		SET_NFLAG_ASMP(right)
 		SET_NFLAG_LOCK(right)
 	}
 
+	if (rightmost_child != 0) {
+		fprintf(tikz, "\\node[draw, right = 10pt] "
+				"(%d) at (%d -| %d.east) {$%d$};\n",
+				n, pnode->num, rightmost_child, n);
+		rightmost_child = 0;
+		subtree_depth = 0;
+	} else {
+		fprintf(tikz, "\\node[draw, right = %dpt of %d] (%d)  {$%d$};\n",
+				10, pnode->num, n, n);
+	}
+
+	fprintf(tikz, "\\draw (%d.east) -- (%d.west);\n",
+			pnode->num, n);
 	right->num = n; /* DEBUG */
 	n++;
 }
 
+/* move leftwards through the subtree and create a linked list of all
+ * identifiers, which are variables at the parent level; then move up
+ * to the parent level */
 unsigned short int move_and_sum_up(Pnode** pnode)
 {
-	int impl;
 	Variable* var;
 	Variable* oldvar;
+
+	if (rightmost_child == 0) {
+		rightmost_child = (*pnode)->num;
+	} else {
+		subtree_depth++;
+	}
 
 	oldvar = (*pnode)->var;
 	var = oldvar;
@@ -200,6 +248,9 @@ unsigned short int move_and_sum_up(Pnode** pnode)
 	}
 
 	while (move_left(pnode)) {
+		/* carry flags over from right to left in order to be able to
+		 * determine the type of a formula, when reading the first statement,
+		 * when traversing the graph at a later stage */
 		(*pnode)->flags |= GET_NFFLAGS((*pnode)->right);
 
 		if (HAS_NFLAG_NEWC((*pnode))) {
@@ -219,6 +270,8 @@ unsigned short int move_and_sum_up(Pnode** pnode)
 	}
 }
 
+/* set the symbol field of a node (i.e. when encountering an identifier or
+ * a formulator) */
 void set_symbol(Pnode* pnode, char* symbol)
 {
 	pnode->symbol = (char**) malloc(sizeof(char*));
@@ -228,7 +281,8 @@ void set_symbol(Pnode* pnode, char* symbol)
 
 /* --- verification --------------------------------------------------------- */
 
-/* must be given the top left node of the subtrees to compare */
+/* compares two constant subtrees;
+ * must be given the top left node of the subtrees to compare */
 unsigned short int const_equal(Pnode* p1, Pnode* p2)
 {
 	unsigned short int equal;
@@ -272,10 +326,12 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 	return equal;
 }
 
+/* checks pnode against reachable node; this function is basically a safety net,
+ * if pnode or reachable have no children, which should not happen anyway */
 unsigned short int same_as_rchbl(Pnode* pnode)
 {
 	if (!HAS_CHILD(pnode) && !HAS_CHILD(reachable)) {
-		/* FATAL ERROR function should not have been called, if this is true */
+		/* FATAL ERROR: function should not have been called, if this is true */
 		return FALSE;
 	}
 	return const_equal(pnode->child, reachable->child);
@@ -337,6 +393,8 @@ void finish_sub()
 
 /* --- branching ------------------------------------------------------------ */
 
+/* implementation of a "branch checkpoint" stack to easily find the next
+ * parent node of the current level to jump back to */
 void bc_push()
 {
 	BC* bctos; /* top of stack for branch checkpoint, if descending */
@@ -371,6 +429,8 @@ void bc_pop(Pnode** pnode)
 	free(bcold);
 }
 
+/* The following functions all set the value of "reachable" directly or
+ * indirectly and return TRUE in the case of success and FALSE otherwise. */
 unsigned short int explore_branch()
 {
 	if (HAS_NFLAG_IMPL(reachable->child) || HAS_NFLAG_EQTY(reachable->child)) {
@@ -404,6 +464,7 @@ unsigned short int attempt_explore(Pnode* pnode)
 	return TRUE;
 }
 
+/* move up in branch in proceed with exploration to the right, if possible */
 unsigned short int branch_proceed(Pnode* pnode)
 {
 	do {
@@ -422,6 +483,7 @@ unsigned short int branch_proceed(Pnode* pnode)
 	return HAS_SYMBOL(reachable) ? next_in_branch(pnode) : TRUE;
 }
 
+/* set "reachable" to the next valid value or return FALSE */
 unsigned short int next_in_branch(Pnode* pnode)
 {
 	if (HAS_SYMBOL(reachable)) {
@@ -578,7 +640,7 @@ void print_node_info(Pnode* pnode)
 
 void free_graph(Pnode* pnode)
 {
-	/* function should be able to start at root,
+	/* function would be able to start at the root,
 	 * but since the graph creation finishes at the bottom rightmost node,
 	 * we can start there */
 
