@@ -24,6 +24,6 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: LaTeX/TikZ graphs
-        path: debug/*
+        path: debug/*.tex
     - name: print report to log
       run: cat testcases/out/report.txt
