@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-//#define DPARSER
+#define DPARSER
 
 #ifdef DPARSER
 
@@ -41,7 +41,7 @@ DBGops dbgops;
 #define DBG(cmd) \
 	if (!DBG_QUIET_IS_SET) { cmd }
 #define TIKZ(cmd) \
-	if (!DBG_TIKZ_IS_SET) { cmd }
+	if (DBG_TIKZ_IS_SET) { cmd }
 
 #endif /* DEBUG_H */
 
