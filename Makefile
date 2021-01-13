@@ -35,7 +35,7 @@ clean:
 	$(RM) -rf debug
 
 debug: DFLAGS+=-DDPARSER -DDTIKZ
-debug: clean proveparser
+debug: proveparser
 
 check: debug runchecks
 pdf: check pdflatex
