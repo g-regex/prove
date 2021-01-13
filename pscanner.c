@@ -38,7 +38,6 @@ static void process_string(Token *token);
 /* initialises the scanner */
 void init_scanner(FILE *f)
 {
-	quiet = FALSE;
 	file = f;
 	cursor.line = 1;
 	cursor.col = 0;
@@ -93,7 +92,7 @@ void next_token(Token *token)
 			default:
 				cursor.col = col;
 				/* ERROR */
-				if (!quiet) {
+				if (!DBG_QUIET_IS_SET) {
 					fprintf(stderr, "illegal character '%c' at line %d, column %d\n",
 							ch, cursor.line, cursor.col);
 				}

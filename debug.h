@@ -15,4 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-static unsigned short int quiet;
+typedef enum {
+	DBG_NONE = 0,
+	DBG_QUIET = 1,
+	DBG_TIKZ = 2,
+} DBGops;
+
+DBGops dbgops;
+
+#define DBG_QUIET_IS_SET (dbgops & DBG_QUIET)
+#define DBG_TIKZ_IS_SET (dbgops & DBG_TIKZ)
+
+#define SET_DBG_QUIET dbgops |= DBG_QUIET;
+#define SET_DBG_TIKZ dbgops |= DBG_TIKZ;

@@ -29,7 +29,7 @@
 
 #ifdef DPARSER
 #define DBG(cmd) \
-	if (!quiet) { cmd }
+	if (!DBG_QUIET_IS_SET) { cmd }
 #else
 #define DBG(cmd)
 #endif
@@ -48,6 +48,8 @@ void check_conflict(Pnode* pnode, TType ttype);
 
 int main(int argc, char *argv[])
 {
+	dbgops = DBG_NONE;
+
 	if (argc < 2) {
 		fprintf(stderr, "usage: %s <filename> [quiet]\n",
 				argv[0]);
@@ -62,7 +64,7 @@ int main(int argc, char *argv[])
 	next_token(&token);
 
 	if (argc > 2) {
-		quiet = TRUE;
+		SET_DBG_QUIET
 	}
 
 	tikz = fopen("latex/graph.tex", "w");
@@ -293,7 +295,7 @@ void expect(TType type)
 		next_token(&token);
 	} else {
 		/* ERROR */
-		if (!quiet) {
+		if (!DBG_QUIET_IS_SET) {
 			fprintf(stderr, "unexpected token on line %d, column %d\n",
 					 cursor.line, cursor.col);
 		}
@@ -320,7 +322,7 @@ void check_conflict(Pnode* pnode, TType ttype)
 		} else if (HAS_NFLAG_IMPL(pnode)) {
 			return;
 		} else {
-			if (!quiet) {
+			if (!DBG_QUIET_IS_SET) {
 				fprintf(stderr, "unexpected TOK_IMPLY "
 					"on line %d, column %d\n",
 						 cursor.line, cursor.col);
@@ -333,7 +335,7 @@ void check_conflict(Pnode* pnode, TType ttype)
 		} else if (HAS_NFLAG_EQTY(pnode)) {
 			return;
 		} else {
-			if (!quiet) {
+			if (!DBG_QUIET_IS_SET) {
 				fprintf(stderr, "unexpected TOK_EQ "
 					"on line %d, column %d\n",
 						 cursor.line, cursor.col);
@@ -346,7 +348,7 @@ void check_conflict(Pnode* pnode, TType ttype)
 		} else if (HAS_NFLAG_FMLA(pnode)) {
 			return;
 		} else {
-			if (!quiet) {
+			if (!DBG_QUIET_IS_SET) {
 				fprintf(stderr, "unexpected TOK_SYM "
 					"on line %d, column %d\n",
 						 cursor.line, cursor.col);
@@ -354,7 +356,7 @@ void check_conflict(Pnode* pnode, TType ttype)
 			exit(EXIT_FAILURE);
 		}
 	} else {
-		if (!quiet) {
+		if (!DBG_QUIET_IS_SET) {
 			fprintf(stderr, "unexpected error "
 				"on line %d, column %d\n",
 					 cursor.line, cursor.col);
