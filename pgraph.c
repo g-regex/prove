@@ -1,5 +1,5 @@
 /* [prove]: A proof verification system using bracketed expressions.
- * Copyright (C) 2020  Gregor Feierabend
+ * Copyright (C) 2020-2021  Gregor Feierabend
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  */
 
 #include "pgraph.h"
-#include "tikz.h"
 #include "token.h"
+#include "debug.h"
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -118,10 +118,10 @@ void init_pgraph(Pnode** root)
 	(*root)->flags = NFLAG_FRST;
 	(*root)->var = NULL;
 
-	fprintf(tikz, "\\node[draw] (0) at (0pt,0pt) {$0$};\n");
+	TIKZ(fprintf(tikz, "\\node[draw] (0) at (0pt,0pt) {$0$};\n");
 	rightmost_child = 0;
 	cur_depth = 1;
-	max_depth = 1;
+	max_depth = 1;)
 
 	(*root)->num = n; /* DEBUG */
 	n++;
@@ -150,13 +150,13 @@ void create_child(Pnode* pnode)
 	}
 	child->prev_const = pnode->prev_const;
 
-	fprintf(tikz, "\\node[draw, below = 40pt of %d]"
+	TIKZ(fprintf(tikz, "\\node[draw, below = 40pt of %d]"
 			"(%d) {$%d$};\n", pnode->num, n, n);
 	fprintf(tikz, "\\draw (%d.south) -- (%d.north);\n", pnode->num, n);
 	cur_depth++;
 	if (cur_depth > max_depth) {
 		max_depth = cur_depth;
-	}
+	})
 
 	child->num = n; /* DEBUG: pre-order numbering of the nodes */
 	n++;
@@ -214,7 +214,7 @@ void create_right(Pnode* pnode)
 		SET_NFLAG_LOCK(right)
 	}
 
-	if (rightmost_child != 0) {
+	TIKZ(if (rightmost_child != 0) {
 		fprintf(tikz, "\\node[draw, right = " TIKZ_HSPACE "pt] "
 				"(%d) at (%d -| %d.east) {\\textrm{%d}};\n",
 				n, pnode->num, rightmost_child, n);
@@ -224,9 +224,9 @@ void create_right(Pnode* pnode)
 				"pt of %d] (%d)  {$%d$};\n",
 				pnode->num, n, n);
 	}
-
 	fprintf(tikz, "\\draw (%d.east) -- (%d.west);\n",
-			pnode->num, n);
+			pnode->num, n);)
+
 	right->num = n; /* DEBUG */
 	n++;
 }
@@ -241,10 +241,10 @@ unsigned short int move_and_sum_up(Pnode** pnode)
 
 	/* TIKZ: 
 	 * only update rightmost child, if a new right node was created before */
-	if (rightmost_child == 0) {
+	TIKZ(if (rightmost_child == 0) {
 		rightmost_child = (*pnode)->num;
 	}
-	cur_depth--;
+	cur_depth--;)
 
 	oldvar = (*pnode)->var;
 	var = oldvar;
@@ -611,6 +611,7 @@ unsigned short int rn()
 	return reachable->num;
 }
 
+#ifdef DPARSER
 void print_node_info(Pnode* pnode)
 {
 	Variable* var;
@@ -695,6 +696,7 @@ void print_flags(Pnode* pnode) {
 				pnode->num, pnode->num);
 	}
 }
+#endif
 
 /* --- memory deallocation -------------------------------------------------- */
 
@@ -704,11 +706,10 @@ void free_graph(Pnode* pnode)
 	 * but since the graph creation finishes at the bottom rightmost node,
 	 * we can start there */
 
-	fprintf(tikz, "\\begin{scope}["
+	TIKZ(fprintf(tikz, "\\begin{scope}["
 		"every node/.style={rectangle,inner sep=3pt,minimum width=3pt, minimum height=21pt, text height=5pt,yshift=0pt}, "
-		"-]\n");
-
-	fprintf(tikz, "\\node (symalign) at (0pt,-%dpt) {};\n", 61 * max_depth);
+		"-]\n"
+		"\\node (symalign) at (0pt,-%dpt) {};\n", 61 * max_depth);)
 
 	while (pnode->left != NULL || pnode->parent != NULL
 			|| pnode->child !=NULL) {
@@ -719,7 +720,7 @@ void free_graph(Pnode* pnode)
 
 		//print_node_info(pnode);
 
-		print_flags(pnode);
+		TIKZ(print_flags(pnode);
 		if (HAS_SYMBOL(pnode)) {
 			fprintf(tikz, "\\node[draw] (s%d) at (symalign -| %d) {$%s$};\n",
 					pnode->num, pnode->num, *(pnode->symbol));	
@@ -727,7 +728,7 @@ void free_graph(Pnode* pnode)
 					"color=gray] "
 					"(%d.south) -- (s%d.north);\n",
 					pnode->num, pnode->num);
-		}
+		})
 
 		if (pnode->parent != NULL && HAS_NFLAG_NEWC(pnode->parent)) {
 			free(*(pnode->symbol));
@@ -757,5 +758,5 @@ void free_graph(Pnode* pnode)
 
 	free(pnode);
 
-	fprintf(tikz, "\\end{scope}\n");
+	TIKZ(fprintf(tikz, "\\end{scope}\n");)
 }

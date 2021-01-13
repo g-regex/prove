@@ -1,5 +1,5 @@
 /* [prove]: A proof verification system using bracketed expressions.
- * Copyright (C) 2020  Gregor Feierabend
+ * Copyright (C) 2020-2021  Gregor Feierabend
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

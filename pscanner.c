@@ -92,10 +92,10 @@ void next_token(Token *token)
 			default:
 				cursor.col = col;
 				/* ERROR */
-				if (!DBG_QUIET_IS_SET) {
+				//if (!DBG_QUIET_IS_SET) {
 					fprintf(stderr, "illegal character '%c' at line %d, column %d\n",
 							ch, cursor.line, cursor.col);
-				}
+				//}
 				exit(EXIT_FAILURE);
 				token->type = TOK_EOF;
 		}
@@ -110,13 +110,6 @@ void next_char(void)
 	if ((ch = fgetc(file)) == EOF) {
 		return;
 	}
-
-	/* debugging output */
-	/*if (!isspace(ch)) {
-		printf("%c", (char) ch);
-	} else {
-		printf(".");
-	}*/
 
 	if (last_read == '\n') {
 		cursor.line++;
