@@ -23,7 +23,7 @@ token.o: token.c token.h
 $(BINDIR):
 	mkdir $(BINDIR)
 
-.PHONY: all clean check runchecks
+.PHONY: all clean check runchecks debug
 
 all: proveparser
 
@@ -32,8 +32,12 @@ clean:
 	$(RM) *.o
 	$(RM) -rf $(BINDIR)/*.dSYM
 	$(RM) -rf testcases/out
+	$(RM) -rf debug
 
-check: clean proveparser runchecks
+debug: DFLAGS+=-DDPARSER -DDTIKZ
+debug: clean proveparser
+
+check: debug runchecks
 pdf: check pdflatex
 
 .ONESHELL:

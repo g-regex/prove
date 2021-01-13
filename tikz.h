@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifdef DPARSER
+#ifdef DTIKZ
 #ifndef TIKZ_H
 #define TIKZ_H
 

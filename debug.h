@@ -15,9 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#define DPARSER
-
-#ifdef DPARSER
+//#define DPARSER
+//#define DTIKZ
 
 #ifndef DEBUG_H
 #define DEBUG_H
@@ -32,25 +31,27 @@ typedef enum {
 
 DBGops dbgops;
 
-#define DBG_QUIET_IS_SET (dbgops & DBG_QUIET)
+#ifdef DTIKZ
+#define DNUM
 #define DBG_TIKZ_IS_SET (dbgops & DBG_TIKZ)
-
-#define SET_DBG_QUIET dbgops |= DBG_QUIET;
 #define SET_DBG_TIKZ dbgops |= DBG_TIKZ;
-
-#define DBG(cmd) \
-	if (!DBG_QUIET_IS_SET) { cmd }
 #define TIKZ(cmd) \
 	if (DBG_TIKZ_IS_SET) { cmd }
+#else
+#define TIKZ(cmd)
+#define SET_DBG_TIKZ
+#endif
+
+#ifdef DPARSER
+#define DNUM
+#define DBG_QUIET_IS_SET (dbgops & DBG_QUIET)
+#define SET_DBG_QUIET dbgops |= DBG_QUIET;
+#define DBG(cmd) \
+	if (!DBG_QUIET_IS_SET) { cmd }
+#else
+#define DBG(cmd)
+#define DBG_QUIET_IS_SET 0
+#define SET_DBG_QUIET
+#endif
 
 #endif /* DEBUG_H */
-
-#else /* DPARSER */
-
-#define DBG(cmd)
-#define TIKZ(cmd)
-#define DBG_QUIET_IS_SET 0
-#define SET_DBG_TIKZ
-#define SET_DBG_QUIET
-
-#endif /* DPARSER */

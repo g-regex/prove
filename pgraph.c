@@ -28,7 +28,7 @@
 #define FALSE 0
 
 /* DEBUG */
-#ifdef DPARSER
+#ifdef DNUM
 static short int n = 0;		/* node counter */
 #endif
 
@@ -98,8 +98,10 @@ void init_pgraph(Pnode** root)
 	cur_depth = 1;
 	max_depth = 1;)
 
+#ifdef DNUM
 	(*root)->num = n; /* DEBUG */
 	n++;
+#endif
 }
 
 void create_child(Pnode* pnode)
@@ -133,8 +135,10 @@ void create_child(Pnode* pnode)
 		max_depth = cur_depth;
 	})
 
+#ifdef DNUM
 	child->num = n; /* DEBUG: pre-order numbering of the nodes */
 	n++;
+#endif
 }
 
 void create_right(Pnode* pnode)
@@ -202,8 +206,10 @@ void create_right(Pnode* pnode)
 	fprintf(tikz, "\\draw (%d.east) -- (%d.west);\n",
 			pnode->num, n);)
 
+#ifdef DNUM
 	right->num = n; /* DEBUG */
 	n++;
+#endif
 }
 
 /* move leftwards through the subtree and create a linked list of all
@@ -263,41 +269,8 @@ void set_symbol(Pnode* pnode, char* symbol)
 }
 
 /* --- debugging ------------------------------------------------------------ */
-#ifdef DPARSER
 
-void print_node_info(Pnode* pnode)
-{
-	Variable* var;
-
-	printf("\n\n");
-	printf("Node %d:\n", pnode->num);
-	if (pnode->symbol != NULL) {
-		printf("\tSymbol: %s\n", *(pnode->symbol));
-	}
-	printf("\tNFlags:");
-	if (HAS_NFLAG_IMPL(pnode)) {
-		printf(" IMPL");
-	}
-	if (HAS_NFLAG_EQTY(pnode)) {
-		printf(" EQTY");
-	}
-	if (HAS_NFLAG_FMLA(pnode)) {
-		printf(" FMLA");
-	}
-	if (HAS_NFLAG_ASMP(pnode)) {
-		printf(" ASMP");
-	}
-	if (HAS_NFLAG_NEWC(pnode)) {
-		printf(" NEWC");
-	}
-	if (HAS_NFLAG_LOCK(pnode)) {
-		printf(" LOCK");
-	}
-	if (HAS_NFLAG_FRST(pnode)) {
-		printf(" FRST");
-	}
-}
-
+#ifdef DTIKZ
 void print_flags(Pnode* pnode) {
 	if (HAS_NFLAG_IMPL(pnode)) {
 		fprintf(tikz, "\\draw[-{Triangle[length=3pt,width=3pt]}, "
@@ -371,8 +344,6 @@ void free_graph(Pnode* pnode)
 			move_rightmost(&pnode);
 		}
 
-		//print_node_info(pnode);
-
 		TIKZ(print_flags(pnode);
 		if (HAS_SYMBOL(pnode)) {
 			fprintf(tikz, "\\node[draw] (s%d) at (symalign -| %d) {$%s$};\n",
@@ -402,8 +373,6 @@ void free_graph(Pnode* pnode)
 			pnode->child = NULL;
 		}
 	}
-
-	//print_node_info(pnode);
 
 	if (pnode->var != NULL) {
 		free(pnode->var);

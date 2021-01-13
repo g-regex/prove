@@ -46,10 +46,10 @@ int main(int argc, char *argv[])
 {
 	struct stat st = {0};			/* for checking directory existence */
 
-#ifdef DPARSER
+	dbgops = DBG_NONE;
+#ifdef DTIKZ
 	char* tikzfile;
 	char* filename;
-	dbgops = DBG_NONE;
 #endif
 
 	if (argc < 2) {
