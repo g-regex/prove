@@ -55,7 +55,9 @@ runchecks:
 			S=1
 		else
 			echo -e "\t[\033[0;32m success \033[0;0m]"
-			pdflatex -output-directory debug debug/$$(basename $$T .prove)
+			pdflatex -output-directory debug debug/$$(basename $$T .prove).tex &> /dev/null
+			rm debug/$$(basename $$T .prove).log &> /dev/null
+			rm debug/$$(basename $$T .prove).aux &> /dev/null
 			echo ">>> $$(basename $$T):" >> testcases/out/report_success.txt
 			echo " >> original file:" >> testcases/out/report_success.txt
 			sed 's/\\/\\/g' $$T | sed 's/^/    /g' >> testcases/out/report_success.txt

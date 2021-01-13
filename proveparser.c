@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 	next_token(&token);
 
 	TIKZ(tikzfile = (char*) malloc(strlen(basename(argv[1]))
-				* (sizeof(char) + 10));
+				* (sizeof(char) + 5));
 	filename = basename(argv[1]);
 	sprintf(tikzfile, "debug/%s.tex", strsep(&filename, "."));
 	tikz = fopen(tikzfile, "w");
