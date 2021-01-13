@@ -62,6 +62,8 @@ typedef enum {
 	GFLAG_WRAP = 8
 } GFlags;
 
+GFlags gflags;  /* accessed by verify.c and proveparser.c */
+
 #define HAS_GFLAG_VRFD (gflags & GFLAG_VRFD)
 #define HAS_GFLAG_SUBD (gflags & GFLAG_SUBD)
 #define HAS_GFLAG_BRCH (gflags & GFLAG_BRCH)
@@ -125,13 +127,5 @@ unsigned short int move_and_sum_up(Pnode** pnode);
 
 /* memory deallocation */
 void free_graph(Pnode* pnode);
-
-/* verification */
-GFlags gflags;  /* accessed by verify.c and proveparser.c */
-
-/* DEBUG */
-unsigned short int rn();
-unsigned short int iswrapped();
-static short int n = 0;
 
 #endif

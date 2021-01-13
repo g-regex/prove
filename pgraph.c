@@ -27,6 +27,11 @@
 #define TRUE 1
 #define FALSE 0
 
+/* DEBUG */
+#ifdef DPARSER
+static short int n = 0;		/* node counter */
+#endif
+
 /* --- navigation through graph --------------------------------------------- */
 
 unsigned short int move_right(Pnode** pnode)
@@ -259,10 +264,6 @@ void set_symbol(Pnode* pnode, char* symbol)
 
 /* --- debugging ------------------------------------------------------------ */
 #ifdef DPARSER
-unsigned short int rn()
-{
-	return reachable->num;
-}
 
 void print_node_info(Pnode* pnode)
 {

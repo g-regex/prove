@@ -26,6 +26,7 @@ unsigned short int same_as_rchbl(Pnode* pnode);
 void init_reachable(Pnode* pnode);
 unsigned short int next_reachable_const(Pnode* pnode);
 
-Pnode* reachable;
+/* DEBUG */
+unsigned short int rn();
 
 #endif

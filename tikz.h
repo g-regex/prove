@@ -24,9 +24,9 @@
 #define TIKZ_HSPACE "25"
 
 FILE* tikz;
-unsigned short int rightmost_child;
-unsigned short int max_depth;
-unsigned short int cur_depth;
+static unsigned short int rightmost_child;
+static unsigned short int max_depth;
+static unsigned short int cur_depth;
 #endif
 
 #endif

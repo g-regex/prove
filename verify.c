@@ -25,7 +25,8 @@
 
 unsigned short int next_in_branch(Pnode* pnode);
 
-Pnode* eqfirst; /* temporarily holds the first node of an equality,
+static Pnode* eqfirst;			/* temporarily holds the first node of an equality */
+static Pnode* reachable;
 
 /* for substitution */
 static Pnode* known_id; /* current identifier in linked list, known from
@@ -372,4 +373,11 @@ unsigned short int next_reachable_const(Pnode* pnode)
 		}
 	}
 	return FALSE;
+}
+
+/* --- debugging ------------------------------------------------------------ */
+
+unsigned short int rn()
+{
+	return reachable->num;
 }
