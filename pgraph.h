@@ -14,8 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include <stdio.h>
-
 #ifndef PGRAPH_H
 #define PGRAPH_H
 
@@ -111,17 +109,6 @@ typedef struct Pnode {
 
 #define IS_INTERNAL(pnode) (pnode->symbol == NULL)
 
-static short int n = 0; /* DEBUG */
-
-/* for verification */
-unsigned short int same_as_rchbl(Pnode* pnode);
-
-/* for backtracking */
-static GFlags gflags = GFLAG_NONE;
-static Pnode* reachable;
-void init_reachable(Pnode* pnode);
-unsigned short int next_reachable_const(Pnode* pnode);
-
 /* graph creation */
 void init_pgraph(Pnode** root);
 void create_child(Pnode* pnode);
@@ -130,14 +117,21 @@ void set_symbol(Pnode* pnode, char* symbol);
 
 /* navigation */
 unsigned short int move_right(Pnode** pnode);
+unsigned short int move_left(Pnode** pnode);
+unsigned short int move_up(Pnode** pnode);
 unsigned short int move_down(Pnode** pnode);
+unsigned short int wrap_right();
 unsigned short int move_and_sum_up(Pnode** pnode);
 
 /* memory deallocation */
 void free_graph(Pnode* pnode);
 
+/* verification */
+GFlags gflags;  /* accessed by verify.c and proveparser.c */
+
 /* DEBUG */
 unsigned short int rn();
 unsigned short int iswrapped();
+static short int n = 0;
 
 #endif

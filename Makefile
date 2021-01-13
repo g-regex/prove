@@ -9,11 +9,13 @@ EXES     = proveparser pscanner
 BINDIR   = bin
 LOCALBIN = ~/.local/bin
 
-proveparser: proveparser.c pscanner.o pgraph.o token.o | $(BINDIR)
+proveparser: proveparser.c pscanner.o pgraph.o token.o verify.o | $(BINDIR)
 	$(COMPILE) -o $(BINDIR)/$@ $^
 pscanner.o: pscanner.c pscanner.h
 	$(COMPILE) -c $<
 pgraph.o: pgraph.c pgraph.h
+	$(COMPILE) -c $<
+verify.o: verify.c verify.h
 	$(COMPILE) -c $<
 token.o: token.c token.h
 	$(COMPILE) -c $<
