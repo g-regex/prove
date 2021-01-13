@@ -32,6 +32,7 @@ clean:
 	$(RM) -rf testcases/out
 
 check: clean proveparser runchecks
+pdf: check pdflatex
 
 .ONESHELL:
 runchecks:
@@ -43,6 +44,7 @@ runchecks:
 		$(BINDIR)/proveparser $$T 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
 		if (test $$? -eq 1)
 		then
+			rm debug/$$(basename $$T .prove).tex &> /dev/null
 			echo -e "\t[\033[0;31m failure \033[0;0m]"
 			echo ">>> $$(basename $$T):" >> testcases/out/report_failure.txt
 			echo " >> original file:" >> testcases/out/report_failure.txt
@@ -55,7 +57,6 @@ runchecks:
 			S=1
 		else
 			echo -e "\t[\033[0;32m success \033[0;0m]"
-			pdflatex -output-directory debug debug/$$(basename $$T .prove).tex &> /dev/null
 			rm debug/$$(basename $$T .prove).log &> /dev/null
 			rm debug/$$(basename $$T .prove).aux &> /dev/null
 			echo ">>> $$(basename $$T):" >> testcases/out/report_success.txt
@@ -74,6 +75,7 @@ runchecks:
 		$(BINDIR)/proveparser $$T 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
 		if (test $$? -eq 0)
 		then
+			rm debug/$$(basename $$T .prove).tex &> /dev/null
 			echo -e "\t[\033[0;31m failure \033[0;0m]"
 			echo ">>> $$(basename $$T):" >> testcases/out/report_failure.txt
 			echo " >> original file:" >> testcases/out/report_failure.txt
@@ -85,6 +87,7 @@ runchecks:
 			echo >> testcases/out/report_failure.txt
 			S=1
 		else
+			rm debug/$$(basename $$T .prove).tex &> /dev/null
 			echo -e "\t[\033[0;32m success \033[0;0m]"
 			echo ">>> $$(basename $$T):" >> testcases/out/report_success.txt
 			echo " >> original file:" >> testcases/out/report_success.txt
@@ -104,3 +107,9 @@ runchecks:
 	echo "--------- SUCCESSFULLY VALIDATED TESTCASES ---------" >> testcases/out/report.txt
 	cat testcases/out/report_success.txt >> testcases/out/report.txt 2> /dev/null
 	exit $$S
+
+pdflatex:
+	for T in `ls debug/*.tex |  sort -V`
+	do
+		pdflatex -output-directory debug $$T
+	done
