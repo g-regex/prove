@@ -20,5 +20,10 @@ jobs:
       with:
         name: report
         path: testcases/out/report.txt
+    - name: uploading LaTeX files as artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: LaTeX/TikZ graphs
+        path: debug/*
     - name: print report to log
       run: cat testcases/out/report.txt
