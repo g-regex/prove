@@ -48,7 +48,7 @@ runchecks:
 	for T in `ls testcases/valid/*.prove |  sort -V`
 	do
 		echo -ne "$$T: \t"
-		$(BINDIR)/proveparser $$T --dall 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
+		$(BINDIR)/proveparser $$T --dparser --dtikz 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
 		if (test $$? -eq 1)
 		then
 			rm debug/$$(basename $$T .prove).tex &> /dev/null
@@ -79,7 +79,7 @@ runchecks:
 	for T in `ls testcases/invalid/*.prove |  sort -V`
 	do
 		echo -ne "$$T: \t"
-		$(BINDIR)/proveparser $$T --dall 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
+		$(BINDIR)/proveparser $$T --dparser --dtikz 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
 		if (test $$? -eq 0)
 		then
 			rm debug/$$(basename $$T .prove).tex &> /dev/null

@@ -276,49 +276,49 @@ void print_flags(Pnode* pnode) {
 		fprintf(tikz, "\\draw[-{Triangle[length=3pt,width=3pt]}, "
 				"color=darkmagenta] "
 				"([yshift=9pt] %d.east) to "
-				"([yshift=9pt, xshift=3pt] %d.east);\n ",
+				"([yshift=9pt, xshift=3pt] %d.east);\n",
 				pnode->num, pnode->num);
 	}
 	if (HAS_NFLAG_EQTY(pnode)) {
 		fprintf(tikz, "\\draw[-{Triangle[length=3pt,width=3pt]}, "
 				"color=darkorange] "
 				"([yshift=6pt] %d.east) to "
-				"([yshift=6pt, xshift=3pt] %d.east);\n ",
+				"([yshift=6pt, xshift=3pt] %d.east);\n",
 				pnode->num, pnode->num);
 	}
 	if (HAS_NFLAG_FMLA(pnode)) {
 		fprintf(tikz, "\\draw[-{Triangle[length=3pt,width=3pt]}, "
 				"color=darkpastelgreen] "
 				"([yshift=3pt] %d.east) to "
-				"([yshift=3pt, xshift=3pt] %d.east);\n ",
+				"([yshift=3pt, xshift=3pt] %d.east);\n",
 				pnode->num, pnode->num);
 	}
 	if (HAS_NFLAG_ASMP(pnode)) {
 		fprintf(tikz, "\\draw[-{Triangle[length=3pt,width=3pt]}, "
 				"color=oucrimsonred] "
 				"([yshift=0pt] %d.east) to "
-				"([yshift=0pt, xshift=3pt] %d.east);\n ",
+				"([yshift=0pt, xshift=3pt] %d.east);\n",
 				pnode->num, pnode->num);
 	}
 	if (HAS_NFLAG_NEWC(pnode)) {
 		fprintf(tikz, "\\draw[-{Triangle[length=3pt,width=3pt]}, "
 				"color=darkpowderblue] "
 				"([yshift=-3pt] %d.east) to "
-				"([yshift=-3pt, xshift=3pt] %d.east);\n ",
+				"([yshift=-3pt, xshift=3pt] %d.east);\n",
 				pnode->num, pnode->num);
 	}
 	if (HAS_NFLAG_LOCK(pnode)) {
 		fprintf(tikz, "\\draw[-{Triangle[length=3pt,width=3pt]}, "
 				"color=mediumspringgreen] "
 				"([yshift=-6pt] %d.east) to "
-				"([yshift=-6pt, xshift=3pt] %d.east);\n ",
+				"([yshift=-6pt, xshift=3pt] %d.east);\n",
 				pnode->num, pnode->num);
 	}
 	if (HAS_NFLAG_FRST(pnode)) {
 		fprintf(tikz, "\\draw[-{Triangle[length=3pt,width=3pt]}, "
 				"color=deepskyblue] "
 				"([yshift=-9pt] %d.east) to "
-				"([yshift=-9pt, xshift=3pt] %d.east);\n ",
+				"([yshift=-9pt, xshift=3pt] %d.east);\n",
 				pnode->num, pnode->num);
 	}
 }
@@ -332,10 +332,13 @@ void free_graph(Pnode* pnode)
 	 * but since the graph creation finishes at the bottom rightmost node,
 	 * we can start there */
 
-	TIKZ(fprintf(tikz, "\\begin{scope}["
+	TIKZ(fprintf(tikz,
+				"\n%%symbols corresponding to nodes, "
+				"read before freeing memory of the graph\n"
+				"\\begin{scope}["
 		"every node/.style={rectangle,inner sep=3pt,minimum width=3pt, minimum height=21pt, text height=5pt,yshift=0pt}, "
 		"-]\n"
-		"\\node (symalign) at (0pt,-%dpt) {};\n", 61 * max_depth);)
+		"\\node (symalign) at (0pt,-%dpt) {};\n\n", 61 * max_depth);)
 
 	while (pnode->left != NULL || pnode->parent != NULL
 			|| pnode->child !=NULL) {
@@ -380,5 +383,5 @@ void free_graph(Pnode* pnode)
 
 	free(pnode);
 
-	TIKZ(fprintf(tikz, "\\end{scope}\n");)
+	TIKZ(fprintf(tikz, "\n\\end{scope}\n");)
 }

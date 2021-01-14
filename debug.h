@@ -31,6 +31,11 @@ typedef enum {
 
 DBGops dbgops;
 
+/* helpers:
+ * DNUM - numerate nodes
+ * DEBUG - at least one debugging flag is set
+ */
+
 #ifdef DTIKZ
 #define DNUM
 #define DEBUG
@@ -43,9 +48,10 @@ DBGops dbgops;
 #define SET_DBG_TIKZ
 #endif
 
-#ifdef DVERIFY
+#ifdef DVERIFY /* implies DPARSER */
 #define DNUM
 #define DEBUG
+#define DPARSER
 #define DBG_VERIFY_IS_SET (dbgops & DBG_VERIFY)
 #define SET_DBG_VERIFY dbgops |= DBG_VERIFY;
 #define DBG_VERIFY(cmd) \
