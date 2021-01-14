@@ -62,7 +62,7 @@ runchecks:
 		then
 			rm debug/$$(basename $$T .prove).tex &> /dev/null
 			echo -e "\t[\033[0;31m failure \033[0;0m]"
-			echo ">>> $$(basename $$T):" >> testcases/out/report_failure.txt
+			echo ">>> [VALID] $$(basename $$T):" >> testcases/out/report_failure.txt
 			echo " >> original file:" >> testcases/out/report_failure.txt
 			sed 's/\\/\\/g' $$T | sed 's/^/    /g' >> testcases/out/report_failure.txt
 			echo "" >> testcases/out/report_failure.txt
@@ -75,7 +75,7 @@ runchecks:
 			echo -e "\t[\033[0;32m success \033[0;0m]"
 			rm debug/$$(basename $$T .prove).log &> /dev/null
 			rm debug/$$(basename $$T .prove).aux &> /dev/null
-			echo ">>> $$(basename $$T):" >> testcases/out/report_success.txt
+			echo ">>> [VALID] $$(basename $$T):" >> testcases/out/report_success.txt
 			echo " >> original file:" >> testcases/out/report_success.txt
 			sed 's/\\/\\/g' $$T | sed 's/^/    /g' >> testcases/out/report_success.txt
 			echo "" >> testcases/out/report_success.txt
@@ -93,7 +93,7 @@ runchecks:
 		then
 			rm debug/$$(basename $$T .prove).tex &> /dev/null
 			echo -e "\t[\033[0;31m failure \033[0;0m]"
-			echo ">>> $$(basename $$T):" >> testcases/out/report_failure.txt
+			echo ">>> [INVALID] $$(basename $$T):" >> testcases/out/report_failure.txt
 			echo " >> original file:" >> testcases/out/report_failure.txt
 			sed 's/\\/\\/g' $$T | sed 's/^/    /g' >> testcases/out/report_failure.txt
 			echo "" >> testcases/out/report_failure.txt
@@ -105,7 +105,7 @@ runchecks:
 		else
 			rm debug/$$(basename $$T .prove).tex &> /dev/null
 			echo -e "\t[\033[0;32m success \033[0;0m]"
-			echo ">>> $$(basename $$T):" >> testcases/out/report_success.txt
+			echo ">>> [INVALID] $$(basename $$T):" >> testcases/out/report_success.txt
 			echo " >> original file:" >> testcases/out/report_success.txt
 			sed 's/\\/\\/g' $$T | sed 's/^/    /g' >> testcases/out/report_success.txt
 			echo "" >> testcases/out/report_success.txt
