@@ -32,8 +32,8 @@ Reserved reserved[] = {
 int isspecial(char ch)
 {
 	/* permitted special characters */
-	char special[] = {'+', '-', '/', '*', '%', '^', '&', '.', '?', '!'};
-	int num_special = 10;
+	char special[] = {'+', '-', '/', '*', '%', '^', '&', '.', '?', '!', ':'};
+	int num_special = 11;
 	
 	for (int i = 0; i < num_special; i++) {
 		if (ch == special[i]) {

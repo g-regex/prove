@@ -21,6 +21,7 @@
 
 /* for verification */
 unsigned short int same_as_rchbl(Pnode* pnode);
+void finish_verify();
 
 /* for backtracking */
 void init_reachable(Pnode* pnode);

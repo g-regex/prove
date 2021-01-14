@@ -19,6 +19,11 @@
 #include <string.h>
 #include "pgraph.h"
 #include "verify.h"
+#include "debug.h"
+
+#ifdef DVERIFY
+#include "stdio.h"
+#endif
 
 #define TRUE 1
 #define FALSE 0
@@ -121,9 +126,12 @@ unsigned short int check_asmp(Pnode* pnode)
 {
 	Pnode* pconst;
 
+	DBG_VERIFY(printf(":");)
+
 	for (pconst = pnode->prev_const; pconst != NULL;
 			pconst = pconst->prev_const) {
 		if (same_as_rchbl(pconst)) {
+			DBG_VERIFY(printf("(%d)", pconst->num);)
 			return TRUE;
 		}
 	}
@@ -159,11 +167,14 @@ void init_sub(Pnode* pnode)
 	SET_GFLAG_SUBD
 }
 
+/* substitue variables - currently only one variable */
 unsigned short int sub_vars()
 {
 	*(reachable->var->pnode->symbol) = *(known_id->child->symbol);
 }
 
+/* substitute original variable symbols back in
+ * - currently only implemented for one symbol */
 void finish_sub()
 {
 	*(reachable->var->pnode->symbol) = subd_var;
@@ -226,6 +237,7 @@ unsigned short int exit_branch()
 	while (bc != NULL) {
 		bc_pop(&reachable);
 	}
+	UNSET_GFLAG_BRCH
 }
 
 unsigned short int attempt_explore(Pnode* pnode)
@@ -234,7 +246,6 @@ unsigned short int attempt_explore(Pnode* pnode)
 		SET_GFLAG_BRCH
 		if (!next_in_branch(pnode)) {
 			exit_branch();
-			UNSET_GFLAG_BRCH
 			return next_reachable_const(pnode);
 		}
 	} else {
@@ -275,13 +286,17 @@ unsigned short int next_in_branch(Pnode* pnode)
 
 	if (HAS_NFLAG_IMPL(reachable)) {
 		if (HAS_NFLAG_FRST(reachable)) {
+			DBG_VERIFY(printf("(%d", reachable->num);)
 			if (!check_asmp(pnode)) {
+				DBG_VERIFY(printf("F)");)
 				return FALSE;	
 			} else if (!move_right(&reachable)) {
+				DBG_VERIFY(printf("X)");)
 				/* FATAL ERROR, must not happen
 				 * (node with FRST flag cannot be the last one) */
 				return FALSE;
 			} else {
+				DBG_VERIFY(printf(">)");)
 				return next_in_branch(pnode);
 			}
 		} else {
@@ -339,13 +354,23 @@ void init_reachable(Pnode* pnode)
 	reachable = pnode;
 }
 
+/* finish verification of current node cleanly */
+void finish_verify()
+{
+	if (HAS_GFLAG_BRCH) {
+		exit_branch();
+	}
+	if (HAS_GFLAG_SUBD) {
+		finish_sub();
+	}
+}
+
 unsigned short int next_reachable_const(Pnode* pnode)
 {
 	/* branch exploration */
 	if (HAS_GFLAG_BRCH) {
 		if (!next_in_branch(pnode)) {
 			exit_branch();
-			UNSET_GFLAG_BRCH
 		}
 		return TRUE;
 	} 

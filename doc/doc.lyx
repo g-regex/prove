@@ -483,7 +483,7 @@ Using this notation the
 \langle\texttt{statement}\rangle & =\textrm{"["}\Big(\langle\texttt{formula}\rangle\Big|\langle\texttt{string}\rangle\Big|\langle\texttt{statement}\rangle\Big)\textrm{"]"}\bigg\{\textrm{"[" }\Big(\langle\texttt{formula}\rangle\Big|\langle\texttt{string}\rangle\Big|\langle\texttt{statement}\rangle\Big)\textrm{ "]" }\bigg\}\\
 \langle\texttt{formulator\ensuremath{\rangle}} & =\textrm{"="\ensuremath{\Big|\texttt{"=>"}\Big|\langle\texttt{string\ensuremath{\rangle}}}}\\
 \langle\texttt{symbol\ensuremath{\rangle}} & =\langle\texttt{character}\rangle\bigg\{\langle\texttt{character}\rangle\bigg\}\\
-\langle\texttt{character\ensuremath{\rangle}} & =\Big(\textrm{"a"}\Big|\textrm{"b"}\Big|\dots\Big|\textrm{"z"}\Big|\textrm{"A"}\Big|\textrm{"B"}\Big|\dots\Big|\textrm{"Z"}\Big|\textrm{"0"}\Big|\textrm{"1"}\Big|\dots\Big|\textrm{"9"}\Big|\textrm{"+"\Big|\textrm{"-"}\Big|\textrm{"/"\Big|\textrm{"*"}\Big|\textrm{"\%"\Big|\textrm{"\textasciicircum"}\Big|\textrm{"\&"}\Big|\textrm{"."}\Big|\textrm{"?"}\Big|\textrm{"!"}}}}\Big)
+\langle\texttt{character\ensuremath{\rangle}} & =\Big(\textrm{"a"}\Big|\textrm{"b"}\Big|\dots\Big|\textrm{"z"}\Big|\textrm{"A"}\Big|\textrm{"B"}\Big|\dots\Big|\textrm{"Z"}\Big|\textrm{"0"}\Big|\textrm{"1"}\Big|\dots\Big|\textrm{"9"}\Big|\textrm{"+"\Big|\textrm{"-"}\Big|\textrm{"/"\Big|\textrm{"*"}\Big|\textrm{"\%"\Big|\textrm{"\textasciicircum"}\Big|\textrm{"\&"}\Big|\textrm{"."}\Big|\textrm{"?"}\Big|\textrm{"!"}\Big|\textrm{":"}}}}\Big)
 \end{align*}
 
 \end_inset
@@ -1156,7 +1156,7 @@ To encode this behaviour in the EBNF and to address the issue of having
 \langle\texttt{statement}\rangle & =\textrm{"["}\Big(\langle\texttt{expr}\rangle\Big|\langle\texttt{string}\rangle\Big)\textrm{"]"}\bigg\{\textrm{"[" }\Big(\langle\texttt{expr}\rangle\Big|\langle\texttt{string}\rangle\Big)\textrm{ "]" }\bigg\}\\
 \langle\texttt{formulator\ensuremath{\rangle}} & =\textrm{"="\ensuremath{\Big|\texttt{"=>"}\Big|\langle\texttt{string\ensuremath{\rangle}}}}\\
 \langle\texttt{symbol\ensuremath{\rangle}} & =\langle\texttt{character}\rangle\bigg\{\langle\texttt{character}\rangle\bigg\}\\
-\langle\texttt{character\ensuremath{\rangle}} & =\Big(\textrm{"a"}\Big|\textrm{"b"}\Big|\dots\Big|\textrm{"z"}\Big|\textrm{"A"}\Big|\textrm{"B"}\Big|\dots\Big|\textrm{"Z"}\Big|\textrm{"0"}\Big|\textrm{"1"}\Big|\dots\Big|\textrm{"9"}\Big|\textrm{"+"\Big|\textrm{"-"}\Big|\textrm{"/"\Big|\textrm{"*"}\Big|\textrm{"\%"\Big|\textrm{"\textasciicircum"}\Big|\textrm{"\&"}\Big|\textrm{"."}\Big|\textrm{"?"}\Big|\textrm{"!"}}}}\Big)
+\langle\texttt{character\ensuremath{\rangle}} & =\Big(\textrm{"a"}\Big|\textrm{"b"}\Big|\dots\Big|\textrm{"z"}\Big|\textrm{"A"}\Big|\textrm{"B"}\Big|\dots\Big|\textrm{"Z"}\Big|\textrm{"0"}\Big|\textrm{"1"}\Big|\dots\Big|\textrm{"9"}\Big|\textrm{"+"\Big|\textrm{"-"}\Big|\textrm{"/"\Big|\textrm{"*"}\Big|\textrm{"\%"\Big|\textrm{"\textasciicircum"}\Big|\textrm{"\&"}\Big|\textrm{"."}\Big|\textrm{"?"}\Big|\textrm{"!"}\Big|\textrm{":"}}}}\Big)
 \end{align*}
 
 \end_inset

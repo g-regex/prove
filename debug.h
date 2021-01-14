@@ -15,9 +15,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-//#define DPARSER
-//#define DTIKZ
-
 #ifndef DEBUG_H
 #define DEBUG_H
 
@@ -25,14 +22,18 @@
 
 typedef enum {
 	DBG_NONE = 0,
-	DBG_QUIET = 1,		/* suppress all debugging output */
-	DBG_TIKZ = 2,		/* generate TikZ graph */
+	DBG_TIKZ = 1,		/* generate TikZ graph */
+	DBG_PARSER = 2,
+	DBG_VERIFY = 4,
+	DBG_COMPLETE = 8,	/* do not break loop after first successful
+						   verification */
 } DBGops;
 
 DBGops dbgops;
 
 #ifdef DTIKZ
 #define DNUM
+#define DEBUG
 #define DBG_TIKZ_IS_SET (dbgops & DBG_TIKZ)
 #define SET_DBG_TIKZ dbgops |= DBG_TIKZ;
 #define TIKZ(cmd) \
@@ -42,16 +43,38 @@ DBGops dbgops;
 #define SET_DBG_TIKZ
 #endif
 
+#ifdef DVERIFY
+#define DNUM
+#define DEBUG
+#define DBG_VERIFY_IS_SET (dbgops & DBG_VERIFY)
+#define SET_DBG_VERIFY dbgops |= DBG_VERIFY;
+#define DBG_VERIFY(cmd) \
+	if (DBG_VERIFY_IS_SET) { cmd }
+#else
+#define DBG_VERIFY(cmd)
+#define SET_DBG_VERIFY
+#endif
+
 #ifdef DPARSER
 #define DNUM
-#define DBG_QUIET_IS_SET (dbgops & DBG_QUIET)
-#define SET_DBG_QUIET dbgops |= DBG_QUIET;
-#define DBG(cmd) \
-	if (!DBG_QUIET_IS_SET) { cmd }
+#define DEBUG
+#define DBG_PARSER_IS_SET (dbgops & DBG_PARSER)
+#define SET_DBG_PARSER dbgops |= DBG_PARSER;
+#define DBG_PARSER(cmd) \
+	if (DBG_PARSER_IS_SET) { cmd }
 #else
-#define DBG(cmd)
-#define DBG_QUIET_IS_SET 0
-#define SET_DBG_QUIET
+#define DBG_PARSER(cmd)
+#define SET_DBG_PARSER
+#endif
+
+#ifdef DEBUG
+#define DBG_NONE_IS_SET (dbgops == DBG_NONE)
+#define DBG_COMPLETE_IS_SET (dbgops & DBG_COMPLETE)
+#define SET_DBG_COMPLETE dbgops |= DBG_COMPLETE;
+#else
+#define DBG_NONE_IS_SET 1
+#define DBG_COMPLETE_IS_SET 0
+#define SET_DBG_COMPLETE 
 #endif
 
 #endif /* DEBUG_H */

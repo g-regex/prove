@@ -32,8 +32,8 @@
 Token    token;                     /* current token					*/
 Pnode*   pnode;                     /* current node in graph			*/
 FILE*    file;                      /* [prove] source file				*/
-static unsigned short int lvl;      /* indentation level				*/
 
+static unsigned short int lvl;      /* indentation level DPARSER		*/
 
 void parse_expr(void);
 int parse_formula(void);
@@ -45,6 +45,7 @@ void check_conflict(Pnode* pnode, TType ttype);
 int main(int argc, char *argv[])
 {
 	struct stat st = {0};			/* for checking directory existence */
+	unsigned short int i;
 
 	dbgops = DBG_NONE;
 #ifdef DTIKZ
@@ -52,19 +53,43 @@ int main(int argc, char *argv[])
 	char* filename;
 #endif
 
+	file = NULL;
+
 	if (argc < 2) {
-		fprintf(stderr, "usage: %s <filename> [quiet]\n",
+		fprintf(stderr,
+				"usage: %s [-dall | -dparser | -dverify | -dtikz | -dcomplete] "
+				"<filename>\n",
 				argv[0]);
 		exit(EXIT_FAILURE);
-	} else if ((file = fopen(argv[1], "r")) == NULL) {
-		fprintf(stderr, "error opening '%s'\n", argv[1]);
-		exit(EXIT_FAILURE);
+	} else  {
+		for (i = 1; i < argc; i++) {
+			if (strcmp(argv[i], "-dparser") == 0) {
+				SET_DBG_PARSER
+			} else if (strcmp(argv[i], "-dtikz") == 0) {
+				SET_DBG_TIKZ
+			} else if (strcmp(argv[i], "-dcomplete") == 0) {
+				SET_DBG_COMPLETE
+			} else if (strcmp(argv[i], "-dverify") == 0) {
+				SET_DBG_PARSER
+				SET_DBG_VERIFY
+			} else if (strcmp(argv[i], "-dall") == 0) {
+				SET_DBG_PARSER
+				SET_DBG_TIKZ
+				SET_DBG_COMPLETE
+				SET_DBG_VERIFY
+			} else if (file == NULL) {
+				if ((file = fopen(argv[i], "r")) == NULL) {
+					fprintf(stderr, "error opening '%s'\n", argv[i]);
+					exit(EXIT_FAILURE);
+				}
+			} else {
+				fprintf(stderr,
+						"Currently [prove] only supports opening one file at "
+						"a time. Refused to open '%s'.\n", argv[i]);
+				exit(EXIT_FAILURE);
+			}
+		}
 	}
-
-	if (argc > 2) {
-		SET_DBG_QUIET
-	}
-	SET_DBG_TIKZ
 
 	TIKZ(
 		if (stat("debug", &st) == -1) {
@@ -150,7 +175,7 @@ int parse_formula(void)
 	/* TODO perform some check for ERRORS (wrt to EQ and IMP positioning */
 	for (int proceed = TRUE; proceed;) {
 		if (IS_FORMULATOR(token.type)) {
-			DBG(printf("%s", token.id);)
+			DBG_PARSER(printf("%s", token.id);)
 			set_symbol(pnode, token.id);
 			check_conflict(pnode, token.type);
 
@@ -164,7 +189,7 @@ int parse_formula(void)
 			if (!IS_FORMULATOR(token.type)) {
 				return FALSE;
 			} else {
-				DBG(printf("%s", token.id);)
+				DBG_PARSER(printf("%s", token.id);)
 
 				create_right(pnode);
 				move_right(&pnode);
@@ -189,7 +214,7 @@ void parse_statement(void)
 
 	for (int proceed = TRUE; proceed;) {
 		lvl++;
-		DBG(printf("%s", token.id);)
+		DBG_PARSER(printf("%s", token.id);)
 		expect(TOK_LBRACK);
 		if (HAS_GFLAG_VRFD) {
 			UNSET_GFLAG_VRFD
@@ -207,11 +232,11 @@ void parse_statement(void)
 			next_token(&token);
 			if (token.type == TOK_RBRACK) {
 				/* token is an identifier */
-				DBG(printf("%s", *(pnode->symbol));)
+				DBG_PARSER(printf("%s", *(pnode->symbol));)
 			} else if (token.type == TOK_LBRACK) {
 				/* token is a formulator */
 				/* check for conflicting flags and report ERROR */
-				DBG(printf("%s", *(pnode->symbol));)
+				DBG_PARSER(printf("%s", *(pnode->symbol));)
 				SET_NFLAG_FMLA(pnode)
 				parse_expr();
 			} else {
@@ -219,7 +244,7 @@ void parse_statement(void)
 				/* ERROR */
 			}
 		} else if (token.type == TOK_IMPLY) {
-			DBG(printf("%s", token.id);)
+			DBG_PARSER(printf("%s", token.id);)
 			/* token is an implication symbol */
 			next_token(&token);
 			if (token.type == TOK_RBRACK) {
@@ -234,7 +259,7 @@ void parse_statement(void)
 				/* ERROR */
 			}
 		} else if (token.type == TOK_EQ) {
-			DBG(printf("%s", token.id);)
+			DBG_PARSER(printf("%s", token.id);)
 			/* statements must not begin with an equality token */
 			/* ERROR */
 		} else if (token.type == TOK_LBRACK) {
@@ -246,7 +271,7 @@ void parse_statement(void)
 			/* ERROR */
 		}
 
-		DBG(printf("%s", token.id);)
+		DBG_PARSER(printf("%s", token.id);)
 		expect(TOK_RBRACK);
 		move_and_sum_up(&pnode);
 
@@ -281,16 +306,33 @@ void parse_statement(void)
 		/* verification is triggered here */
 		if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)) {
 			init_reachable(pnode);
-			DBG(if(HAS_GFLAG_VRFD) printf("*");)
-			DBG(printf("{%d}", pnode->num);)
+			DBG_PARSER(if(HAS_GFLAG_VRFD) printf("*");)
+			DBG_PARSER(printf("{%d}", pnode->num);)
 			while (next_reachable_const(pnode)) {
-				DBG(printf("<%d", rn());)
+				DBG_PARSER(printf("<%d", rn());)
 				if(same_as_rchbl(pnode)) {
-					/* TODO skip unneccessary cmps */
-					DBG(printf("#");)
+					DBG_PARSER(printf("#");)
 					SET_GFLAG_VRFD
+					
+					/* if compiled without debugging support, which might
+					 * print to the terminal, skip unnecessary compares */
+#ifdef DEBUG
+					if (DBG_NONE_IS_SET || !DBG_COMPLETE_IS_SET) {
+#endif
+						finish_verify();
+						DBG_PARSER(printf(">");)
+						break;
+#ifdef DEBUG
+					}
+#endif
 				}
-				DBG(printf(">");)
+				DBG_PARSER(printf(">");)
+			}
+
+			if (!HAS_GFLAG_VRFD) {
+				fprintf(stderr, "verification failed on line %d, column %d\n",
+						 cursor.line, cursor.col);
+				exit(EXIT_FAILURE);
 			}
 		}
 
@@ -314,10 +356,8 @@ void expect(TType type)
 		next_token(&token);
 	} else {
 		/* ERROR */
-		if (!DBG_QUIET_IS_SET) {
-			fprintf(stderr, "unexpected token on line %d, column %d\n",
-					 cursor.line, cursor.col);
-		}
+		fprintf(stderr, "unexpected token on line %d, column %d\n",
+				 cursor.line, cursor.col);
 		exit(EXIT_FAILURE);
 	}
 }
@@ -329,7 +369,8 @@ void expect(TType type)
 void check_conflict(Pnode* pnode, TType ttype)
 {
 	if (ttype == TOK_IMPLY) {
-		DBG(if (!HAS_NFLAG_ASMP(pnode)) {
+		/* indent assumptions in debugging output to improve readability */
+		DBG_PARSER(if (!HAS_NFLAG_ASMP(pnode)) {
 			printf("\n");
 			for (int i = 0; i < lvl; i++ ) {
 				printf("\t");
@@ -341,11 +382,8 @@ void check_conflict(Pnode* pnode, TType ttype)
 		} else if (HAS_NFLAG_IMPL(pnode)) {
 			return;
 		} else {
-			if (!DBG_QUIET_IS_SET) {
-				fprintf(stderr, "unexpected TOK_IMPLY "
-					"on line %d, column %d\n",
-						 cursor.line, cursor.col);
-			}
+			fprintf(stderr, "unexpected TOK_IMPLY "
+				"on line %d, column %d\n", cursor.line, cursor.col);
 			exit(EXIT_FAILURE);
 		}
 	} else if (ttype == TOK_EQ) {
@@ -354,11 +392,8 @@ void check_conflict(Pnode* pnode, TType ttype)
 		} else if (HAS_NFLAG_EQTY(pnode)) {
 			return;
 		} else {
-			if (!DBG_QUIET_IS_SET) {
-				fprintf(stderr, "unexpected TOK_EQ "
-					"on line %d, column %d\n",
-						 cursor.line, cursor.col);
-			}
+			fprintf(stderr, "unexpected TOK_EQ "
+				"on line %d, column %d\n", cursor.line, cursor.col);
 			exit(EXIT_FAILURE);
 		}
 	} else if (ttype == TOK_SYM) {
@@ -367,19 +402,13 @@ void check_conflict(Pnode* pnode, TType ttype)
 		} else if (HAS_NFLAG_FMLA(pnode)) {
 			return;
 		} else {
-			if (!DBG_QUIET_IS_SET) {
-				fprintf(stderr, "unexpected TOK_SYM "
-					"on line %d, column %d\n",
-						 cursor.line, cursor.col);
-			}
+			fprintf(stderr, "unexpected TOK_SYM "
+				"on line %d, column %d\n", cursor.line, cursor.col);
 			exit(EXIT_FAILURE);
 		}
 	} else {
-		if (!DBG_QUIET_IS_SET) {
-			fprintf(stderr, "unexpected error "
-				"on line %d, column %d\n",
-					 cursor.line, cursor.col);
-		}
+		fprintf(stderr, "unexpected error "
+			"on line %d, column %d\n", cursor.line, cursor.col);
 		exit(EXIT_FAILURE);
 	}
 }
