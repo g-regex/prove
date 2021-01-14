@@ -27,10 +27,12 @@ $(BINDIR):
 
 all: proveparser
 
-clean:
+cleanbin:
 	$(RM) $(foreach EXEFILE, $(EXES), $(BINDIR)/$(EXEFILE))
 	$(RM) *.o
 	$(RM) -rf $(BINDIR)/*.dSYM
+
+cleandbg:
 	$(RM) -rf testcases/out
 	$(RM) -rf debug
 	
@@ -39,12 +41,14 @@ cleantex:
 	$(RM) -rf debug/*.aux
 	$(RM) -rf debug/*.log
 
+clean: cleanbin cleandbg cleantex
+
 debug: DFLAGS+=-DDPARSER -DDTIKZ -DDVERIFY
 debug: proveparser
 
 check: debug runchecks
 checknd: all runchecks
-pdf: cleantex check pdflatex
+pdf: cleanbin cleantex check pdflatex
 
 .ONESHELL:
 runchecks:
