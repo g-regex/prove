@@ -29,6 +29,34 @@
 #define TRUE 1
 #define FALSE 0
 
+#ifdef DEBUG
+#define USAGE \
+	"Usage: %s --help | "\
+	"[--dall | --dparser | --dverify | --dtikz | --dcomplete] "\
+	"<filename>\n"
+
+#define HELP \
+	"\nGENERAL options:\n\n"\
+	"--help\tdisplay this message\n"\
+	"\nDEBUGGING options:\n\n"\
+	"--dparser  \tactivate debugging output for parser\n"\
+	"--dverify  \tactivate debugging output for verification "\
+				"(implies --dparser)\n"\
+	"--dtikz    \tgenerate TikZ graph representation in ./debug/\n"\
+	"--dcomplete\tdo not break verification loop after first success\n"
+
+#else
+
+#define USAGE \
+	"Usage: %s --help | <filename>\n"
+
+#define HELP \
+	"\nGENERAL options:\n\n"\
+	"--help\tdisplay this message\n"\
+	"\nFor more options, compile with debugging support.\n"
+
+#endif
+
 Token    token;                     /* current token					*/
 Pnode*   pnode;                     /* current node in graph			*/
 FILE*    file;                      /* [prove] source file				*/
@@ -56,27 +84,31 @@ int main(int argc, char *argv[])
 	file = NULL;
 
 	if (argc < 2) {
-		fprintf(stderr,
-				"usage: %s [-dall | -dparser | -dverify | -dtikz | -dcomplete] "
-				"<filename>\n",
-				argv[0]);
+		fprintf(stderr, USAGE, argv[0]);
 		exit(EXIT_FAILURE);
 	} else  {
 		for (i = 1; i < argc; i++) {
-			if (strcmp(argv[i], "-dparser") == 0) {
+			if (strcmp(argv[i], "--help") == 0) {
+				printf(USAGE HELP, argv[0]);
+				exit(EXIT_SUCCESS);
+			} else if (strcmp(argv[i], "--dparser") == 0) {
 				SET_DBG_PARSER
-			} else if (strcmp(argv[i], "-dtikz") == 0) {
+			} else if (strcmp(argv[i], "--dtikz") == 0) {
 				SET_DBG_TIKZ
-			} else if (strcmp(argv[i], "-dcomplete") == 0) {
+			} else if (strcmp(argv[i], "--dcomplete") == 0) {
 				SET_DBG_COMPLETE
-			} else if (strcmp(argv[i], "-dverify") == 0) {
+			} else if (strcmp(argv[i], "--dverify") == 0) {
 				SET_DBG_PARSER
 				SET_DBG_VERIFY
-			} else if (strcmp(argv[i], "-dall") == 0) {
+			} else if (strcmp(argv[i], "--dall") == 0) {
 				SET_DBG_PARSER
 				SET_DBG_TIKZ
 				SET_DBG_COMPLETE
 				SET_DBG_VERIFY
+			} else if (argv[i][0] == '-' && argv[i][1] == '-') {
+				fprintf(stderr, "unknown argument '%s', try '--help'\n"
+						USAGE, argv[i], argv[0]);
+				exit(EXIT_FAILURE);
 			} else if (file == NULL) {
 				if ((file = fopen(argv[i], "r")) == NULL) {
 					fprintf(stderr, "error opening '%s'\n", argv[i]);
