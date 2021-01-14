@@ -65,8 +65,8 @@
 	"\\usetikzlibrary{calc}\n"\
 	"\\usetikzlibrary{positioning}\n"\
 	"\\usetikzlibrary{arrows.meta}\n"\
-	"\n\\usepackage[margin=-5pt, hoffset=0pt, voffset=0pt]{geometry}\n"\
-	"\\addtolength{\\topmargin}{20pt}\n"\
+	"\n\\usepackage[margin=0pt, hoffset=0pt, voffset=0pt, top=20pt,"\
+	"bottom=20pt]{geometry}\n"\
 	"\n\\usepackage{color}\n"\
 	"\\definecolor{" TIKZ_COLOR1 "}{rgb}{" TIKZ_COLOR1_RGB "}\n"\
 	"\\definecolor{" TIKZ_COLOR2 "}{rgb}{" TIKZ_COLOR2_RGB "}\n"\
@@ -75,10 +75,16 @@
 	"\\definecolor{" TIKZ_COLOR5 "}{rgb}{" TIKZ_COLOR5_RGB "}\n"\
 	"\\definecolor{" TIKZ_COLOR6 "}{rgb}{" TIKZ_COLOR6_RGB "}\n"\
 	"\\definecolor{" TIKZ_COLOR7 "}{rgb}{" TIKZ_COLOR7_RGB "}\n"\
+	"\n\\usepackage{calc}\n"\
+	"\\usepackage{subcaption}\n"\
+	"\\newsavebox\\tlegend\n"\
+	"\\newlength\\tlegendheight\n"\
+	"\\newsavebox\\tgraph\n"\
+	"\\newlength\\tgraphheight\n"\
 	"\n\\pagenumbering{gobble}\n"\
 	"\n\n\\begin{document}\n"\
 	"\n%%Legend\n"\
-	"\\begin{figure}[h!]\\centering\n"\
+	"\\sbox{\\tlegend}{\n"\
 	"\\resizebox{0.9\\hsize}{!}{"\
 	"\\begin{tikzpicture}[node distance = 1pt, auto]\n"\
 	"\\node (IMPL) at (0pt,0pt) {" TIKZ_LGND_IMPL "};\n"\
@@ -115,10 +121,8 @@
 	"\\draw[-{Triangle[length=" TIKZ_LGND_ASIZE "pt,width=" TIKZ_LGND_ASIZE \
 	"pt]}, color=" TIKZ_COLOR7 "] ([xshift=-" TIKZ_LGND_ASIZE "pt] FRST.west)"\
 	"to (FRST.west);\n"\
-	"\\end{tikzpicture} }\n"\
-	"\\end{figure}\n\n"\
-	"\\begin{figure}[h!]"\
-	"\\centering\n"\
+	"\\end{tikzpicture} } }\n"\
+	"\\sbox{\\tgraph}{\n"\
 	"\\resizebox{0.9\\hsize}{!}{"\
 	"\\begin{tikzpicture}[node distance = 1pt, auto]\n"
 
@@ -168,8 +172,17 @@
 #define TIKZ_ENDSCOPE \
 	"\n\\end{scope}\n"	
 #define TIKZ_FOOTER \
-	"\n\\end{tikzpicture} }\n"\
+	"\n\\end{tikzpicture} } }\n"\
+	"\n\\begin{figure}[h!]\\centering\n"\
+	"\\begin{subfigure}{\\textwidth}\\centering\\usebox{\\tlegend}\\end{subfigure}"\
+	"\\vspace{10pt}\n"\
+	"\\begin{subfigure}{\\textwidth}\\centering\\usebox{\\tgraph}\\end{subfigure}\n"\
 	"\\end{figure}\n\n"\
+	"\\settototalheight\\tlegendheight{\\usebox{\\tlegend}}\n"\
+	"\\settototalheight\\tgraphheight{\\usebox{\\tgraph}}\n"\
+	"\\addtolength{\\tgraphheight}{\\tlegendheight}\n"\
+	"\\addtolength{\\tgraphheight}{50pt}\n"\
+	"\\pdfpageheight=\\the\\tgraphheight\n"\
 	"\\end{document}"\
 
 FILE* tikz;
