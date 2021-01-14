@@ -325,9 +325,12 @@ unsigned short int next_in_branch(Pnode* pnode)
 
 			do {
 
+				DBG_VERIFY(printf("(%d", reachable->num);)
 				if (HAS_SYMBOL(reachable)){
+				DBG_VERIFY(printf("S)");)
 					continue;
 				} else if (check_asmp(pnode)) {
+					DBG_VERIFY(printf(">>)");)
 					SET_GFLAG_WRAP
 					eqendwrap = reachable;
 
@@ -336,6 +339,8 @@ unsigned short int next_in_branch(Pnode* pnode)
 					} while (HAS_SYMBOL(reachable));
 
 					return TRUE;
+				} else {
+					DBG_VERIFY(printf("E)");)
 				}
 
 			} while (move_right(&reachable));

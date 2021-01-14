@@ -335,25 +335,23 @@ void parse_statement(void)
 			init_reachable(pnode);
 			DBG_PARSER(if(HAS_GFLAG_VRFD) printf("*");)
 			DBG_PARSER(printf("{%d}", pnode->num);)
-			while (next_reachable_const(pnode)) {
-				DBG_PARSER(printf("<%d", rn());)
-				if(same_as_rchbl(pnode)) {
-					DBG_PARSER(printf("#");)
-					SET_GFLAG_VRFD
-					
-					/* if compiled without debugging support, which might
-					 * print to the terminal, skip unnecessary compares */
-#ifdef DEBUG
-					if (DBG_NONE_IS_SET || !DBG_COMPLETE_IS_SET) {
-#endif
-						finish_verify();
-						DBG_PARSER(printf(">");)
-						break;
-#ifdef DEBUG
+			if (!HAS_GFLAG_VRFD || DBG_COMPLETE_IS_SET) {
+				while (next_reachable_const(pnode)) {
+					DBG_PARSER(printf("<%d", rn());)
+					if(same_as_rchbl(pnode)) {
+						DBG_PARSER(printf("#");)
+						SET_GFLAG_VRFD
+						
+						/* if compiled without debugging support, which might
+						 * print to the terminal, skip unnecessary compares */
+						if (DBG_NONE_IS_SET || !DBG_COMPLETE_IS_SET) {
+							finish_verify();
+							DBG_PARSER(printf(">");)
+							break;
+						}
 					}
-#endif
+					DBG_PARSER(printf(">");)
 				}
-				DBG_PARSER(printf(">");)
 			}
 
 			if (!HAS_GFLAG_VRFD) {
