@@ -51,7 +51,9 @@ DBGops dbgops;
 #ifdef DVERIFY /* implies DPARSER */
 #define DNUM
 #define DEBUG
+#ifndef DPARSER
 #define DPARSER
+#endif
 #define DBG_VERIFY_IS_SET (dbgops & DBG_VERIFY)
 #define SET_DBG_VERIFY dbgops |= DBG_VERIFY;
 #define DBG_VERIFY(cmd) \

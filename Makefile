@@ -33,13 +33,18 @@ clean:
 	$(RM) -rf $(BINDIR)/*.dSYM
 	$(RM) -rf testcases/out
 	$(RM) -rf debug
+	
+cleantex:
+	$(RM) -rf debug/*.tex
+	$(RM) -rf debug/*.aux
+	$(RM) -rf debug/*.log
 
 debug: DFLAGS+=-DDPARSER -DDTIKZ -DDVERIFY
 debug: proveparser
 
 check: debug runchecks
 checknd: all runchecks
-pdf: check pdflatex
+pdf: cleantex check pdflatex
 
 .ONESHELL:
 runchecks:
