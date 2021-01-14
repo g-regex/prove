@@ -407,7 +407,9 @@ unsigned short int next_reachable_const(Pnode* pnode)
 
 /* --- debugging ------------------------------------------------------------ */
 
+#ifdef DNUM
 unsigned short int rn()
 {
 	return reachable->num;
 }
+#endif

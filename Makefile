@@ -46,8 +46,10 @@ clean: cleanbin cleandbg cleantex
 debug: DFLAGS+=-DDPARSER -DDTIKZ -DDVERIFY
 debug: proveparser
 
+check: CHECKARGS=--dparser --dtikz
 check: debug runchecks
 checknd: all runchecks
+
 pdf: cleanbin cleantex check pdflatex
 
 .ONESHELL:
@@ -57,7 +59,7 @@ runchecks:
 	for T in `ls testcases/valid/*.prove |  sort -V`
 	do
 		echo -ne "$$T: \t"
-		$(BINDIR)/proveparser $$T --dparser --dtikz 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
+		$(BINDIR)/proveparser $$T $(CHECKARGS) 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
 		if (test $$? -eq 1)
 		then
 			rm debug/$$(basename $$T .prove).tex &> /dev/null
@@ -88,7 +90,7 @@ runchecks:
 	for T in `ls testcases/invalid/*.prove |  sort -V`
 	do
 		echo -ne "$$T: \t"
-		$(BINDIR)/proveparser $$T --dparser --dtikz 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
+		$(BINDIR)/proveparser $$T $(CHECKARGS) 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
 		if (test $$? -eq 0)
 		then
 			rm debug/$$(basename $$T .prove).tex &> /dev/null
