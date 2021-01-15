@@ -183,7 +183,7 @@
 	"\\addtolength{\\tgraphheight}{\\tlegendheight}\n"\
 	"\\addtolength{\\tgraphheight}{50pt}\n"\
 	"\\pdfpageheight=\\the\\tgraphheight\n"\
-	"\\end{document}"\
+	"\\end{document}"
 
 FILE* tikz;
 static unsigned short int rightmost_child;
