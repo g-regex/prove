@@ -342,8 +342,8 @@ void parse_statement(void)
 						DBG_PARSER(printf("#");)
 						SET_GFLAG_VRFD
 						
-						/* if compiled without debugging support, which might
-						 * print to the terminal, skip unnecessary compares */
+						/* if no debugging options are selected and not
+						 * explicitly requested, skip unnecessary compares */
 						if (DBG_NONE_IS_SET || !DBG_COMPLETE_IS_SET) {
 							finish_verify();
 							DBG_PARSER(printf(">");)
