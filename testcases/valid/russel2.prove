@@ -1,9 +1,9 @@
-[A] [[A]:set] [ [x] [[x]:set] => [ [[x]in[A]] = [[[x]in[x]]=>[False]] ] ] => 
-[ [A] => [[[A]in[A]] = [[[A]in[A]]=>[False]]] ] =>
-[ [[A]in[A]] = [[[A]in[A]]=>[False]] ] =>
+[A] [[A]:set] [ [x] [[x]:set] => [ [[x]in[A]] = [[[x]in[x]]=>[[]False]] ] ] => 
+[ [A] => [[[A]in[A]] = [[[A]in[A]]=>[[]False]]] ] =>
+[ [[A]in[A]] = [[[A]in[A]]=>[[]False]] ] =>
 [ [[A]in[A]] =>
-    [[[A]in[A]]=>[False]] =>
-    [False]] =>
-[ [[A]in[A]] => [False]] =>
+    [[[A]in[A]]=>[[]False]] =>
+    [[]False]] =>
+[ [[A]in[A]] => [[]False]] =>
 [ [A]in[A] ] =>
-[False]
+[[]False]
