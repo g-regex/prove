@@ -1,0 +1,2 @@
+[[x]:point][[y]:line][[z]:plane]
+[ [ [[x]in[y]]^[[y]in[z]] ]=>[[x]in[z]] ]
