@@ -318,9 +318,10 @@ void free_graph(Pnode* pnode)
 			free(pnode->symbol);
 		}
 
-		if (pnode->var != NULL) {
+		//MISTAKE: double free
+		/*if (pnode->var != NULL) {
 			free(pnode->var);
-		}
+		}*/
 
 		if (pnode->left != NULL) {
 			move_left(&pnode);
