@@ -101,7 +101,7 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 	}
 
 	if (HAS_CHILD(p1)) {
-		equal = HAS_CHILD(p2) ? const_equal(p1->child, p2->child) : FALSE;
+		equal = HAS_CHILD(p2) ? const_equal(*(p1->child), *(p2->child)) : FALSE;
 	}
 	if (HAS_RIGHT(p1)) {
 		equal = equal &&
@@ -119,7 +119,7 @@ unsigned short int same_as_rchbl(Pnode* pnode)
 		/* FATAL ERROR: function should not have been called, if this is true */
 		return FALSE;
 	}
-	return const_equal(pnode->child, reachable->child);
+	return const_equal(*(pnode->child), *(reachable->child));
 }
 
 /* checks assumption in 'reachable' from the perspective of pnode */
@@ -174,9 +174,9 @@ void init_sub(Pnode* pnode)
 /* substitue variables - currently only one variable */
 unsigned short int sub_vars()
 {
-	reachable->var->pnode->child = NULL;
+	//work on this: reachable->var->pnode->child = NULL;
 	if (CONTAINS_ID(known_id)) {
-		*(reachable->var->pnode->symbol) = *(known_id->child->symbol);
+		*(reachable->var->pnode->symbol) = *((*(known_id->child))->symbol);
 	}
 }
 
@@ -230,9 +230,9 @@ void bc_pop(Pnode** pnode)
  * indirectly and return TRUE in the case of success and FALSE otherwise. */
 unsigned short int explore_branch()
 {
-	if (HAS_NFLAG_IMPL(reachable->child) || HAS_NFLAG_EQTY(reachable->child)) {
+	if (HAS_NFLAG_IMPL((*(reachable->child))) || HAS_NFLAG_EQTY((*(reachable->child)))) {
 		bc_push();
-		reachable = reachable->child;
+		reachable = *(reachable->child);
 		return TRUE;
 	} else {
 		return FALSE;

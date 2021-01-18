@@ -46,10 +46,10 @@ unsigned short int move_right(Pnode** pnode)
 
 unsigned short int move_down(Pnode** pnode)
 {
-	if ((*pnode)->child == NULL) {
+	if (!HAS_CHILD((*pnode))) {
 		return FALSE;
 	} else {
-		*pnode = (*pnode)->child;
+		*pnode = *((*pnode)->child);
 		return TRUE;
 	}
 }
@@ -87,8 +87,9 @@ void init_pgraph(Pnode** root)
 	gflags = GFLAG_NONE;
 	*root = (Pnode*) malloc(sizeof(struct Pnode));
 
-	(*root)->parent = (*root)->child
-		= (*root)->left = (*root)->right = (*root)->prev_const = NULL;
+	(*root)->parent = 
+		(*root)->left = (*root)->right = (*root)->prev_const = NULL;
+	(*root)->child = NULL;
 	(*root)->symbol = NULL;
 	(*root)->flags = NFLAG_FRST;
 	(*root)->var = NULL;
@@ -108,10 +109,12 @@ void create_child(Pnode* pnode)
 {
 	Pnode* child;
 
-	pnode->child = (Pnode*) malloc(sizeof(struct Pnode));
+	pnode->child = (Pnode**) malloc(sizeof(struct Pnode*));
+	*(pnode->child) = (Pnode*) malloc(sizeof(struct Pnode));
 
-	child = pnode->child;
-	child->child = child->left = child->right = NULL;
+	child = *(pnode->child);
+	child->left = child->right = NULL;
+	child->child = NULL;
 	child->parent = pnode;
 	child->var = NULL;
 	child->symbol = NULL;
@@ -147,7 +150,8 @@ void create_right(Pnode* pnode)
 	pnode->right = (Pnode*) malloc(sizeof(struct Pnode));
 
 	right = pnode->right;
-	right->child = right->parent = right->right = NULL;
+	right->parent = right->right = NULL;
+	right->child = NULL;
 	right->left = pnode;
 	right->symbol = NULL;
 	right->var = NULL;
@@ -225,7 +229,7 @@ unsigned short int move_and_sum_up(Pnode** pnode)
 	var = oldvar;
 	if (HAS_NFLAG_NEWC((*pnode))) {
 		var = (Variable*) malloc(sizeof(Variable));
-		var->pnode = (*pnode)->child;
+		var->pnode = *((*pnode)->child);
 		var->next = oldvar;
 		oldvar = var;
 	}
@@ -238,7 +242,7 @@ unsigned short int move_and_sum_up(Pnode** pnode)
 
 		if (HAS_NFLAG_NEWC((*pnode))) {
 			var = (Variable*) malloc(sizeof(Variable));
-			var->pnode = (*pnode)->child;
+			var->pnode = *((*pnode)->child);
 			var->next = oldvar;
 			oldvar = var;
 		}
@@ -301,8 +305,8 @@ void free_graph(Pnode* pnode)
 	TIKZ(fprintf(tikz, TIKZ_SYMSCOPE(max_depth));)
 
 	while (pnode->left != NULL || pnode->parent != NULL
-			|| pnode->child !=NULL) {
-		while (pnode->right !=NULL || pnode->child !=NULL) {
+			|| HAS_CHILD(pnode)) {
+		while (pnode->right !=NULL || HAS_CHILD(pnode)) {
 			move_down(&pnode);
 			move_rightmost(&pnode);
 		}
@@ -329,6 +333,7 @@ void free_graph(Pnode* pnode)
 			pnode->right = NULL;
 		} else if (pnode->parent != NULL) {
 			move_up(&pnode);
+			free(*(pnode->child));
 			free(pnode->child);
 			pnode->child = NULL;
 		}

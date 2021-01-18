@@ -308,13 +308,14 @@ void parse_statement(void)
 			found = FALSE;
 			while (pcompare != NULL) {
 				if (CONTAINS_ID(pcompare)) {
-					if (strcmp(*(pcompare->child->symbol),
-								*(pnode->child->symbol)) == 0) {
+					if (strcmp(*((*(pcompare->child))->symbol),
+								*((*(pnode->child))->symbol)) == 0) {
 						found = TRUE;
 
-						free(*(pnode->child->symbol));
-						free(pnode->child->symbol);
-						pnode->child->symbol = pcompare->child->symbol;
+						free(*((*(pnode->child))->symbol));
+						free((*(pnode->child))->symbol);
+						(*(pnode->child))->symbol =
+							(*(pcompare->child))->symbol;
 						break;
 					}
 				}

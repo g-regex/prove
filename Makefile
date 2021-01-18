@@ -58,12 +58,11 @@ runchecks:
 	S=0
 	for T in `ls testcases/valid/*.prove |  sort -V`
 	do
-		echo -ne "$$T: \t"
 		$(BINDIR)/proveparser $$T $(CHECKARGS) 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
 		if (test $$? -eq 1)
 		then
 			rm debug/$$(basename $$T .prove).tex &> /dev/null
-			echo -e "\t[\033[0;31m failure \033[0;0m]"
+			printf "%-50s[\033[0;31m failure \033[0;0m]\n" $$T
 			echo ">>> [VALID] $$(basename $$T):" >> testcases/out/report_failure.txt
 			echo " >> original file:" >> testcases/out/report_failure.txt
 			sed 's/\\/\\/g' $$T | sed 's/^/    /g' >> testcases/out/report_failure.txt
@@ -74,7 +73,7 @@ runchecks:
 			echo >> testcases/out/report_failure.txt
 			S=1
 		else
-			echo -e "\t[\033[0;32m success \033[0;0m]"
+			printf "%-50s[\033[0;32m success \033[0;0m]\n" $$T
 			rm debug/$$(basename $$T .prove).log &> /dev/null
 			rm debug/$$(basename $$T .prove).aux &> /dev/null
 			echo ">>> [VALID] $$(basename $$T):" >> testcases/out/report_success.txt
@@ -89,12 +88,11 @@ runchecks:
 	done
 	for T in `ls testcases/invalid/*.prove |  sort -V`
 	do
-		echo -ne "$$T: \t"
 		$(BINDIR)/proveparser $$T $(CHECKARGS) 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
 		if (test $$? -eq 0)
 		then
 			rm debug/$$(basename $$T .prove).tex &> /dev/null
-			echo -e "\t[\033[0;31m failure \033[0;0m]"
+			printf "%-50s[\033[0;31m failure \033[0;0m]\n" $$T
 			echo ">>> [INVALID] $$(basename $$T):" >> testcases/out/report_failure.txt
 			echo " >> original file:" >> testcases/out/report_failure.txt
 			sed 's/\\/\\/g' $$T | sed 's/^/    /g' >> testcases/out/report_failure.txt
@@ -106,7 +104,7 @@ runchecks:
 			S=1
 		else
 			rm debug/$$(basename $$T .prove).tex &> /dev/null
-			echo -e "\t[\033[0;32m success \033[0;0m]"
+			printf "%-50s[\033[0;32m success \033[0;0m]\n" $$T
 			echo ">>> [INVALID] $$(basename $$T):" >> testcases/out/report_success.txt
 			echo " >> original file:" >> testcases/out/report_success.txt
 			sed 's/\\/\\/g' $$T | sed 's/^/    /g' >> testcases/out/report_success.txt

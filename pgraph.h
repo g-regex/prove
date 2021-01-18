@@ -69,7 +69,7 @@ GFlags gflags;  /* accessed by verify.c and proveparser.c */
 #define HAS_GFLAG_BRCH (gflags & GFLAG_BRCH)
 #define HAS_GFLAG_WRAP (gflags & GFLAG_WRAP)
 
-#define HAS_CHILD(pnode) (pnode->child != NULL)
+#define HAS_CHILD(pnode) (pnode->child != NULL && *(pnode->child) != NULL)
 #define HAS_RIGHT(pnode) (pnode->right != NULL)
 #define HAS_SYMBOL(pnode) (pnode->symbol != NULL)
 
@@ -90,7 +90,7 @@ typedef struct Variable {
 
 typedef struct Pnode {
 	struct Pnode* parent;
-	struct Pnode* child;
+	struct Pnode** child;
 	struct Pnode* left;
 	struct Pnode* right;
 	struct Pnode* prev_const; /* link to previous constant in the tree */
@@ -103,8 +103,8 @@ typedef struct Pnode {
 } Pnode;
 
 #define CONTAINS_ID(pnode) \
-	(HAS_CHILD(pnode) && pnode->child->symbol != NULL \
-	 && pnode->child->right == NULL)
+	(HAS_CHILD(pnode) && (*(pnode->child))->symbol != NULL \
+	 && (*(pnode->child))->right == NULL)
 #define IS_ID(pnode) \
 	(HAS_SYMBOL(pnode) && pnode->left == NULL \
 	 && pnode->right == NULL)
