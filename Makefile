@@ -54,7 +54,7 @@ pdf: cleanbin cleantex check pdflatex
 
 .ONESHELL:
 runchecks:
-	mkdir -p testcases/out
+	@-mkdir -p testcases/out
 	S=0
 	for T in `ls testcases/valid/*.prove |  sort -V`
 	do
