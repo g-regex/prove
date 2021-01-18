@@ -171,7 +171,7 @@ void init_sub(Pnode* pnode)
 	SET_GFLAG_SUBD
 }
 
-/* substitue variables - currently only one variable */
+/* substitute variables - currently only one variable */
 unsigned short int sub_vars()
 {
 	//work on this: reachable->var->pnode->child = NULL;
