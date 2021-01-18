@@ -56,6 +56,7 @@ pdf: cleanbin cleantex check pdflatex
 runchecks:
 	@-mkdir -p testcases/out
 	S=0
+	printf "\nValidating testcases:\n"
 	for T in `ls testcases/valid/*.prove |  sort -V`
 	do
 		$(BINDIR)/proveparser $$T $(CHECKARGS) 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
@@ -125,7 +126,14 @@ runchecks:
 	exit $$S
 
 pdflatex:
+	@-printf "\nGenerating PDFs:\n"
 	for T in `ls debug/*.tex |  sort -V`
 	do
-		pdflatex -output-directory debug $$T
+		pdflatex -halt-on-error -output-directory debug $$T > /dev/null
+		if (test $$? -eq 0)
+		then
+			printf "%-50s[\033[0;32m success \033[0;0m]\n" $$T
+		else
+			printf "%-50s[\033[0;31m failure \033[0;0m]\n" $$T
+		fi
 	done
