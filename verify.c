@@ -37,6 +37,7 @@ static Pnode* reachable;
 static Pnode* known_id; /* current identifier in linked list, known from
 						   stance of current pnode */
 static char* subd_var; /* remembered variable to be substituted */
+static Pnode* subst_parent; /* remembered parent of constant subtree */
 
 /* for branch exploration */
 typedef struct branch_checkpoint { /* stack for jumping back to parent levels */
@@ -151,9 +152,12 @@ unsigned short int next_known_id()
 	if (known_id != NULL) {
 		known_id = known_id->prev_const;
 	}
+	/* skip all non-identifier subtrees -- to be REMOVED */
 	while (known_id != NULL && !CONTAINS_ID(known_id)) {
 		known_id = known_id->prev_const;
 	}
+
+	DBG_VERIFY(if (known_id != NULL) printf("\\%d/", known_id->num);)
 
 	return (known_id != NULL);
 }
@@ -170,7 +174,10 @@ void init_sub(Pnode* pnode)
 /* substitue variables - currently only one variable */
 unsigned short int sub_vars()
 {
-	*(reachable->var->pnode->symbol) = *(known_id->child->symbol);
+	reachable->var->pnode->child = NULL;
+	if (CONTAINS_ID(known_id)) {
+		*(reachable->var->pnode->symbol) = *(known_id->child->symbol);
+	}
 }
 
 /* substitute original variable symbols back in

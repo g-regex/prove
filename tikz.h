@@ -80,6 +80,7 @@
 	"\\newsavebox\\tlegend\n"\
 	"\\newlength\\tlegendheight\n"\
 	"\\newsavebox\\tgraph\n"\
+	"\n\\usepackage{listings}\n"\
 	"\\newlength\\tgraphheight\n"\
 	"\n\\pagenumbering{gobble}\n"\
 	"\n\n\\begin{document}\n"\
@@ -163,7 +164,7 @@
 	"%d.east);\n", TIKZ_FLAG_SIZE, TIKZ_FLAG_SIZE, shift * TIKZ_FLAG_SIZE,\
 	pnum, shift * TIKZ_FLAG_SIZE, TIKZ_FLAG_SIZE, pnum
 #define TIKZ_SYMNODE(pnum, psym) \
-	"\\node[draw] (s%d) at (symalign -| %d) {$%s$};\n",\
+	"\\node[draw] (s%d) at (symalign -| %d) {\\lstinline| %s |};\n",\
 	pnum, pnum, psym
 #define TIKZ_SYMARROW(pnum) \
 	"\\draw[thin, dash dot, color=gray] (%d.south) -- (s%d.north);\n",\
