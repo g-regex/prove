@@ -322,14 +322,12 @@ void parse_statement(void)
 						free(*((*(pnode->child))->symbol));
 						free((*(pnode->child))->symbol);
 
-						/* TODO: fix substitution */
 						(*(pnode->child))->symbol =
 							(*(pcompare->child))->symbol;
 						(*(pnode->child))->child =
 							(*(pcompare->child))->child;
 						(*(pnode->child))->right =
 							(*(pcompare->child))->right;
-						/**(pnode->child) = *(pcompare->child);*/
 
 						break;
 					}
@@ -342,7 +340,8 @@ void parse_statement(void)
 					 * of statements */
 				} else {
 					SET_NFLAG_NEWC(pnode)
-					/* for substitution */
+
+					/* for sub-tree substitution */
 					(*(pnode->child))->child =
 						(Pnode**) malloc(sizeof(struct Pnode*));
 					*((*(pnode->child))->child) = NULL;

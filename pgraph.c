@@ -219,46 +219,35 @@ unsigned short int move_and_sum_up(Pnode** pnode)
 	Variable* var;
 	Variable* oldvar;
 
-	/* TIKZ: 
-	 * only update rightmost child, if a new right node was created before */
+	/* only update rightmost child, if a new right node was created before */
 	TIKZ(if (rightmost_child == 0) {
 		rightmost_child = (*pnode)->num;
 	}
 	cur_depth--;)
 
-	/* TODO: make this a do-while loop */
-
 	oldvar = (*pnode)->var;
 	var = oldvar;
-	if (HAS_NFLAG_NEWC((*pnode))) {
-		var = (Variable*) malloc(sizeof(Variable));
-		var->pnode = *((*pnode)->child);
-		var->next = oldvar;
-		oldvar = var;
-	} else if ((*pnode)->var != NULL){
-		var = (Variable*) malloc(sizeof(Variable));
-		var->pnode = (*pnode)->var->pnode;
-		var->next = oldvar;
-		oldvar = var;
+
+	/* carry flags over from right to left in order to be able to
+	 * determine the type of a formula, when reading the first statement,
+	 * when traversing the graph at a later stage */
+	/* TODO: make this a do-while loop; like this it looks dodgy */
+#define CARRY_OVER \
+	if (HAS_NFLAG_NEWC((*pnode))) {\
+		var = (Variable*) malloc(sizeof(Variable));\
+		var->pnode = *((*pnode)->child);\
+		var->next = oldvar;\
+		oldvar = var;\
+	} else if ((*pnode)->var != NULL){\
+		var = (Variable*) malloc(sizeof(Variable));\
+		var->pnode = (*pnode)->var->pnode;\
+		var->next = oldvar;\
+		oldvar = var;\
 	}
 
 	while (move_left(pnode)) {
-		/* carry flags over from right to left in order to be able to
-		 * determine the type of a formula, when reading the first statement,
-		 * when traversing the graph at a later stage */
 		(*pnode)->flags |= GET_NFFLAGS((*((*pnode)->right)));
-
-		if (HAS_NFLAG_NEWC((*pnode))) {
-			var = (Variable*) malloc(sizeof(Variable));
-			var->pnode = *((*pnode)->child);
-			var->next = oldvar;
-			oldvar = var;
-		} else if ((*pnode)->var != NULL){
-			var = (Variable*) malloc(sizeof(Variable));
-			var->pnode = (*pnode)->var->pnode;
-			var->next = oldvar;
-			oldvar = var;
-		}
+		CARRY_OVER
 	}
 
 	if ((*pnode)->parent == NULL) {
@@ -341,10 +330,10 @@ void free_graph(Pnode* pnode)
 			free(pnode->right);
 		}
 
-		//TODO: free var LL
-		/*if (pnode->var != NULL) {
+		//TODO: test for mem leaks
+		if (pnode->var != NULL) {
 			free(pnode->var);
-		}*/
+		}
 
 		if (pnode->left != NULL) {
 			move_left(&pnode);
