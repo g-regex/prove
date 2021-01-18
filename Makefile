@@ -129,5 +129,5 @@ runchecks:
 pdflatex:
 	for T in `ls debug/*.tex |  sort -V`
 	do
-		pdflatex --shell-escape -output-directory debug $$T
+		pdflatex -output-directory debug $$T
 	done
