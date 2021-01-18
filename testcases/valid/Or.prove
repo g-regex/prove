@@ -1,4 +1,8 @@
+[
+
 [[a]or[b]]=[ [[a]^[b]] or [[a]^[not[b]]] #here come more things #this is recursive, possibly not the best solution]
 
 [ [a]=>[[a]or[b]] ]
 [ [b]=>[[a]or[b]] ]
+
+]
