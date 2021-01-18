@@ -23,7 +23,7 @@ token.o: token.c token.h
 $(BINDIR):
 	mkdir $(BINDIR)
 
-.PHONY: all clean check runchecks debug
+.PHONY: all clean check checknd checkcmplt pdf runchecks debug
 
 all: proveparser
 
@@ -46,8 +46,10 @@ clean: cleanbin cleandbg cleantex
 debug: DFLAGS+=-DDPARSER -DDTIKZ -DDVERIFY
 debug: proveparser
 
-check: CHECKARGS=--dparser --dtikz
+check: CHECKARGS=--dparser --dtikz --dfinish
 check: debug runchecks
+checkcmplt: CHECKARGS=--dparser --dtikz --dcomplete --dfinish
+checkcmplt: debug runchecks
 checknd: all runchecks
 
 pdf: cleanbin cleantex check pdflatex
@@ -62,7 +64,6 @@ runchecks:
 		$(BINDIR)/proveparser $$T $(CHECKARGS) 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
 		if (test $$? -eq 1)
 		then
-			rm -f debug/$$(basename $$T .prove).tex &> /dev/null
 			printf "%-50s[\033[0;31m failure \033[0;0m]\n" $$T
 			printf ">>> [VALID] $$(basename $$T):\n" >> testcases/out/report_failure.txt
 			printf " >> original file:\n" >> testcases/out/report_failure.txt
@@ -70,20 +71,18 @@ runchecks:
 			printf "\n" >> testcases/out/report_failure.txt
 			printf " >> [prove] output:\n" >> testcases/out/report_failure.txt
 			sed 's/\\/\\/g' testcases/out/$$(basename $$T).out | sed 's/^/    /g' >> testcases/out/report_failure.txt
-			printf "    "`cat testcases/out/$$(basename $$T).err`"\n" >> testcases/out/report_failure.txt
+			sed 's/\\/\\/g' testcases/out/$$(basename $$T).err | sed 's/^/    /g' >> testcases/out/report_failure.txt
 			printf "\n" >> testcases/out/report_failure.txt
 			S=1
 		else
 			printf "%-50s[\033[0;32m success \033[0;0m]\n" $$T
-			rm -f debug/$$(basename $$T .prove).log &> /dev/null
-			rm -f debug/$$(basename $$T .prove).aux &> /dev/null
 			printf ">>> [VALID] $$(basename $$T):\n" >> testcases/out/report_success.txt
 			printf " >> original file:\n" >> testcases/out/report_success.txt
 			sed 's/\\/\\/g' $$T | sed 's/^/    /g' >> testcases/out/report_success.txt
 			printf "\n" >> testcases/out/report_success.txt
 			printf " >> [prove] output:\n" >> testcases/out/report_success.txt
 			sed 's/\\/\\/g' testcases/out/$$(basename $$T).out | sed 's/^/    /g' >> testcases/out/report_success.txt
-			printf "    "`cat testcases/out/$$(basename $$T).err`"\n" >> testcases/out/report_success.txt
+			sed 's/\\/\\/g' testcases/out/$$(basename $$T).err | sed 's/^/    /g' >> testcases/out/report_success.txt
 			printf "\n" >> testcases/out/report_success.txt
 		fi
 	done
@@ -100,7 +99,7 @@ runchecks:
 			printf "\n" >> testcases/out/report_failure.txt
 			printf " >> [prove] output:\n" >> testcases/out/report_failure.txt
 			sed 's/\\/\\/g' testcases/out/$$(basename $$T).out | sed 's/^/    /g' >> testcases/out/report_failure.txt
-			printf "    "`cat testcases/out/$$(basename $$T).err`"\n" >> testcases/out/report_failure.txt
+			sed 's/\\/\\/g' testcases/out/$$(basename $$T).err | sed 's/^/    /g' >> testcases/out/report_failure.txt
 			printf "\n" >> testcases/out/report_failure.txt
 			S=1
 		else
@@ -112,7 +111,7 @@ runchecks:
 			printf "\n" >> testcases/out/report_success.txt
 			printf " >> [prove] output:\n" >> testcases/out/report_success.txt
 			sed 's/\\/\\/g' testcases/out/$$(basename $$T).out | sed 's/^/    /g' >> testcases/out/report_success.txt
-			printf "    "`cat testcases/out/$$(basename $$T).err`"\n" >> testcases/out/report_success.txt
+			sed 's/\\/\\/g' testcases/out/$$(basename $$T).err | sed 's/^/    /g' >> testcases/out/report_success.txt
 			printf "\n" >> testcases/out/report_success.txt
 		fi
 	done
@@ -120,6 +119,7 @@ runchecks:
 	then
 		echo "-------- UNSUCCESSFULLY VALIDATED TESTCASES --------" >> testcases/out/report.txt
 		cat testcases/out/report_failure.txt >> testcases/out/report.txt 2> /dev/null
+		printf "\n" >> testcases/out/report.txt
 	fi
 	echo "--------- SUCCESSFULLY VALIDATED TESTCASES ---------" >> testcases/out/report.txt
 	cat testcases/out/report_success.txt >> testcases/out/report.txt 2> /dev/null

@@ -70,8 +70,8 @@ GFlags gflags;  /* accessed by verify.c and proveparser.c */
 #define HAS_GFLAG_WRAP (gflags & GFLAG_WRAP)
 
 #define HAS_CHILD(pnode) (pnode->child != NULL && *(pnode->child) != NULL)
-#define HAS_RIGHT(pnode) (pnode->right != NULL)
-#define HAS_SYMBOL(pnode) (pnode->symbol != NULL)
+#define HAS_RIGHT(pnode) (pnode->right != NULL && *(pnode->right) != NULL)
+#define HAS_SYMBOL(pnode) (pnode->symbol != NULL && *(pnode->symbol) != NULL)
 
 #define SET_GFLAG_VRFD gflags |= GFLAG_VRFD;
 #define SET_GFLAG_SUBD gflags |= GFLAG_SUBD;
@@ -92,7 +92,7 @@ typedef struct Pnode {
 	struct Pnode* parent;
 	struct Pnode** child;
 	struct Pnode* left;
-	struct Pnode* right;
+	struct Pnode** right;
 	struct Pnode* prev_const; /* link to previous constant in the tree */
 	char** symbol; /* using a double pointer to let known identifiers
 					  point to the same char* in memory */
@@ -103,11 +103,11 @@ typedef struct Pnode {
 } Pnode;
 
 #define CONTAINS_ID(pnode) \
-	(HAS_CHILD(pnode) && (*(pnode->child))->symbol != NULL \
-	 && (*(pnode->child))->right == NULL)
+	(HAS_CHILD(pnode) && HAS_SYMBOL((*(pnode->child))) \
+	 && !HAS_RIGHT((*(pnode->child))))
 #define IS_ID(pnode) \
 	(HAS_SYMBOL(pnode) && pnode->left == NULL \
-	 && pnode->right == NULL)
+	 && !HAS_RIGHT(pnode))
 
 #define IS_INTERNAL(pnode) (pnode->symbol == NULL)
 

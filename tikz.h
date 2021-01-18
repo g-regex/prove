@@ -25,7 +25,7 @@
 #define TIKZ_HSPACE 25
 #define TIKZ_FLAG_SIZE 7
 #define TIKZ_MINWIDTH 25
-#define TIKZ_MINHEIGHT TIKZ_FLAG_SIZE * 7
+#define TIKZ_MINHEIGHT TIKZ_FLAG_SIZE * 9
 
 #define TIKZ_COLOR1 "darkmagenta"
 #define TIKZ_COLOR1_RGB "0.55, 0.0, 0.55"
@@ -41,6 +41,8 @@
 #define TIKZ_COLOR6_RGB "0.0, 0.98, 0.6"
 #define TIKZ_COLOR7 "deepskyblue"
 #define TIKZ_COLOR7_RGB "0.0, 0.75, 1.0"
+#define TIKZ_COLOR8 "black"
+#define TIKZ_COLOR8_RGB "0.0, 0.0, 0.0"
 
 #define TIKZ_LGND_SPACING "30"
 #define TIKZ_LGND_ASIZE "10"

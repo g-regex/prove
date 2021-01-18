@@ -37,7 +37,6 @@ static Pnode* reachable;
 static Pnode* known_id; /* current identifier in linked list, known from
 						   stance of current pnode */
 static char* subd_var; /* remembered variable to be substituted */
-static Pnode* subst_parent; /* remembered parent of constant subtree */
 
 /* for branch exploration */
 typedef struct branch_checkpoint { /* stack for jumping back to parent levels */
@@ -105,7 +104,7 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 	}
 	if (HAS_RIGHT(p1)) {
 		equal = equal &&
-			(HAS_RIGHT(p2) ? const_equal(p1->right, p2->right) : FALSE);
+			(HAS_RIGHT(p2) ? const_equal(*(p1->right), *(p2->right)) : FALSE);
 	}
 
 	return equal;
@@ -127,13 +126,15 @@ unsigned short int check_asmp(Pnode* pnode)
 {
 	Pnode* pconst;
 
-	DBG_VERIFY(printf(":");)
+	DBG_VERIFY(fprintf(stderr, ":");)
 
 	for (pconst = pnode->prev_const; pconst != NULL;
 			pconst = pconst->prev_const) {
 		if (same_as_rchbl(pconst)) {
-			DBG_VERIFY(printf("(%d)", pconst->num);)
+			DBG_VERIFY(fprintf(stderr, "(%d)", pconst->num);)
 			return TRUE;
+		} else {
+			DBG_VERIFY(fprintf(stderr, ".%d;", pconst->num);)
 		}
 	}
 	return FALSE;
@@ -153,11 +154,11 @@ unsigned short int next_known_id()
 		known_id = known_id->prev_const;
 	}
 	/* skip all non-identifier subtrees -- to be REMOVED */
-	while (known_id != NULL && !CONTAINS_ID(known_id)) {
+	/*while (known_id != NULL && !CONTAINS_ID(known_id)) {
 		known_id = known_id->prev_const;
-	}
+	}*/
 
-	DBG_VERIFY(if (known_id != NULL) printf("\\%d/", known_id->num);)
+	DBG_VERIFY(if (known_id != NULL) fprintf(stderr, "\\%d/", known_id->num);)
 
 	return (known_id != NULL);
 }
@@ -169,14 +170,21 @@ void init_sub(Pnode* pnode)
 
 	subd_var = *(reachable->var->pnode->symbol);
 	SET_GFLAG_SUBD
+	
+	DBG_VERIFY(fprintf(stderr, "!%s?", subd_var);)
 }
 
 /* substitute variables - currently only one variable */
 unsigned short int sub_vars()
 {
-	//work on this: reachable->var->pnode->child = NULL;
 	if (CONTAINS_ID(known_id)) {
 		*(reachable->var->pnode->symbol) = *((*(known_id->child))->symbol);
+		*(reachable->var->pnode->child) = NULL;
+		*(reachable->var->pnode->right) = NULL;
+	} else {
+		*(reachable->var->pnode->symbol) = NULL;
+		*(reachable->var->pnode->child) = *((*(known_id->child))->child);
+		*(reachable->var->pnode->right) = *((*(known_id->child))->right);
 	}
 }
 
@@ -185,6 +193,8 @@ unsigned short int sub_vars()
 void finish_sub()
 {
 	*(reachable->var->pnode->symbol) = subd_var;
+	*(reachable->var->pnode->child) = NULL;
+	*(reachable->var->pnode->right) = NULL;
 	UNSET_GFLAG_SUBD
 }
 
@@ -251,6 +261,7 @@ unsigned short int attempt_explore(Pnode* pnode)
 {
 	if (explore_branch()) {
 		SET_GFLAG_BRCH
+		DBG_VERIFY(fprintf(stderr, "~");)
 		if (!next_in_branch(pnode)) {
 			exit_branch();
 			return next_reachable_const(pnode);
@@ -293,17 +304,17 @@ unsigned short int next_in_branch(Pnode* pnode)
 
 	if (HAS_NFLAG_IMPL(reachable)) {
 		if (HAS_NFLAG_FRST(reachable)) {
-			DBG_VERIFY(printf("(%d", reachable->num);)
+			DBG_VERIFY(fprintf(stderr, "(%d", reachable->num);)
 			if (!check_asmp(pnode)) {
-				DBG_VERIFY(printf("F)");)
+				DBG_VERIFY(fprintf(stderr, "F)");)
 				return FALSE;	
 			} else if (!move_right(&reachable)) {
-				DBG_VERIFY(printf("X)");)
+				DBG_VERIFY(fprintf(stderr, "X)");)
 				/* FATAL ERROR, must not happen
 				 * (node with FRST flag cannot be the last one) */
 				return FALSE;
 			} else {
-				DBG_VERIFY(printf(">)");)
+				DBG_VERIFY(fprintf(stderr, ">)");)
 				return next_in_branch(pnode);
 			}
 		} else {
@@ -332,12 +343,12 @@ unsigned short int next_in_branch(Pnode* pnode)
 
 			do {
 
-				DBG_VERIFY(printf("(%d", reachable->num);)
+				DBG_VERIFY(fprintf(stderr, "(%d", reachable->num);)
 				if (HAS_SYMBOL(reachable)){
-				DBG_VERIFY(printf("S)");)
+				DBG_VERIFY(fprintf(stderr, "S)");)
 					continue;
 				} else if (check_asmp(pnode)) {
-					DBG_VERIFY(printf(">>)");)
+					DBG_VERIFY(fprintf(stderr, ">>)");)
 					SET_GFLAG_WRAP
 					eqendwrap = reachable;
 
@@ -347,7 +358,7 @@ unsigned short int next_in_branch(Pnode* pnode)
 
 					return TRUE;
 				} else {
-					DBG_VERIFY(printf("E)");)
+					DBG_VERIFY(fprintf(stderr, "E)");)
 				}
 
 			} while (move_right(&reachable));

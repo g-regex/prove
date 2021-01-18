@@ -27,6 +27,7 @@ typedef enum {
 	DBG_VERIFY = 4,
 	DBG_COMPLETE = 8,	/* do not break loop after first successful
 						   verification */
+	DBG_FINISH = 16,	/* finish execution, even if verification failed */
 } DBGops;
 
 DBGops dbgops;
@@ -77,12 +78,17 @@ DBGops dbgops;
 
 #ifdef DEBUG
 #define DBG_NONE_IS_SET (dbgops == DBG_NONE)
-#define DBG_COMPLETE_IS_SET (dbgops & DBG_COMPLETE)
-#define SET_DBG_COMPLETE dbgops |= DBG_COMPLETE;
 #else
 #define DBG_NONE_IS_SET 1
-#define DBG_COMPLETE_IS_SET 0
+/*#define DBG_COMPLETE_IS_SET 0
+#define DBG_FINISH_IS_SET 0
 #define SET_DBG_COMPLETE 
+#define SET_DBG_FINISH*/
 #endif
+
+#define DBG_COMPLETE_IS_SET (dbgops & DBG_COMPLETE)
+#define DBG_FINISH_IS_SET (dbgops & DBG_FINISH)
+#define SET_DBG_COMPLETE dbgops |= DBG_COMPLETE;
+#define SET_DBG_FINISH dbgops |= DBG_FINISH;
 
 #endif /* DEBUG_H */

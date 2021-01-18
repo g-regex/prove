@@ -44,6 +44,7 @@
 				"(implies --dparser)\n"\
 	"--dtikz    \tgenerate TikZ graph representation in ./debug/\n"\
 	"--dcomplete\tdo not break verification loop after first success\n"\
+	"--dfinish  \tfinish execution, even if verification fails\n"\
 	"--dall     \tactivate all debugging options\n"
 
 #else
@@ -56,6 +57,7 @@
 	"--help\tdisplay this message\n"\
 	"\nDEBUGGING options:\n\n"\
 	"--dcomplete\tdo not break verification loop after first success\n"\
+	"--dfinish  \tfinish execution, even if verification fails\n"\
 	"\nFor more debugging options, compile with full debugging support.\n"
 
 #endif
@@ -78,6 +80,8 @@ void parse_statement(void);
 
 void expect(TType type);
 void check_conflict(Pnode* pnode, TType ttype);
+
+unsigned short int success = EXIT_SUCCESS;
 
 int main(int argc, char *argv[])
 {
@@ -118,10 +122,13 @@ int main(int argc, char *argv[])
 				SET_DBG_VERIFY
 			} else if (strcmp(argv[i], "--dcomplete") == 0) {
 				SET_DBG_COMPLETE
+			} else if (strcmp(argv[i], "--dfinish") == 0) {
+				SET_DBG_FINISH
 			} else if (strcmp(argv[i], "--dall") == 0) {
 				SET_DBG_PARSER
 				SET_DBG_TIKZ
 				SET_DBG_COMPLETE
+				SET_DBG_FINISH
 				SET_DBG_VERIFY
 			} else if (argv[i][0] == '-' && argv[i][1] == '-') {
 				fprintf(stderr, "unknown argument '%s', try '--help'\n"
@@ -181,7 +188,7 @@ int main(int argc, char *argv[])
 
 	fclose(file);
 
-	return EXIT_SUCCESS;
+	return success;
 }
 
 /* --- parser functions ------------------------------------------------------*/
@@ -200,7 +207,7 @@ int parse_formula(void)
 	/* TODO perform some check for ERRORS (wrt to EQ and IMP positioning */
 	for (int proceed = TRUE; proceed;) {
 		if (IS_FORMULATOR(token.type)) {
-			DBG_PARSER(printf("%s", token.id);)
+			DBG_PARSER(fprintf(stderr, "%s", token.id);)
 			set_symbol(pnode, token.id);
 			check_conflict(pnode, token.type);
 
@@ -214,7 +221,7 @@ int parse_formula(void)
 			if (!IS_FORMULATOR(token.type)) {
 				return FALSE;
 			} else {
-				DBG_PARSER(printf("%s", token.id);)
+				DBG_PARSER(fprintf(stderr, "%s", token.id);)
 
 				create_right(pnode);
 				move_right(&pnode);
@@ -241,7 +248,7 @@ void parse_statement(void)
 #ifdef DPARSER
 		lvl++;
 #endif
-		DBG_PARSER(printf("%s", token.id);)
+		DBG_PARSER(fprintf(stderr, "%s", token.id);)
 		expect(TOK_LBRACK);
 		if (HAS_GFLAG_VRFD) {
 			UNSET_GFLAG_VRFD
@@ -259,11 +266,11 @@ void parse_statement(void)
 			next_token(&token);
 			if (token.type == TOK_RBRACK) {
 				/* token is an identifier */
-				DBG_PARSER(printf("%s", *(pnode->symbol));)
+				DBG_PARSER(fprintf(stderr, "%s", *(pnode->symbol));)
 			} else if (token.type == TOK_LBRACK) {
 				/* token is a formulator */
 				/* check for conflicting flags and report ERROR */
-				DBG_PARSER(printf("%s", *(pnode->symbol));)
+				DBG_PARSER(fprintf(stderr, "%s", *(pnode->symbol));)
 				SET_NFLAG_FMLA(pnode)
 				parse_expr();
 			} else {
@@ -271,7 +278,7 @@ void parse_statement(void)
 				/* ERROR */
 			}
 		} else if (token.type == TOK_IMPLY) {
-			DBG_PARSER(printf("%s", token.id);)
+			DBG_PARSER(fprintf(stderr, "%s", token.id);)
 			/* token is an implication symbol */
 			next_token(&token);
 			if (token.type == TOK_RBRACK) {
@@ -286,7 +293,7 @@ void parse_statement(void)
 				/* ERROR */
 			}
 		} else if (token.type == TOK_EQ) {
-			DBG_PARSER(printf("%s", token.id);)
+			DBG_PARSER(fprintf(stderr, "%s", token.id);)
 			/* statements must not begin with an equality token */
 			/* ERROR */
 		} else if (token.type == TOK_LBRACK) {
@@ -298,7 +305,7 @@ void parse_statement(void)
 			/* ERROR */
 		}
 
-		DBG_PARSER(printf("%s", token.id);)
+		DBG_PARSER(fprintf(stderr, "%s", token.id);)
 		expect(TOK_RBRACK);
 		move_and_sum_up(&pnode);
 
@@ -314,8 +321,16 @@ void parse_statement(void)
 
 						free(*((*(pnode->child))->symbol));
 						free((*(pnode->child))->symbol);
+
+						/* TODO: fix substitution */
 						(*(pnode->child))->symbol =
 							(*(pcompare->child))->symbol;
+						(*(pnode->child))->child =
+							(*(pcompare->child))->child;
+						(*(pnode->child))->right =
+							(*(pcompare->child))->right;
+						/**(pnode->child) = *(pcompare->child);*/
+
 						break;
 					}
 				}
@@ -327,6 +342,13 @@ void parse_statement(void)
 					 * of statements */
 				} else {
 					SET_NFLAG_NEWC(pnode)
+					/* for substitution */
+					(*(pnode->child))->child =
+						(Pnode**) malloc(sizeof(struct Pnode*));
+					*((*(pnode->child))->child) = NULL;
+					(*(pnode->child))->right =
+						(Pnode**) malloc(sizeof(struct Pnode*));
+					*((*(pnode->child))->right) = NULL;
 				}
 			}
 		}
@@ -334,31 +356,35 @@ void parse_statement(void)
 		/* verification is triggered here */
 		if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)) {
 			init_reachable(pnode);
-			DBG_PARSER(if(HAS_GFLAG_VRFD) printf("*");)
-			DBG_PARSER(printf("{%d}", pnode->num);)
+			DBG_PARSER(if(HAS_GFLAG_VRFD) fprintf(stderr, "*");)
+			DBG_PARSER(fprintf(stderr, "{%d}", pnode->num);)
 			if (!HAS_GFLAG_VRFD || DBG_COMPLETE_IS_SET) {
 				while (next_reachable_const(pnode)) {
-					DBG_PARSER(printf("<%d", rn());)
+					DBG_PARSER(fprintf(stderr, "<%d", rn());)
 					if(same_as_rchbl(pnode)) {
-						DBG_PARSER(printf("#");)
+						DBG_PARSER(fprintf(stderr, "#");)
 						SET_GFLAG_VRFD
 						
 						/* if no debugging options are selected and not
 						 * explicitly requested, skip unnecessary compares */
 						if (DBG_NONE_IS_SET || !DBG_COMPLETE_IS_SET) {
 							finish_verify();
-							DBG_PARSER(printf(">");)
+							DBG_PARSER(fprintf(stderr, ">");)
 							break;
 						}
 					}
-					DBG_PARSER(printf(">");)
+					DBG_PARSER(fprintf(stderr, ">");)
 				}
 			}
 
 			if (!HAS_GFLAG_VRFD) {
 				fprintf(stderr, "verification failed on line %d, column %d\n",
 						 cursor.line, cursor.col);
-				exit(EXIT_FAILURE);
+				if (!DBG_FINISH_IS_SET) {
+					exit(EXIT_FAILURE);
+				} else {
+					success = EXIT_FAILURE;
+				}
 			}
 		}
 
@@ -399,9 +425,9 @@ void check_conflict(Pnode* pnode, TType ttype)
 	if (ttype == TOK_IMPLY) {
 		/* indent assumptions in debugging output to improve readability */
 		DBG_PARSER(if (!HAS_NFLAG_ASMP(pnode)) {
-			printf("\n");
+			fprintf(stderr, "\n");
 			for (int i = 0; i < lvl; i++ ) {
-				printf("\t");
+				fprintf(stderr, "\t");
 			}
 		})
 

@@ -36,10 +36,10 @@ static short int n = 0;		/* node counter */
 
 unsigned short int move_right(Pnode** pnode)
 {
-	if ((*pnode)->right == NULL) {
+	if (!HAS_RIGHT((*pnode))) {
 		return FALSE;
 	} else {
-		*pnode = (*pnode)->right;
+		*pnode = *((*pnode)->right);
 		return TRUE;
 	}
 }
@@ -88,8 +88,8 @@ void init_pgraph(Pnode** root)
 	*root = (Pnode*) malloc(sizeof(struct Pnode));
 
 	(*root)->parent = 
-		(*root)->left = (*root)->right = (*root)->prev_const = NULL;
-	(*root)->child = NULL;
+		(*root)->left = (*root)->prev_const = NULL;
+	(*root)->child = (*root)->right = NULL;
 	(*root)->symbol = NULL;
 	(*root)->flags = NFLAG_FRST;
 	(*root)->var = NULL;
@@ -113,8 +113,8 @@ void create_child(Pnode* pnode)
 	*(pnode->child) = (Pnode*) malloc(sizeof(struct Pnode));
 
 	child = *(pnode->child);
-	child->left = child->right = NULL;
-	child->child = NULL;
+	child->left = NULL;
+	child->child = child->right = NULL;
 	child->parent = pnode;
 	child->var = NULL;
 	child->symbol = NULL;
@@ -147,11 +147,12 @@ void create_right(Pnode* pnode)
 {
 	Pnode* right;
 
-	pnode->right = (Pnode*) malloc(sizeof(struct Pnode));
+	pnode->right = (Pnode**) malloc(sizeof(struct Pnode*));
+	*(pnode->right) = (Pnode*) malloc(sizeof(struct Pnode));
 
-	right = pnode->right;
-	right->parent = right->right = NULL;
-	right->child = NULL;
+	right = *(pnode->right);
+	right->parent = NULL;
+	right->child = right->right = NULL;
 	right->left = pnode;
 	right->symbol = NULL;
 	right->var = NULL;
@@ -225,11 +226,18 @@ unsigned short int move_and_sum_up(Pnode** pnode)
 	}
 	cur_depth--;)
 
+	/* TODO: make this a do-while loop */
+
 	oldvar = (*pnode)->var;
 	var = oldvar;
 	if (HAS_NFLAG_NEWC((*pnode))) {
 		var = (Variable*) malloc(sizeof(Variable));
 		var->pnode = *((*pnode)->child);
+		var->next = oldvar;
+		oldvar = var;
+	} else if ((*pnode)->var != NULL){
+		var = (Variable*) malloc(sizeof(Variable));
+		var->pnode = (*pnode)->var->pnode;
 		var->next = oldvar;
 		oldvar = var;
 	}
@@ -238,11 +246,16 @@ unsigned short int move_and_sum_up(Pnode** pnode)
 		/* carry flags over from right to left in order to be able to
 		 * determine the type of a formula, when reading the first statement,
 		 * when traversing the graph at a later stage */
-		(*pnode)->flags |= GET_NFFLAGS((*pnode)->right);
+		(*pnode)->flags |= GET_NFFLAGS((*((*pnode)->right)));
 
 		if (HAS_NFLAG_NEWC((*pnode))) {
 			var = (Variable*) malloc(sizeof(Variable));
 			var->pnode = *((*pnode)->child);
+			var->next = oldvar;
+			oldvar = var;
+		} else if ((*pnode)->var != NULL){
+			var = (Variable*) malloc(sizeof(Variable));
+			var->pnode = (*pnode)->var->pnode;
 			var->next = oldvar;
 			oldvar = var;
 		}
@@ -291,6 +304,9 @@ void print_flags(Pnode* pnode) {
 	if (HAS_NFLAG_FRST(pnode)) {
 		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR7 TIKZ_FLAG_B(pnode->num, -3));
 	}
+	if (pnode->var != NULL) {
+		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR8 TIKZ_FLAG_B(pnode->num, -4));
+	}
 }
 #endif
 
@@ -306,7 +322,7 @@ void free_graph(Pnode* pnode)
 
 	while (pnode->left != NULL || pnode->parent != NULL
 			|| HAS_CHILD(pnode)) {
-		while (pnode->right !=NULL || HAS_CHILD(pnode)) {
+		while (HAS_RIGHT(pnode) || HAS_CHILD(pnode)) {
 			move_down(&pnode);
 			move_rightmost(&pnode);
 		}
@@ -320,15 +336,19 @@ void free_graph(Pnode* pnode)
 		if (pnode->parent != NULL && HAS_NFLAG_NEWC(pnode->parent)) {
 			free(*(pnode->symbol));
 			free(pnode->symbol);
+
+			free(pnode->child);
+			free(pnode->right);
 		}
 
-		//MISTAKE: double free
+		//TODO: free var LL
 		/*if (pnode->var != NULL) {
 			free(pnode->var);
 		}*/
 
 		if (pnode->left != NULL) {
 			move_left(&pnode);
+			free(*(pnode->right));
 			free(pnode->right);
 			pnode->right = NULL;
 		} else if (pnode->parent != NULL) {
