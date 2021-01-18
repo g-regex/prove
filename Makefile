@@ -61,29 +61,29 @@ runchecks:
 		$(BINDIR)/proveparser $$T $(CHECKARGS) 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
 		if (test $$? -eq 1)
 		then
-			rm debug/$$(basename $$T .prove).tex &> /dev/null
+			rm -f debug/$$(basename $$T .prove).tex &> /dev/null
 			printf "%-50s[\033[0;31m failure \033[0;0m]\n" $$T
-			echo ">>> [VALID] $$(basename $$T):" >> testcases/out/report_failure.txt
-			echo " >> original file:" >> testcases/out/report_failure.txt
+			printf ">>> [VALID] $$(basename $$T):\n" >> testcases/out/report_failure.txt
+			printf " >> original file:\n" >> testcases/out/report_failure.txt
 			sed 's/\\/\\/g' $$T | sed 's/^/    /g' >> testcases/out/report_failure.txt
-			echo "" >> testcases/out/report_failure.txt
-			echo " >> [prove] output:" >> testcases/out/report_failure.txt
+			printf "\n" >> testcases/out/report_failure.txt
+			printf " >> [prove] output:\n" >> testcases/out/report_failure.txt
 			sed 's/\\/\\/g' testcases/out/$$(basename $$T).out | sed 's/^/    /g' >> testcases/out/report_failure.txt
-			echo "    "`cat testcases/out/$$(basename $$T).err` >> testcases/out/report_failure.txt
-			echo >> testcases/out/report_failure.txt
+			printf "    "`cat testcases/out/$$(basename $$T).err`"\n" >> testcases/out/report_failure.txt
+			printf "\n" >> testcases/out/report_failure.txt
 			S=1
 		else
 			printf "%-50s[\033[0;32m success \033[0;0m]\n" $$T
-			rm debug/$$(basename $$T .prove).log &> /dev/null
-			rm debug/$$(basename $$T .prove).aux &> /dev/null
-			echo ">>> [VALID] $$(basename $$T):" >> testcases/out/report_success.txt
-			echo " >> original file:" >> testcases/out/report_success.txt
+			rm -f debug/$$(basename $$T .prove).log &> /dev/null
+			rm -f debug/$$(basename $$T .prove).aux &> /dev/null
+			printf ">>> [VALID] $$(basename $$T):\n" >> testcases/out/report_success.txt
+			printf " >> original file:\n" >> testcases/out/report_success.txt
 			sed 's/\\/\\/g' $$T | sed 's/^/    /g' >> testcases/out/report_success.txt
-			echo "" >> testcases/out/report_success.txt
-			echo " >> [prove] output:" >> testcases/out/report_success.txt
+			printf "\n" >> testcases/out/report_success.txt
+			printf " >> [prove] output:\n" >> testcases/out/report_success.txt
 			sed 's/\\/\\/g' testcases/out/$$(basename $$T).out | sed 's/^/    /g' >> testcases/out/report_success.txt
-			echo "    "`cat testcases/out/$$(basename $$T).err` >> testcases/out/report_success.txt
-			echo >> testcases/out/report_success.txt
+			printf "    "`cat testcases/out/$$(basename $$T).err`"\n" >> testcases/out/report_success.txt
+			printf "\n" >> testcases/out/report_success.txt
 		fi
 	done
 	for T in `ls testcases/invalid/*.prove |  sort -V`
@@ -91,28 +91,28 @@ runchecks:
 		$(BINDIR)/proveparser $$T $(CHECKARGS) 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
 		if (test $$? -eq 0)
 		then
-			rm debug/$$(basename $$T .prove).tex &> /dev/null
+			rm -f debug/$$(basename $$T .prove).tex &> /dev/null
 			printf "%-50s[\033[0;31m failure \033[0;0m]\n" $$T
-			echo ">>> [INVALID] $$(basename $$T):" >> testcases/out/report_failure.txt
-			echo " >> original file:" >> testcases/out/report_failure.txt
+			printf ">>> [INVALID] $$(basename $$T):\n" >> testcases/out/report_failure.txt
+			printf " >> original file:\n" >> testcases/out/report_failure.txt
 			sed 's/\\/\\/g' $$T | sed 's/^/    /g' >> testcases/out/report_failure.txt
-			echo "" >> testcases/out/report_failure.txt
-			echo " >> [prove] output:" >> testcases/out/report_failure.txt
+			printf "\n" >> testcases/out/report_failure.txt
+			printf " >> [prove] output:\n" >> testcases/out/report_failure.txt
 			sed 's/\\/\\/g' testcases/out/$$(basename $$T).out | sed 's/^/    /g' >> testcases/out/report_failure.txt
-			echo "    "`cat testcases/out/$$(basename $$T).err` >> testcases/out/report_failure.txt
-			echo >> testcases/out/report_failure.txt
+			printf "    "`cat testcases/out/$$(basename $$T).err`"\n" >> testcases/out/report_failure.txt
+			printf "\n" >> testcases/out/report_failure.txt
 			S=1
 		else
-			rm debug/$$(basename $$T .prove).tex &> /dev/null
+			rm -f debug/$$(basename $$T .prove).tex &> /dev/null
 			printf "%-50s[\033[0;32m success \033[0;0m]\n" $$T
-			echo ">>> [INVALID] $$(basename $$T):" >> testcases/out/report_success.txt
-			echo " >> original file:" >> testcases/out/report_success.txt
+			printf ">>> [INVALID] $$(basename $$T):\n" >> testcases/out/report_success.txt
+			printf " >> original file:\n" >> testcases/out/report_success.txt
 			sed 's/\\/\\/g' $$T | sed 's/^/    /g' >> testcases/out/report_success.txt
-			echo "" >> testcases/out/report_success.txt
-			echo " >> [prove] output:" >> testcases/out/report_success.txt
+			printf "\n" >> testcases/out/report_success.txt
+			printf " >> [prove] output:\n" >> testcases/out/report_success.txt
 			sed 's/\\/\\/g' testcases/out/$$(basename $$T).out | sed 's/^/    /g' >> testcases/out/report_success.txt
-			echo "    "`cat testcases/out/$$(basename $$T).err` >> testcases/out/report_success.txt
-			echo >> testcases/out/report_success.txt
+			printf "    "`cat testcases/out/$$(basename $$T).err`"\n" >> testcases/out/report_success.txt
+			printf "\n" >> testcases/out/report_success.txt
 		fi
 	done
 	if (test $$S -eq 1)
