@@ -1,2 +1,2 @@
-[[x]:point][[y]:line][[z]:plane]
-[ [ [[x]in[y]]^[[y]in[z]] ]=>[[x]in[z]] ]
+[ [x][[x]:point][y][[y]:line][z][[z]:plane]=>
+[ [ [[x]in[y]]^[[y]in[z]] ]=>[[x]in[z]] ] ]
