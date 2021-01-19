@@ -83,15 +83,17 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 			/******************************************************************/
 			/* BIG TODO!!! We have to decide on how identifiers may be
 			 * introduced. Ideally we'd just have one line here:
-			 * return (*(p1->symbol) == *(p2->symbol));	*/
+			 * return (*(p1->symbol) == *(p2->symbol));	
+			 *
+			 * Instead of:*/
 
-			 if (*(p1->symbol) != *(p2->symbol)) {
+			 /*if (*(p1->symbol) != *(p2->symbol)) {
 				return (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
 			 } else {
 				return TRUE;
-			 }
+			 }*/
 			/******************************************************************/
-
+			return (*(p1->symbol) == *(p2->symbol));
 		} else {
 			return FALSE;
 		}
