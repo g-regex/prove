@@ -346,12 +346,20 @@ void parse_statement(void)
 				pcompare = pcompare->prev_const;
 			}
 			if (found == FALSE) {
-				//still has to be discussed, but situations like
-				//[[x]op[y]] might occur and should be legal
-				//if (HAS_FFLAGS(pnode)) {
+				/* still has to be discussed, but situations like
+				  [[x]op[y]] might occur and should be legal */
+				if (HAS_NFLAG_IMPL(pnode) || HAS_NFLAG_EQTY(pnode)) {
 					/* ERROR new ids must only occur at the beginning
 					 * of statements */
-				//} else {
+					fprintf(stderr, "verification failed on line %d, "
+							"column %d: identifier must not be introduced "
+							"at this position\n", cursor.line, cursor.col);
+					if (!DBG_FINISH_IS_SET) {
+						exit(EXIT_FAILURE);
+					} else {
+						success = EXIT_FAILURE;
+					}
+				} else {
 					SET_NFLAG_NEWC(pnode)
 
 					/* for sub-tree substitution */
@@ -361,7 +369,7 @@ void parse_statement(void)
 					(*(pnode->child))->right =
 						(Pnode**) malloc(sizeof(struct Pnode*));
 					*((*(pnode->child))->right) = NULL;
-				//}
+				}
 			}
 		}
 
