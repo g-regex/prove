@@ -33,12 +33,16 @@ unsigned short int next_in_branch(Pnode* pnode);
 static Pnode* eqfirst;			/* temporarily holds the first node of an equality */
 static Pnode* reachable;
 
-/* for substitution */
-static Pnode* known_id; /* current identifier in linked list, known from
-						   stance of current pnode */
-static char* subd_var; /* remembered variable to be substituted */
+/* stack for substitution */
+typedef struct substitution_status {
+	Pnode* known_const;	/* currently used constant sub-tree for substitution  */
+	char* sym;			/* symbol of substituted variable */
+	Variable* var;		/* substituted variable */
+	struct substitution_status* prev;
+} SUB;
+static SUB* sub = NULL;
 
-/* for branch exploration */
+/* stack for branch exploration */
 typedef struct branch_checkpoint { /* stack for jumping back to parent levels */
 	Pnode* pnode;
 	unsigned short int wrap;
@@ -92,19 +96,22 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 			return FALSE;
 		}
 	} else if (HAS_SYMBOL(p1)) { /* this is for formulators */
+		DBG_VERIFY(fprintf(stderr, "*%s+", *(p1->symbol));)
 		if (HAS_SYMBOL(p2)) {
-			return (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
+			DBG_VERIFY(fprintf(stderr, "V%s,%sW", *(p1->symbol), *(p2->symbol));)
+			equal = (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
 		} else {
 			return FALSE;
 		}
 	}
 
-	if (HAS_CHILD(p1)) {
+	if (equal && HAS_CHILD(p1)) {
+		DBG_VERIFY(fprintf(stderr, "c");)
 		equal = HAS_CHILD(p2) ? const_equal(*(p1->child), *(p2->child)) : FALSE;
 	}
-	if (HAS_RIGHT(p1)) {
-		equal = equal &&
-			(HAS_RIGHT(p2) ? const_equal(*(p1->right), *(p2->right)) : FALSE);
+	if (equal && HAS_RIGHT(p1)) {
+		DBG_VERIFY(fprintf(stderr, "r");)
+		equal = HAS_RIGHT(p2) ? const_equal(*(p1->right), *(p2->right)) : FALSE;
 	}
 
 	return equal;
@@ -142,59 +149,110 @@ unsigned short int check_asmp(Pnode* pnode)
 
 /* --- substitution --------------------------------------------------------- */
 
-void init_known_id(Pnode* pnode)
+void init_known_const(Pnode* pnode, SUB* s)
 {
-	known_id = pnode;
+	s->known_const = pnode;
 }
 
-unsigned short int next_known_id()
+unsigned short int next_known_const(Pnode* pnode, SUB* s)
 {
-	/* TODO skip duplicates */
-	if (known_id != NULL) {
-		known_id = known_id->prev_const;
+	/*if (s->known_const != NULL) {
+		s->known_const = s->known_const->prev_const;
 	}
-	/* skip all non-identifier subtrees -- to be REMOVED */
-	/*while (known_id != NULL && !CONTAINS_ID(known_id)) {
-		known_id = known_id->prev_const;
-	}*/
 
-	DBG_VERIFY(if (known_id != NULL) fprintf(stderr, "\\%d/", known_id->num);)
 
-	return (known_id != NULL);
+	return (s->known_const != NULL);*/
+	if (s != NULL) {
+		if (s->known_const != NULL) {
+			s->known_const = s->known_const->prev_const;
+			if (s->known_const == NULL) {
+				DBG_VERIFY(fprintf(stderr, "%%");)
+				if (next_known_const(pnode, s->prev)) {
+					init_known_const(pnode, s);
+
+					DBG_VERIFY(
+						if (s->known_const != NULL)
+							fprintf(stderr,
+								"\\!!!%s=%d/", s->sym, s->known_const->num);
+						else
+							fprintf(stderr,
+								"?");
+						)
+					return TRUE;
+				} else {
+					return FALSE;
+				}
+			} else {
+				DBG_VERIFY(if (s->known_const != NULL) fprintf(stderr,
+							"\\%s=%d/", s->sym, s->known_const->num);)
+				return TRUE;
+			}
+		} else {
+			return FALSE; /* should not happen */
+		}
+	} else {
+		return FALSE; /* finish substitution */
+	}
 }
 
+/* initialise substitution */
 void init_sub(Pnode* pnode)
 {
-	init_known_id(pnode);
-	next_known_id(); /* TODO add error check */
+	Variable* var;
+	SUB* oldsub;
 
-	subd_var = *(reachable->var->pnode->symbol);
+	var = reachable->var;
+	oldsub = sub;
+
+	do {
+		sub = (SUB*) malloc(sizeof(SUB));
+		sub->prev = oldsub;
+		oldsub = sub;
+
+		init_known_const(pnode, sub);
+
+		sub->sym = *(var->pnode->symbol);
+		sub->var = var;
+
+		next_known_const(pnode, sub);
+
+		var = var->next;
+		DBG_VERIFY(fprintf(stderr, "s%d&", reachable->num);)
+	} while (var != NULL);
+
 	SET_GFLAG_SUBD
-	
-	DBG_VERIFY(fprintf(stderr, "!%s?", subd_var);)
 }
 
-/* substitute variables - currently only one variable */
-unsigned short int sub_vars()
+/* substitute variable */
+unsigned short int sub_var()
 {
-	if (CONTAINS_ID(known_id)) {
-		*(reachable->var->pnode->symbol) = *((*(known_id->child))->symbol);
-		*(reachable->var->pnode->child) = NULL;
-		*(reachable->var->pnode->right) = NULL;
+	if (CONTAINS_ID(sub->known_const)) {
+		*(sub->var->pnode->symbol) = *((*(sub->known_const->child))->symbol);
+		*(sub->var->pnode->child) = NULL;
+		*(sub->var->pnode->right) = NULL;
 	} else {
-		*(reachable->var->pnode->symbol) = NULL;
-		*(reachable->var->pnode->child) = *((*(known_id->child))->child);
-		*(reachable->var->pnode->right) = *((*(known_id->child))->right);
+		*(sub->var->pnode->symbol) = NULL;
+		*(sub->var->pnode->child) = *((*(sub->known_const->child))->child);
+		*(sub->var->pnode->right) = *((*(sub->known_const->child))->right);
 	}
 }
 
-/* substitute original variable symbols back in
- * - currently only implemented for one symbol */
+/* substitute original variable symbols back in */
 void finish_sub()
 {
-	*(reachable->var->pnode->symbol) = subd_var;
-	*(reachable->var->pnode->child) = NULL;
-	*(reachable->var->pnode->right) = NULL;
+	SUB* prev_sub;
+
+	do {
+		prev_sub = sub->prev;
+
+		*(sub->var->pnode->symbol) = sub->sym;
+		*(sub->var->pnode->child) = NULL;
+		*(sub->var->pnode->right) = NULL;
+
+		free(sub);
+		sub = prev_sub;
+	} while (sub != NULL);
+
 	UNSET_GFLAG_SUBD
 }
 
@@ -400,8 +458,8 @@ unsigned short int next_reachable_const(Pnode* pnode)
 
 	/* substitution */
 	if (HAS_GFLAG_SUBD) {
-		if (next_known_id()) {
-			sub_vars();
+		if (next_known_const(pnode, sub)) {
+			sub_var();
 			return attempt_explore(pnode);
 		} else {
 			finish_sub();
@@ -415,7 +473,7 @@ unsigned short int next_reachable_const(Pnode* pnode)
 		if (HAS_SYMBOL(reachable) ?  move_left(&reachable) :  TRUE) {
 			if (reachable->var != NULL) {
 				init_sub(pnode);
-				sub_vars();
+				sub_var();
 			}
 			return attempt_explore(pnode);
 		}

@@ -28,6 +28,7 @@ typedef enum {
 	DBG_COMPLETE = 8,	/* do not break loop after first successful
 						   verification */
 	DBG_FINISH = 16,	/* finish execution, even if verification failed */
+	DBG_GRAPH = 32,
 } DBGops;
 
 DBGops dbgops;
@@ -62,6 +63,21 @@ DBGops dbgops;
 #else
 #define DBG_VERIFY(cmd)
 #define SET_DBG_VERIFY
+#endif
+
+#ifdef DGRAPH /* implies DPARSER */
+#define DNUM
+#define DEBUG
+#ifndef DPARSER
+#define DPARSER
+#endif
+#define DBG_GRAPH_IS_SET (dbgops & DBG_GRAPH)
+#define SET_DBG_GRAPH dbgops |= DBG_GRAPH;
+#define DBG_GRAPH(cmd) \
+	if (DBG_GRAPH_IS_SET) { cmd }
+#else
+#define DBG_GRAPH(cmd)
+#define SET_DBG_GRAPH
 #endif
 
 #ifdef DPARSER

@@ -40,6 +40,8 @@
 	"--help\tdisplay this message\n"\
 	"\nDEBUGGING options:\n\n"\
 	"--dparser  \tactivate debugging output for parser\n"\
+	"--dgraph  \tactivate debugging output for graph creation "\
+				"(implies --dparser)\n"\
 	"--dverify  \tactivate debugging output for verification "\
 				"(implies --dparser)\n"\
 	"--dtikz    \tgenerate TikZ graph representation in ./debug/\n"\
@@ -114,6 +116,12 @@ int main(int argc, char *argv[])
 				NOSUPPORT
 #endif
 				SET_DBG_TIKZ
+			} else if (strcmp(argv[i], "--dgraph") == 0) {
+#ifndef DGRAPH
+				NOSUPPORT
+#endif
+				SET_DBG_PARSER
+				SET_DBG_GRAPH
 			} else if (strcmp(argv[i], "--dverify") == 0) {
 #ifndef DVERIFY
 				NOSUPPORT
@@ -335,10 +343,12 @@ void parse_statement(void)
 				pcompare = pcompare->prev_const;
 			}
 			if (found == FALSE) {
-				if (HAS_FFLAGS(pnode)) {
+				//still has to be discussed, but situations like
+				//[[x]op[y]] might occur and should be legal
+				//if (HAS_FFLAGS(pnode)) {
 					/* ERROR new ids must only occur at the beginning
 					 * of statements */
-				} else {
+				//} else {
 					SET_NFLAG_NEWC(pnode)
 
 					/* for sub-tree substitution */
@@ -348,7 +358,7 @@ void parse_statement(void)
 					(*(pnode->child))->right =
 						(Pnode**) malloc(sizeof(struct Pnode*));
 					*((*(pnode->child))->right) = NULL;
-				}
+				//}
 			}
 		}
 
