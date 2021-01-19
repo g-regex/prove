@@ -348,9 +348,8 @@ void parse_statement(void)
 			if (found == FALSE) {
 				/* still has to be discussed, but situations like
 				  [[x]op[y]] might occur and should be legal */
-				if (HAS_NFLAG_IMPL(pnode) || HAS_NFLAG_EQTY(pnode)) {
-					/* ERROR new ids must only occur at the beginning
-					 * of statements */
+				if (HAS_NFLAG_IMPL(pnode)) {
+					/* ERROR new ids must not occur after and IMPL formulator */
 					fprintf(stderr, "verification failed on line %d, "
 							"column %d: statement contains identifier at "
 							"invalid position\n", cursor.line, cursor.col);
@@ -375,13 +374,13 @@ void parse_statement(void)
 
 		/* verification is triggered here */
 		if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)) {
-			init_reachable(pnode);
+			init_backtrack(pnode);
 			DBG_PARSER(if(HAS_GFLAG_VRFD) fprintf(stderr, "*");)
 			DBG_PARSER(fprintf(stderr, "{%d}", pnode->num);)
 			if (!HAS_GFLAG_VRFD || DBG_COMPLETE_IS_SET) {
 				while (next_reachable_const(pnode)) {
 					DBG_PARSER(fprintf(stderr, "<%d", rn());)
-					if(same_as_rchbl(pnode)) {
+					if(verify(pnode)) {
 						DBG_PARSER(fprintf(stderr, "#");)
 						SET_GFLAG_VRFD
 						

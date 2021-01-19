@@ -69,14 +69,13 @@ unsigned short int wrap_right()
 
 /* --- verification --------------------------------------------------------- */
 
-/* compares two constant subtrees;
+/* compares two constant sub-trees;
  * must be given the top left node of the subtrees to compare */
 unsigned short int const_equal(Pnode* p1, Pnode* p2)
 {
 	unsigned short int equal;
 
 	equal = TRUE;
-	/* TODO this can be done better */
 	if (IS_ID(p1)) {
 		if (IS_ID(p2)) {
 
@@ -117,7 +116,7 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 
 /* checks pnode against reachable node; this function is basically a safety net,
  * if pnode or reachable have no children, which should not happen anyway */
-unsigned short int same_as_rchbl(Pnode* pnode)
+unsigned short int verify(Pnode* pnode)
 {
 	if (!HAS_CHILD(pnode) && !HAS_CHILD(reachable)) {
 		/* FATAL ERROR: function should not have been called, if this is true */
@@ -135,7 +134,7 @@ unsigned short int check_asmp(Pnode* pnode)
 
 	for (pconst = pnode->prev_const; pconst != NULL;
 			pconst = pconst->prev_const) {
-		if (same_as_rchbl(pconst)) {
+		if (verify(pconst)) {
 			DBG_VERIFY(fprintf(stderr, "(%d)", pconst->num);)
 			return TRUE;
 		} else {
@@ -169,29 +168,20 @@ unsigned short int sub_var(SUB* s)
 /* substitutes variable(s) by the next known constant/sub-tree */
 unsigned short int next_known_const(Pnode* pnode, SUB* s)
 {
-	/*if (s->known_const != NULL) {
-		s->known_const = s->known_const->prev_const;
-	}
-
-	return (s->known_const != NULL);*/
-
 	if (s != NULL) {
 		if (s->known_const != NULL) {
 			s->known_const = s->known_const->prev_const;
 			if (s->known_const == NULL) {
 				if (next_known_const(pnode, s->prev)) {
 					init_known_const(pnode, s);
-
 					sub_var(s);
 
 					DBG_VERIFY(fprintf(stderr,
 						"\\%s=%d/", s->sym, s->known_const->num);)
-
 					return TRUE;
 				} else {
 					return FALSE;
 				}
-
 			} else {
 				sub_var(s);
 				DBG_VERIFY(fprintf(stderr,
@@ -199,7 +189,7 @@ unsigned short int next_known_const(Pnode* pnode, SUB* s)
 				return TRUE;
 			}
 		} else {
-			return FALSE; /* should not happen */
+			return FALSE; /* FATAL ERROR: should not happen */
 		}
 	} else {
 		return FALSE; /* finish substitution */
@@ -224,8 +214,6 @@ void init_sub(Pnode* pnode)
 
 		sub->sym = *(var->pnode->symbol);
 		sub->var = var;
-
-		//next_known_const(pnode, sub);
 
 		var = var->next;
 	} while (var != NULL);
@@ -426,7 +414,7 @@ unsigned short int next_in_branch(Pnode* pnode)
 
 /* --- backtracking --------------------------------------------------------- */
 
-void init_reachable(Pnode* pnode)
+void init_backtrack(Pnode* pnode)
 {
 	reachable = pnode;
 }
