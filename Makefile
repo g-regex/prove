@@ -56,7 +56,7 @@ pdf: cleanbin cleantex check pdflatex
 
 .ONESHELL:
 runchecks:
-	@-mkdir -p testcases/out
+	@mkdir -p testcases/out
 	S=0
 	printf "\nValidating testcases:\n"
 	for T in `ls testcases/valid/*.prove |  sort -V`
@@ -126,7 +126,7 @@ runchecks:
 	exit $$S
 
 pdflatex:
-	@-printf "\nGenerating PDFs:\n"
+	@printf "\nGenerating PDFs:\n"
 	for T in `ls debug/*.tex |  sort -V`
 	do
 		pdflatex -halt-on-error -output-directory debug $$T > /dev/null
