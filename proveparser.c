@@ -352,8 +352,8 @@ void parse_statement(void)
 					/* ERROR new ids must only occur at the beginning
 					 * of statements */
 					fprintf(stderr, "verification failed on line %d, "
-							"column %d: identifier must not be introduced "
-							"at this position\n", cursor.line, cursor.col);
+							"column %d: statement contains identifier at "
+							"invalid position\n", cursor.line, cursor.col);
 					if (!DBG_FINISH_IS_SET) {
 						exit(EXIT_FAILURE);
 					} else {
