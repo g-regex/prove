@@ -273,28 +273,28 @@ void set_symbol(Pnode* pnode, char* symbol)
 #ifdef DTIKZ
 void print_flags(Pnode* pnode) {
 	if (HAS_NFLAG_IMPL(pnode)) {
-		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR1 TIKZ_FLAG_B(pnode->num, 3));
+		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR1 TIKZ_FLAG_B(pnode->num, 0));
 	}
 	if (HAS_NFLAG_EQTY(pnode)) {
-		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR2 TIKZ_FLAG_B(pnode->num, 2));
+		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR2 TIKZ_FLAG_B(pnode->num, 1));
 	}
 	if (HAS_NFLAG_FMLA(pnode)) {
-		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR3 TIKZ_FLAG_B(pnode->num, 1));
+		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR3 TIKZ_FLAG_B(pnode->num, 2));
 	}
 	if (HAS_NFLAG_ASMP(pnode)) {
-		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR4 TIKZ_FLAG_B(pnode->num, 0));
+		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR4 TIKZ_FLAG_B(pnode->num, 3));
 	}
 	if (HAS_NFLAG_NEWC(pnode)) {
-		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR5 TIKZ_FLAG_B(pnode->num, -1));
+		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR5 TIKZ_FLAG_B(pnode->num, 4));
 	}
 	if (HAS_NFLAG_LOCK(pnode)) {
-		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR6 TIKZ_FLAG_B(pnode->num, -2));
+		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR6 TIKZ_FLAG_B(pnode->num, 5));
 	}
 	if (HAS_NFLAG_FRST(pnode)) {
-		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR7 TIKZ_FLAG_B(pnode->num, -3));
+		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR7 TIKZ_FLAG_B(pnode->num, 6));
 	}
 	if (pnode->var != NULL) {
-		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR8 TIKZ_FLAG_B(pnode->num, -4));
+		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR8 TIKZ_FLAG_B(pnode->num, 7));
 	}
 }
 #endif
