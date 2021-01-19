@@ -154,6 +154,20 @@ void init_known_const(Pnode* pnode, SUB* s)
 	s->known_const = pnode;
 }
 
+/* substitute variable */
+unsigned short int sub_var(SUB* s)
+{
+	if (CONTAINS_ID(s->known_const)) {
+		*(s->var->pnode->symbol) = *((*(s->known_const->child))->symbol);
+		*(s->var->pnode->child) = NULL;
+		*(s->var->pnode->right) = NULL;
+	} else {
+		*(s->var->pnode->symbol) = NULL;
+		*(s->var->pnode->child) = *((*(s->known_const->child))->child);
+		*(s->var->pnode->right) = *((*(s->known_const->child))->right);
+	}
+}
+
 unsigned short int next_known_const(Pnode* pnode, SUB* s)
 {
 	/*if (s->known_const != NULL) {
@@ -167,22 +181,27 @@ unsigned short int next_known_const(Pnode* pnode, SUB* s)
 			s->known_const = s->known_const->prev_const;
 			if (s->known_const == NULL) {
 				DBG_VERIFY(fprintf(stderr, "%%");)
+
 				if (next_known_const(pnode, s->prev)) {
 					init_known_const(pnode, s);
+
+					sub_var(s);
 
 					DBG_VERIFY(
 						if (s->known_const != NULL)
 							fprintf(stderr,
 								"\\!!!%s=%d/", s->sym, s->known_const->num);
 						else
-							fprintf(stderr,
-								"?");
+							fprintf(stderr, "?");
 						)
+
 					return TRUE;
 				} else {
 					return FALSE;
 				}
+
 			} else {
+				sub_var(s);
 				DBG_VERIFY(if (s->known_const != NULL) fprintf(stderr,
 							"\\%s=%d/", s->sym, s->known_const->num);)
 				return TRUE;
@@ -209,32 +228,21 @@ void init_sub(Pnode* pnode)
 		sub->prev = oldsub;
 		oldsub = sub;
 
-		init_known_const(pnode, sub);
+		init_known_const(pnode, sub); /* TODO: bugfix: must not start from
+										 current const, but from next one */
 
 		sub->sym = *(var->pnode->symbol);
 		sub->var = var;
 
 		next_known_const(pnode, sub);
 
+		//sub_var();
+
 		var = var->next;
 		DBG_VERIFY(fprintf(stderr, "s%d&", reachable->num);)
 	} while (var != NULL);
 
 	SET_GFLAG_SUBD
-}
-
-/* substitute variable */
-unsigned short int sub_var()
-{
-	if (CONTAINS_ID(sub->known_const)) {
-		*(sub->var->pnode->symbol) = *((*(sub->known_const->child))->symbol);
-		*(sub->var->pnode->child) = NULL;
-		*(sub->var->pnode->right) = NULL;
-	} else {
-		*(sub->var->pnode->symbol) = NULL;
-		*(sub->var->pnode->child) = *((*(sub->known_const->child))->child);
-		*(sub->var->pnode->right) = *((*(sub->known_const->child))->right);
-	}
 }
 
 /* substitute original variable symbols back in */
@@ -459,7 +467,7 @@ unsigned short int next_reachable_const(Pnode* pnode)
 	/* substitution */
 	if (HAS_GFLAG_SUBD) {
 		if (next_known_const(pnode, sub)) {
-			sub_var();
+			//sub_var();
 			return attempt_explore(pnode);
 		} else {
 			finish_sub();
@@ -473,7 +481,7 @@ unsigned short int next_reachable_const(Pnode* pnode)
 		if (HAS_SYMBOL(reachable) ?  move_left(&reachable) :  TRUE) {
 			if (reachable->var != NULL) {
 				init_sub(pnode);
-				sub_var();
+				//sub_var();
 			}
 			return attempt_explore(pnode);
 		}
