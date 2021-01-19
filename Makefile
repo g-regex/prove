@@ -23,7 +23,7 @@ token.o: token.c token.h
 $(BINDIR):
 	mkdir $(BINDIR)
 
-.PHONY: all clean check checknd checkcmplt pdf runchecks debug
+.PHONY: all clean check checknd checkcmplt pdf runchecks safecheck debug
 
 all: proveparser
 
@@ -55,6 +55,8 @@ checknd: all runchecks
 pdf: cleanbin cleantex check pdflatex
 
 .ONESHELL:
+safecheck:
+	@-${MAKE} check
 runchecks:
 	@rm -rf testcases/out
 	mkdir -p testcases/out

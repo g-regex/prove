@@ -14,7 +14,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: validating testcases
-      run: make check
+      run: make safecheck
+    - name: print report to log
+      run: cat testcases/out/report.txt
     - name: uploading report as artifact
       uses: actions/upload-artifact@v2
       with:
@@ -25,5 +27,5 @@ jobs:
       with:
         name: LaTeX-files
         path: debug
-    - name: print report to log
-      run: cat testcases/out/report.txt
+    - name: reporting result
+      run: make check
