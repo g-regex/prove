@@ -68,6 +68,9 @@
 	fprintf(stderr, "Executable has been compiled without this feature.");\
 	exit(EXIT_FAILURE);
 
+char* toktype[] = {"TOK_EOF", "TOK_LBRACK", "TOK_RBRACK", "TOK_IMPLY",
+					"TOK_EQ", "TOK_SYM"};
+
 Token    token;                     /* current token					*/
 Pnode*   pnode;                     /* current node in graph			*/
 FILE*    file;                      /* [prove] source file				*/
@@ -419,8 +422,8 @@ void expect(TType type)
 		next_token(&token);
 	} else {
 		/* ERROR */
-		fprintf(stderr, "unexpected token on line %d, column %d\n",
-				 cursor.line, cursor.col);
+		fprintf(stderr, "unexpected token on line %d, column %d; expected %s\n",
+				 cursor.line, cursor.col, toktype[type]);
 		exit(EXIT_FAILURE);
 	}
 }

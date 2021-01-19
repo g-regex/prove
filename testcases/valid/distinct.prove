@@ -1,2 +1,2 @@
 [ [[a][b]distinct]=>[not[[a]=[b]] ]
-[ [[c]distinct]=>[ [c1] [[c1]:[c]] [c2] [[c2]:[c/c1]] => [[c1][c2]distinct] ] ]
+[ [[c]distinct]=>[ [c1] [[c1]:[c]] [c2] [[c2]:[c/c1]] => [[c1][c2]distinct] ] ] ]
