@@ -238,12 +238,15 @@ unsigned short int move_and_sum_up(Pnode** pnode)
 		var->pnode = *((*pnode)->child);\
 		var->next = oldvar;\
 		oldvar = var;\
+		DBG_GRAPH(fprintf(stderr, "/VAR\\");)\
 	} else if ((*pnode)->var != NULL){\
 		var = (Variable*) malloc(sizeof(Variable));\
 		var->pnode = (*pnode)->var->pnode;\
-		var->next = oldvar;\
+		var->next = (*pnode)->var->next;\
 		oldvar = var;\
 	}
+
+	CARRY_OVER
 
 	while (move_left(pnode)) {
 		(*pnode)->flags |= GET_NFFLAGS((*((*pnode)->right)));
@@ -255,6 +258,12 @@ unsigned short int move_and_sum_up(Pnode** pnode)
 	} else {
 		*pnode = (*pnode)->parent;
 		(*pnode)->var = var;
+		DBG_GRAPH(
+			fprintf(stderr, "/%d:", (*pnode)->num);
+			for (;var != NULL; var = var->next)
+				fprintf(stderr, "%s,", *(var->pnode->symbol));
+			fprintf(stderr, "\\");
+		)
 		return TRUE;
 	}
 }

@@ -43,7 +43,7 @@ cleantex:
 
 clean: cleanbin cleandbg cleantex
 
-debug: DFLAGS+=-DDPARSER -DDTIKZ -DDVERIFY
+debug: DFLAGS+=-DDPARSER -DDTIKZ -DDVERIFY -DDGRAPH
 debug: proveparser
 
 check: CHECKARGS=--dparser --dtikz --dfinish
