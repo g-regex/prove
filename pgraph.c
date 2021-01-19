@@ -242,7 +242,7 @@ unsigned short int move_and_sum_up(Pnode** pnode)
 	} else if ((*pnode)->var != NULL){\
 		var = (Variable*) malloc(sizeof(Variable));\
 		var->pnode = (*pnode)->var->pnode;\
-		var->next = oldvar;\
+		var->next = (*pnode)->var->next;\
 		oldvar = var;\
 	}
 
