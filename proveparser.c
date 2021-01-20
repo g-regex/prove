@@ -318,7 +318,16 @@ void parse_statement(void)
 
 		DBG_PARSER(fprintf(stderr, "%s", token.id);)
 		expect(TOK_RBRACK);
-		move_and_sum_up(&pnode);
+		if (!move_and_sum_up(&pnode)) {
+			fprintf(stderr, "verification failed on line %d, "
+					"column %d: identifier introduced in non-implication "\
+					"formula\n", cursor.line, cursor.col);
+			if (!DBG_FINISH_IS_SET) {
+				exit(EXIT_FAILURE);
+			} else {
+				success = EXIT_FAILURE;
+			}
+		}
 
 		/* check whether a new identifier was introduced */
 		if (CONTAINS_ID(pnode)) {
@@ -346,13 +355,13 @@ void parse_statement(void)
 				pcompare = pcompare->prev_const;
 			}
 			if (found == FALSE) {
-				/* still has to be discussed, but situations like
-				  [[x]op[y]] might occur and should be legal */
-				if (HAS_NFLAG_IMPL(pnode)) {
-					/* ERROR new ids must not occur after and IMPL formulator */
+				if (HAS_FFLAGS(pnode)) {
+					/* TODO: the above check is not sufficient yet */
+					/* ERROR new ids must only occur before first
+					 * IMPL formulator in an implication*/
 					fprintf(stderr, "verification failed on line %d, "
-							"column %d: statement contains identifier at "
-							"invalid position\n", cursor.line, cursor.col);
+							"column %d: statement contains a new identifier at "
+							"an invalid position\n", cursor.line, cursor.col);
 					if (!DBG_FINISH_IS_SET) {
 						exit(EXIT_FAILURE);
 					} else {

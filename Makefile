@@ -52,7 +52,7 @@ checkcmplt: CHECKARGS=--dparser --dtikz --dcomplete --dfinish
 checkcmplt: debug runchecks
 checknd: all runchecks
 
-pdf: cleanbin cleantex check pdflatex
+pdf: cleanbin cleantex safecheck pdflatex
 
 .ONESHELL:
 safecheck:
