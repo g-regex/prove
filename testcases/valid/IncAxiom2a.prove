@@ -9,12 +9,15 @@
 [ [[p2]=[p4]]=> [[]False] ]
 [ [[p3]=[p4]]=> [[]False] ]
 =>
-[ [
+[ 
+[
 [pln]
 [[p1]in[pln]]
 [[p2]in[pln]]
 [[p3]in[pln]]
 [[p4]in[pln]]
-]=>[]False]
+]
+=>[[]False]
+]
 
 ]
