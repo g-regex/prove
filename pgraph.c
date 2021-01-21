@@ -91,7 +91,7 @@ void init_pgraph(Pnode** root)
 		(*root)->left = (*root)->prev_const = NULL;
 	(*root)->child = (*root)->right = NULL;
 	(*root)->symbol = NULL;
-	(*root)->flags = NFLAG_FRST;
+	(*root)->flags = NFLAG_FRST | NFLAG_ASMP | NFLAG_TRUE;
 	(*root)->var = NULL;
 
 	TIKZ(fprintf(tikz, TIKZ_STARTNODE);
@@ -121,7 +121,7 @@ void create_child(Pnode* pnode)
 
 	/* a newly created child will always be the first (i.e. left-most)
 	 * in the current subtree */
-	child->flags = NFLAG_FRST;
+	child->flags = NFLAG_FRST | NFLAG_TRUE;
 
 	/* the assumption status of a node "trickles down" */
 	if (HAS_NFLAG_ASMP(pnode) || !HAS_FFLAGS(pnode)) {
@@ -158,7 +158,7 @@ void create_right(Pnode* pnode)
 	right->var = NULL;
 
 	/* flags are carried over to the right hand side */
-	right->flags = pnode->flags;
+	right->flags = pnode->flags | NFLAG_TRUE;
 	UNSET_NFLAG_NEWC(right)
 	UNSET_NFLAG_FRST(right) /* TODO this can be done better */
 	if (!HAS_FFLAGS(pnode)) {
@@ -309,8 +309,11 @@ void print_flags(Pnode* pnode) {
 	if (HAS_NFLAG_FRST(pnode)) {
 		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR7 TIKZ_FLAG_B(pnode->num, 6));
 	}
-	if (pnode->var != NULL) {
+	if (HAS_NFLAG_TRUE(pnode)) {
 		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR8 TIKZ_FLAG_B(pnode->num, 7));
+	}
+	if (pnode->var != NULL) {
+		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR9 TIKZ_FLAG_B(pnode->num, 8));
 	}
 }
 #endif
@@ -364,6 +367,7 @@ void free_graph(Pnode* pnode)
 		}
 	}
 
+	TIKZ(print_flags(pnode);)
 	if (pnode->var != NULL) {
 		free(pnode->var);
 	}
