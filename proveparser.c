@@ -412,16 +412,14 @@ unsigned short int parse_statement(void)
 			}
 		} else if (!HAS_FFLAGS((*(pnode->child)))) {
 			/* verify children, if we have nested statements */
-			//DBG_PARSER(fprintf(stderr, "C");)
-			ptmp = *(pnode->child);
-			do {
-				//DBG_PARSER(fprintf(stderr, "c%d", tstatus);)
-				//DBG_PARSER(fprintf(stderr, ":%d", ptmp->num);)
-				//tstatus &= trigger_verify(ptmp);	
-				trigger_verify(ptmp);	
-				//DBG_PARSER(fprintf(stderr, "%d", tstatus);)
-			} while (ptmp->right != NULL &&
-					((ptmp = *(ptmp->right)) != NULL));
+
+			if (!HAS_NFLAG_ASMP(pnode)) {
+				ptmp = *(pnode->child);
+				do {
+					trigger_verify(ptmp);	
+				} while (ptmp->right != NULL &&
+						((ptmp = *(ptmp->right)) != NULL));
+			}
 		}
 
 		/* verification is triggered here */
