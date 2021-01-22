@@ -30,8 +30,9 @@ typedef enum {
 	TOK_LBRACK,  /* left bracket */
 	TOK_RBRACK,  /* right bracket */
 
-	TOK_IMPLY,   /* implication */
-	TOK_EQ,		 /* equality */
+	TOK_IMPLY,   /* implication ("=>") */
+	TOK_EQ,		 /* equality ("=") */
+	TOK_NOT,	 /* not ("!") */
 	TOK_SYM      /* symbol */
 } TType;
 

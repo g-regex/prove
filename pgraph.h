@@ -53,6 +53,10 @@ typedef enum {
 #define UNSET_NFLAG_FRST(pnode) pnode->flags &= ~NFLAG_FRST;
 #define UNSET_NFLAG_TRUE(pnode) pnode->flags &= ~NFLAG_TRUE;
 
+#define TOGGLE_NFLAG_TRUE(pnode) \
+	if (HAS_NFLAG_TRUE(pnode)) UNSET_NFLAG_TRUE(pnode)\
+	else SET_NFLAG_TRUE(pnode)
+
 #define HAS_FFLAGS(pnode) (HAS_NFLAG_IMPL(pnode) || HAS_NFLAG_EQTY(pnode) \
 		|| HAS_NFLAG_FMLA(pnode))
 /* bitmasking the NFFLAGS */
@@ -87,6 +91,7 @@ GFlags gflags;  /* accessed by verify.c and proveparser.c */
 #define UNSET_GFLAG_BRCH gflags &= ~GFLAG_BRCH;
 #define UNSET_GFLAG_WRAP gflags &= ~GFLAG_WRAP;
 
+/* TODO: change name "Variable" */
 typedef struct Variable {
 	struct Pnode* pnode;
 	struct Variable* next;
@@ -104,6 +109,8 @@ typedef struct Pnode {
 	int num; /* number of the current node in pre-order traversal of the tree */
 	Variable* var; /* link to the first variable in
 					  sub-tree (for substitution) */
+
+	Variable equalto;
 } Pnode;
 
 #define CONTAINS_ID(pnode) \
@@ -112,6 +119,8 @@ typedef struct Pnode {
 #define IS_ID(pnode) \
 	(HAS_SYMBOL(pnode) && pnode->left == NULL \
 	 && !HAS_RIGHT(pnode))
+#define IS_EMPTY(pnode) \
+	(!HAS_CHILD(pnode) && !HAS_SYMBOL(pnode))
 
 #define IS_INTERNAL(pnode) (pnode->symbol == NULL)
 
@@ -120,6 +129,7 @@ void init_pgraph(Pnode** root);
 void create_child(Pnode* pnode);
 void create_right(Pnode* pnode);
 void set_symbol(Pnode* pnode, char* symbol);
+void equate(Pnode* p1, Pnode* p2);
 
 /* navigation */
 unsigned short int move_right(Pnode** pnode);

@@ -69,19 +69,18 @@
 	exit(EXIT_FAILURE);
 
 char* toktype[] = {"TOK_EOF", "TOK_LBRACK", "TOK_RBRACK", "TOK_IMPLY",
-					"TOK_EQ", "TOK_SYM"};
+					"TOK_EQ", "TOK_NOT", "TOK_SYM"};
 
-Token    token;                     /* current token					*/
-Pnode*   pnode;                     /* current node in graph			*/
-FILE*    file;                      /* [prove] source file				*/
+Token    token;                     /* current token						*/
+Pnode*   pnode;                     /* current node in graph				*/
+Pnode*   prev_node;					/* remember previous node for equalities*/
+FILE*    file;                      /* [prove] source file					*/
 
-#ifdef DPARSER
-static unsigned short int lvl;      /* indentation level DPARSER		*/
-#endif
+static unsigned short int lvl;      /* level/depth of current node in tree	*/
 
-void parse_expr(void);
-int parse_formula(void);
-void parse_statement(void);
+unsigned short int parse_expr(void);
+unsigned short int parse_formula(void);
+unsigned short int parse_statement(void);
 
 void expect(TType type);
 void check_conflict(Pnode* pnode, TType ttype);
@@ -165,9 +164,8 @@ int main(int argc, char *argv[])
 		}
 	)
 
-#ifdef DPARSER
 	lvl = 0;
-#endif
+
 	init_scanner(file);
 	next_token(&token);
 
@@ -182,6 +180,7 @@ int main(int argc, char *argv[])
 	}
 	fprintf(tikz, TIKZ_HEADER TIKZ_GRAPHSCOPE);)
 
+	prev_node = NULL;
 	init_pgraph(&pnode);
 
 	/* <expr>
@@ -204,33 +203,37 @@ int main(int argc, char *argv[])
 
 /* --- parser functions ------------------------------------------------------*/
 
-void parse_expr(void)
+unsigned short int parse_expr(void)
 {
 	/* maybe the EBNF should be altered a bit,
 	 * this seems to be a bit non-sensical */
-	if (parse_formula()) {
-	} else {
-	}
+	return parse_formula();
 }
 
-int parse_formula(void)
+unsigned short int parse_formula(void)
 {
+	int proceed;
+	unsigned short int tstatus;
+
+	proceed = TRUE;
+	tstatus = TRUE;
+
 	/* TODO perform some check for ERRORS (wrt to EQ and IMP positioning */
-	for (int proceed = TRUE; proceed;) {
+	while (proceed) {
 		if (IS_FORMULATOR(token.type)) {
 			DBG_PARSER(fprintf(stderr, "%s", token.id);)
 			set_symbol(pnode, token.id);
 			check_conflict(pnode, token.type);
 
 			next_token(&token);
-			parse_statement();
+			tstatus &= parse_statement();
 			if (!IS_FORMULATOR(token.type)) {
 				proceed = FALSE;
 			}
 		} else {
-			parse_statement();
+			tstatus &= parse_statement();
 			if (!IS_FORMULATOR(token.type)) {
-				return FALSE;
+				return tstatus;
 			} else {
 				DBG_PARSER(fprintf(stderr, "%s", token.id);)
 
@@ -241,33 +244,53 @@ int parse_formula(void)
 				set_symbol(pnode, token.id);
 
 				next_token(&token);
-				if (token.type != TOK_LBRACK) {
+				if (token.type != TOK_LBRACK && token.type != TOK_NOT) {
 					proceed = FALSE;
 				}
 			}
 		}
 	}
-	return TRUE;
+	prev_node = NULL;
+	return tstatus;
 }
 
-void parse_statement(void)
+unsigned short int parse_statement(void)
 {
-	Pnode* pcompare;
+	Pnode* ptmp;
+	int proceed;
 	unsigned short int found;
+	unsigned short int neg;		/* set, if current pair of brackets is negated*/
+	unsigned short int tstatus; /* truth status */
 
-	for (int proceed = TRUE; proceed;) {
-#ifdef DPARSER
+	proceed = TRUE;
+	tstatus = TRUE;
+
+	while (proceed) {
 		lvl++;
-#endif
 		DBG_PARSER(fprintf(stderr, "%s", token.id);)
-		expect(TOK_LBRACK);
-		if (HAS_GFLAG_VRFD) {
+
+		neg = FALSE;
+		if (token.type == TOK_NOT) {
+			neg = TRUE;
+			next_token(&token);
+			DBG_PARSER(fprintf(stderr, "%s", token.id);)
+		}
+
+		expect(TOK_LBRACK); if (HAS_GFLAG_VRFD) {
 			UNSET_GFLAG_VRFD
 		}
 
 		if (HAS_CHILD(pnode) || HAS_SYMBOL(pnode)) {
 			create_right(pnode);
 			move_right(&pnode);
+		}
+		if (neg) {
+			TOGGLE_NFLAG_TRUE(pnode)
+			//DBG_PARSER(fprintf(stderr, "N");)
+		}
+		if (HAS_NFLAG_EQTY(pnode)) {
+			equate(prev_node, pnode);
+			prev_node = pnode;
 		}
 		create_child(pnode);
 		move_down(&pnode);
@@ -278,7 +301,7 @@ void parse_statement(void)
 			if (token.type == TOK_RBRACK) {
 				/* token is an identifier */
 				DBG_PARSER(fprintf(stderr, "%s", *(pnode->symbol));)
-			} else if (token.type == TOK_LBRACK) {
+			} else if (token.type == TOK_LBRACK || token.type == TOK_NOT) {
 				/* token is a formulator */
 				/* check for conflicting flags and report ERROR */
 				DBG_PARSER(fprintf(stderr, "%s", *(pnode->symbol));)
@@ -295,7 +318,7 @@ void parse_statement(void)
 			if (token.type == TOK_RBRACK) {
 				/* statements must not contain only an implication symbol */
 				/* ERROR */
-			} else if (token.type == TOK_LBRACK) {
+			} else if (token.type == TOK_LBRACK || token.type == TOK_NOT) {
 				/* only valid option */
 				SET_NFLAG_IMPL(pnode)
 				parse_expr();
@@ -307,7 +330,7 @@ void parse_statement(void)
 			DBG_PARSER(fprintf(stderr, "%s", token.id);)
 			/* statements must not begin with an equality token */
 			/* ERROR */
-		} else if (token.type == TOK_LBRACK) {
+		} else if (token.type == TOK_LBRACK || token.type == TOK_NOT) {
 			parse_expr();
 		} else if (token.type == TOK_RBRACK) {
 			/* empty statement */
@@ -318,8 +341,12 @@ void parse_statement(void)
 
 		DBG_PARSER(fprintf(stderr, "%s", token.id);)
 		expect(TOK_RBRACK);
+		lvl--;
+		//DBG_PARSER(fprintf(stderr, "G%d", tstatus);)
+
 		if (!move_and_sum_up(&pnode)) {
-			fprintf(stderr, "verification failed on line %d, "
+			/* TODO: REVIEW */
+			fprintf(stderr, "semantic error on line %d, "
 					"column %d: identifier introduced in non-implication "\
 					"formula\n", cursor.line, cursor.col);
 			if (!DBG_FINISH_IS_SET) {
@@ -331,11 +358,11 @@ void parse_statement(void)
 
 		/* check whether a new identifier was introduced */
 		if (CONTAINS_ID(pnode)) {
-			pcompare = pnode->prev_const;
+			ptmp = pnode->prev_const;
 			found = FALSE;
-			while (pcompare != NULL) {
-				if (CONTAINS_ID(pcompare)) {
-					if (strcmp(*((*(pcompare->child))->symbol),
+			while (ptmp != NULL) {
+				if (CONTAINS_ID(ptmp)) {
+					if (strcmp(*((*(ptmp->child))->symbol),
 								*((*(pnode->child))->symbol)) == 0) {
 						found = TRUE;
 
@@ -343,23 +370,24 @@ void parse_statement(void)
 						free((*(pnode->child))->symbol);
 
 						(*(pnode->child))->symbol =
-							(*(pcompare->child))->symbol;
+							(*(ptmp->child))->symbol;
 						(*(pnode->child))->child =
-							(*(pcompare->child))->child;
+							(*(ptmp->child))->child;
 						(*(pnode->child))->right =
-							(*(pcompare->child))->right;
+							(*(ptmp->child))->right;
 
 						break;
 					}
 				}
-				pcompare = pcompare->prev_const;
+				ptmp = ptmp->prev_const;
 			}
 			if (found == FALSE) {
+#if 0
 				if (HAS_FFLAGS(pnode)) {
-					/* TODO: the above check is not sufficient yet */
-					/* ERROR new ids must only occur before first
-					 * IMPL formulator in an implication*/
-					fprintf(stderr, "verification failed on line %d, "
+					/* TODO: REVIEW the check above */
+					/* ERROR new ids must only occur, in assumptions;
+					 * this is also handled in move_and_sum_up() */
+					fprintf(stderr, "semantic error on line %d, "
 							"column %d: statement contains a new identifier at "
 							"an invalid position\n", cursor.line, cursor.col);
 					if (!DBG_FINISH_IS_SET) {
@@ -368,7 +396,10 @@ void parse_statement(void)
 						success = EXIT_FAILURE;
 					}
 				} else {
+#endif
 					SET_NFLAG_NEWC(pnode)
+
+					/* TODO: check constraints on introducing new identifiers */
 
 					/* for sub-tree substitution */
 					(*(pnode->child))->child =
@@ -377,53 +408,46 @@ void parse_statement(void)
 					(*(pnode->child))->right =
 						(Pnode**) malloc(sizeof(struct Pnode*));
 					*((*(pnode->child))->right) = NULL;
-				}
+				//}
 			}
+		} else if (!HAS_FFLAGS((*(pnode->child)))) {
+			/* verify children, if we have nested statements */
+			//DBG_PARSER(fprintf(stderr, "C");)
+			ptmp = *(pnode->child);
+			do {
+				//DBG_PARSER(fprintf(stderr, "c%d", tstatus);)
+				//DBG_PARSER(fprintf(stderr, ":%d", ptmp->num);)
+				//tstatus &= trigger_verify(ptmp);	
+				trigger_verify(ptmp);	
+				//DBG_PARSER(fprintf(stderr, "%d", tstatus);)
+			} while (ptmp->right != NULL &&
+					((ptmp = *(ptmp->right)) != NULL));
 		}
 
 		/* verification is triggered here */
+		//TODO: REVIEW
 		if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)) {
-			init_backtrack(pnode);
-			DBG_PARSER(if(HAS_GFLAG_VRFD) fprintf(stderr, "*");)
-			DBG_PARSER(fprintf(stderr, "{%d}", pnode->num);)
-			if (!HAS_GFLAG_VRFD || DBG_COMPLETE_IS_SET) {
-				while (next_reachable_const(pnode)) {
-					DBG_PARSER(fprintf(stderr, "<%d", rn());)
-					if(verify(pnode)) {
-						DBG_PARSER(fprintf(stderr, "#");)
-						SET_GFLAG_VRFD
-						
-						/* if no debugging options are selected and not
-						 * explicitly requested, skip unnecessary compares */
-						if (DBG_NONE_IS_SET || !DBG_COMPLETE_IS_SET) {
-							finish_verify();
-							DBG_PARSER(fprintf(stderr, ">");)
-							break;
-						}
-					}
-					DBG_PARSER(fprintf(stderr, ">");)
-				}
-			}
+			tstatus = tstatus && (trigger_verify(pnode) || HAS_GFLAG_VRFD);	
+			tstatus = tstatus && HAS_NFLAG_TRUE(pnode);
+		}
 
-			if (!HAS_GFLAG_VRFD) {
-				fprintf(stderr, "verification failed on line %d, column %d\n",
-						 cursor.line, cursor.col);
-				if (!DBG_FINISH_IS_SET) {
-					exit(EXIT_FAILURE);
-				} else {
-					success = EXIT_FAILURE;
-				}
+		if (lvl == 0 && HAS_NFLAG_IMPL(pnode) && !tstatus) {
+			fprintf(stderr,
+					"verification failed on line %d, column %d\n",
+					 cursor.line, cursor.col);
+			if (!DBG_FINISH_IS_SET) {
+				exit(EXIT_FAILURE);
+			} else {
+				success = EXIT_FAILURE;
 			}
 		}
 
-#ifdef DPARSER
-		lvl--;
-#endif
-
-		if (token.type != TOK_LBRACK) {
+		if (token.type != TOK_LBRACK && token.type != TOK_NOT) {
 			proceed = FALSE;
 		}
 	}
+
+	return tstatus;
 }
 
 /* --- helpers ---------------------------------------------------------------*/
@@ -471,7 +495,9 @@ void check_conflict(Pnode* pnode, TType ttype)
 	} else if (ttype == TOK_EQ) {
 		if (!HAS_FFLAGS(pnode)) {
 			SET_NFLAG_EQTY(pnode)
+			prev_node = pnode->left; /* TODO: add FATAL ERROR, if inexistent */
 		} else if (HAS_NFLAG_EQTY(pnode)) {
+			/* TODO: maybe only allow equalities of the form [...]=[...] */
 			return;
 		} else {
 			fprintf(stderr, "unexpected TOK_EQ "

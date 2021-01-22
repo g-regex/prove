@@ -28,6 +28,9 @@
 #define TIKZ_NUM_FLAGS 9
 #define TIKZ_MINHEIGHT TIKZ_FLAG_SIZE * TIKZ_NUM_FLAGS
 
+#define TIKZ_COLOR_INACT "inactive"
+#define TIKZ_COLOR_INACT_RGB "0.9, 0.9, 0.9"
+
 #define TIKZ_COLOR1 "darkmagenta"
 #define TIKZ_COLOR1_RGB "0.55, 0.0, 0.55"
 #define TIKZ_COLOR2 "darkorange"
@@ -61,6 +64,7 @@
 #define TIKZ_LGND_FRST \
 	"\\texttt{FRST}: node is positioned before first "\
 	"occurrence of an implication formulator in that formula"
+#define TIKZ_LGND_TRUE "statement is true"
 #define TIKZ_LGND_VAR "subtree contains at least one variable"
 
 #define TIKZ_HEADER \
@@ -74,6 +78,7 @@
 	"\n\\usepackage[margin=0pt, hoffset=0pt, voffset=0pt, top=20pt,"\
 	"bottom=20pt]{geometry}\n"\
 	"\n\\usepackage{color}\n"\
+	"\\definecolor{" TIKZ_COLOR_INACT "}{rgb}{" TIKZ_COLOR_INACT_RGB "}\n"\
 	"\\definecolor{" TIKZ_COLOR1 "}{rgb}{" TIKZ_COLOR1_RGB "}\n"\
 	"\\definecolor{" TIKZ_COLOR2 "}{rgb}{" TIKZ_COLOR2_RGB "}\n"\
 	"\\definecolor{" TIKZ_COLOR3 "}{rgb}{" TIKZ_COLOR3_RGB "}\n"\
@@ -108,7 +113,9 @@
 	"{" TIKZ_LGND_LOCK "};\n"\
 	"\\node[right = " TIKZ_LGND_SPACING "pt of LOCK] (FRST)"\
 	"{" TIKZ_LGND_FRST "};\n"\
-	"\\node[right = " TIKZ_LGND_SPACING "pt of FRST] (VAR)"\
+	"\\node[right = " TIKZ_LGND_SPACING "pt of FRST] (TRUE)"\
+	"{" TIKZ_LGND_TRUE "};\n"\
+	"\\node[right = " TIKZ_LGND_SPACING "pt of TRUE] (VAR)"\
 	"{" TIKZ_LGND_VAR "};\n"\
 	"\\draw[-{Triangle[length=" TIKZ_LGND_ASIZE "pt,width=" TIKZ_LGND_ASIZE \
 	"pt]}, color=" TIKZ_COLOR1 "] ([xshift=-" TIKZ_LGND_ASIZE "pt] IMPL.west)"\
@@ -132,7 +139,10 @@
 	"pt]}, color=" TIKZ_COLOR7 "] ([xshift=-" TIKZ_LGND_ASIZE "pt] FRST.west)"\
 	"to (FRST.west);\n"\
 	"\\draw[-{Triangle[length=" TIKZ_LGND_ASIZE "pt,width=" TIKZ_LGND_ASIZE \
-	"pt]}, color=" TIKZ_COLOR8 "] ([xshift=-" TIKZ_LGND_ASIZE "pt] VAR.west)"\
+	"pt]}, color=" TIKZ_COLOR8 "] ([xshift=-" TIKZ_LGND_ASIZE "pt] TRUE.west)"\
+	"to (TRUE.west);\n"\
+	"\\draw[-{Triangle[length=" TIKZ_LGND_ASIZE "pt,width=" TIKZ_LGND_ASIZE \
+	"pt]}, color=" TIKZ_COLOR9 "] ([xshift=-" TIKZ_LGND_ASIZE "pt] VAR.west)"\
 	"to (VAR.west);\n"\
 	"\\end{tikzpicture} } }\n"\
 	"\\sbox{\\tgraph}{\n"\

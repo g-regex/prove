@@ -19,13 +19,7 @@
 
 #include "pgraph.h"
 
-/* for verification */
-unsigned short int verify(Pnode* pnode);
-void finish_verify();
-
-/* for backtracking */
-void init_backtrack(Pnode* pnode);
-unsigned short int next_reachable_const(Pnode* pnode);
+unsigned short int trigger_verify(Pnode* pn);
 
 /* DEBUG */
 unsigned short int rn();

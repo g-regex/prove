@@ -27,6 +27,8 @@
 #define TRUE 1
 #define FALSE 0
 
+#define DO(x) ((x) || TRUE)
+
 /* DEBUG */
 #ifdef DNUM
 static short int n = 0;		/* node counter */
@@ -91,8 +93,11 @@ void init_pgraph(Pnode** root)
 		(*root)->left = (*root)->prev_const = NULL;
 	(*root)->child = (*root)->right = NULL;
 	(*root)->symbol = NULL;
-	(*root)->flags = NFLAG_FRST | NFLAG_ASMP | NFLAG_TRUE;
+	(*root)->flags = NFLAG_FRST | NFLAG_TRUE;
 	(*root)->var = NULL;
+
+	(*root)->equalto.pnode = *root;
+	(*root)->equalto.next = &((*root)->equalto);
 
 	TIKZ(fprintf(tikz, TIKZ_STARTNODE);
 	rightmost_child = 0;
@@ -118,6 +123,9 @@ void create_child(Pnode* pnode)
 	child->parent = pnode;
 	child->var = NULL;
 	child->symbol = NULL;
+
+	child->equalto.pnode = child;
+	child->equalto.next = &(child->equalto);
 
 	/* a newly created child will always be the first (i.e. left-most)
 	 * in the current subtree */
@@ -156,6 +164,9 @@ void create_right(Pnode* pnode)
 	right->left = pnode;
 	right->symbol = NULL;
 	right->var = NULL;
+
+	right->equalto.pnode = right;
+	right->equalto.next = &(right->equalto);
 
 	/* flags are carried over to the right hand side */
 	right->flags = pnode->flags | NFLAG_TRUE;
@@ -235,28 +246,27 @@ unsigned short int move_and_sum_up(Pnode** pnode)
 	/* carry flags over from right to left in order to be able to
 	 * determine the type of a formula, when reading the first statement,
 	 * when traversing the graph at a later stage */
-	/* TODO: make this a do-while loop; like this it looks dodgy */
-#define CARRY_OVER \
-	if (HAS_NFLAG_NEWC((*pnode))) {\
-		if (!HAS_NFLAG_IMPL((*pnode))) success = FALSE;\
-		var = (Variable*) malloc(sizeof(Variable));\
-		var->pnode = *((*pnode)->child);\
-		var->next = oldvar;\
-		oldvar = var;\
-		DBG_GRAPH(fprintf(stderr, "/VAR\\");)\
-	} else if ((*pnode)->var != NULL){\
-		var = (Variable*) malloc(sizeof(Variable));\
-		var->pnode = (*pnode)->var->pnode;\
-		var->next = (*pnode)->var->next;\
-		oldvar = var;\
-	}
 
-	CARRY_OVER
-
-	while (move_left(pnode)) {
-		(*pnode)->flags |= GET_NFFLAGS((*((*pnode)->right)));
-		CARRY_OVER
-	}
+	do {
+		if (!HAS_NFLAG_LOCK((*pnode)) && !HAS_NFLAG_IMPL((*pnode)) && 
+				!HAS_NFLAG_EQTY((*pnode))) {
+			UNSET_NFLAG_ASMP((*pnode))
+		}
+		if (HAS_NFLAG_NEWC((*pnode))) {
+			if (!HAS_NFLAG_ASMP((*pnode))) success = FALSE; /* TODO: sem ERROR*/ 
+			var = (Variable*) malloc(sizeof(Variable));
+			var->pnode = *((*pnode)->child);
+			var->next = oldvar;
+			oldvar = var;
+			DBG_GRAPH(fprintf(stderr, "/VAR\\");)
+		} else if ((*pnode)->var != NULL){
+			var = (Variable*) malloc(sizeof(Variable));
+			var->pnode = (*pnode)->var->pnode;
+			var->next = (*pnode)->var->next;
+			oldvar = var;
+		}
+	} while (move_left(pnode) &&
+			DO((*pnode)->flags |= GET_NFFLAGS((*((*pnode)->right)))));
 
 	if ((*pnode)->parent == NULL) {
 		//return FALSE;
@@ -284,6 +294,13 @@ void set_symbol(Pnode* pnode, char* symbol)
 	strcpy(*(pnode->symbol), symbol);
 }
 
+void equate(Pnode* p1, Pnode* p2)
+{
+	p2->equalto.next = p1->equalto.next;
+	p1->equalto.next = &(p2->equalto);
+}
+
+
 /* --- debugging ------------------------------------------------------------ */
 
 #ifdef DTIKZ
@@ -298,19 +315,39 @@ void print_flags(Pnode* pnode) {
 		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR3 TIKZ_FLAG_B(pnode->num, 2));
 	}
 	if (HAS_NFLAG_ASMP(pnode)) {
-		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR4 TIKZ_FLAG_B(pnode->num, 3));
+		if (HAS_SYMBOL(pnode)) {
+			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR_INACT
+					TIKZ_FLAG_B(pnode->num, 3));
+		} else {
+			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR4 TIKZ_FLAG_B(pnode->num, 3));
+		}
 	}
 	if (HAS_NFLAG_NEWC(pnode)) {
 		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR5 TIKZ_FLAG_B(pnode->num, 4));
 	}
 	if (HAS_NFLAG_LOCK(pnode)) {
-		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR6 TIKZ_FLAG_B(pnode->num, 5));
+		if (HAS_SYMBOL(pnode)) {
+			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR_INACT
+					TIKZ_FLAG_B(pnode->num, 5));
+		} else {
+			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR6 TIKZ_FLAG_B(pnode->num, 5));
+		}
 	}
 	if (HAS_NFLAG_FRST(pnode)) {
-		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR7 TIKZ_FLAG_B(pnode->num, 6));
+		if (!HAS_NFLAG_IMPL(pnode)) {
+			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR_INACT
+					TIKZ_FLAG_B(pnode->num, 6));
+		} else {
+			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR7 TIKZ_FLAG_B(pnode->num, 6));
+		}
 	}
 	if (HAS_NFLAG_TRUE(pnode)) {
-		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR8 TIKZ_FLAG_B(pnode->num, 7));
+		if (HAS_SYMBOL(pnode)) {
+			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR_INACT
+					TIKZ_FLAG_B(pnode->num, 7));
+		} else {
+			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR8 TIKZ_FLAG_B(pnode->num, 7));
+		}
 	}
 	if (pnode->var != NULL) {
 		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR9 TIKZ_FLAG_B(pnode->num, 8));

@@ -53,6 +53,13 @@ typedef struct branch_checkpoint { /* stack for jumping back to parent levels */
 static BC* bc = NULL;
 static Pnode* eqendwrap; /*temporarily holds node at which to stop wrapping*/
 
+/* for verification */
+void finish_verify();
+
+/* for backtracking */
+void init_backtrack(Pnode* pnode);
+unsigned short int next_reachable_const(Pnode* pnode);
+
 /* --- verification specific movement functions ----------------------------- */
 /* move right; if already at the right-most node, move to the left-most node */ 
 unsigned short int wrap_right()
@@ -74,6 +81,20 @@ unsigned short int wrap_right()
 unsigned short int const_equal(Pnode* p1, Pnode* p2)
 {
 	unsigned short int equal;
+	Variable* firsteq;
+	Variable* eq_iter;
+
+	/* start with checking linked list of equal nodes */
+	firsteq = &(p1->equalto);
+	for (eq_iter = firsteq->next; eq_iter != firsteq; eq_iter = eq_iter->next) {
+		if (eq_iter == &(p2->equalto)) {
+			return TRUE;
+		}
+	}
+
+	if (HAS_NFLAG_TRUE(p1) != HAS_NFLAG_TRUE(p2)) {
+		return FALSE;
+	}
 
 	equal = TRUE;
 	if (IS_ID(p1)) {
@@ -92,7 +113,7 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 				return TRUE;
 			 }*/
 			/******************************************************************/
-			return (*(p1->symbol) == *(p2->symbol));
+			equal = (*(p1->symbol) == *(p2->symbol));
 		} else {
 			return FALSE;
 		}
@@ -111,7 +132,15 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 		equal = HAS_RIGHT(p2) ? const_equal(*(p1->right), *(p2->right)) : FALSE;
 	}
 
-	return equal;
+	equal &= (IS_EMPTY(p1) == IS_EMPTY(p2));
+
+	if (equal) {
+		/* equate(p1, p2); This is not working due to the possible occurrence
+		 * of variables. TODO: make this work to improve performance */
+		return TRUE;
+	} else {
+		return FALSE;
+	}
 }
 
 /* checks pnode against reachable node; this function is basically a safety net,
@@ -142,6 +171,47 @@ unsigned short int check_asmp(Pnode* pnode)
 		}
 	}
 	return FALSE;
+}
+
+unsigned short int trigger_verify(Pnode* pn)
+{
+	if (IS_EMPTY(pn) || (HAS_CHILD(pn) && IS_EMPTY((*(pn->child))))) {
+		//DBG_PARSER(fprintf(stderr, "T");)
+		return HAS_NFLAG_TRUE(pn);
+	}
+	init_backtrack(pn);
+	DBG_PARSER(if(HAS_GFLAG_VRFD) fprintf(stderr, "*");)
+	DBG_PARSER(fprintf(stderr, "{%d}", pn->num);)
+	if (!HAS_GFLAG_VRFD || DBG_COMPLETE_IS_SET) {
+		while (next_reachable_const(pn)) {
+			DBG_PARSER(fprintf(stderr, "<%d", rn());)
+			if(verify(pn)) {
+				DBG_PARSER(fprintf(stderr, "#");)
+				SET_GFLAG_VRFD
+				
+				/* if no debugging options are selected and not
+				 * explicitly requested, skip unnecessary compares */
+				if (DBG_NONE_IS_SET || !DBG_COMPLETE_IS_SET) {
+					finish_verify();
+					DBG_PARSER(fprintf(stderr, ">");)
+					break;
+				}
+			}
+			DBG_PARSER(fprintf(stderr, ">");)
+		}
+	}
+
+	if (!HAS_GFLAG_VRFD) {	
+		TOGGLE_NFLAG_TRUE(pn)
+		//DBG_PARSER(fprintf(stderr, "V");)
+		if (!HAS_NFLAG_TRUE(pn)) {
+			//DBG_PARSER(fprintf(stderr, "v");)
+			return FALSE;
+		} else {
+			SET_GFLAG_VRFD
+		}
+	}
+	return TRUE;
 }
 
 /* --- substitution --------------------------------------------------------- */
