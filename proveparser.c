@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
 
 	free_graph(pnode);
 
-	TIKZ(fprintf(tikz, TIKZ_ENDPIC TIKZ_FOOTER_WITH_LGND);
+	TIKZ(fprintf(tikz, TIKZ_ENDPIC TIKZ_FOOTER);
 	fclose(tikz);)
 
 	fclose(file);

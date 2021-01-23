@@ -186,8 +186,8 @@
 	"read before freeing memory of the graph\n"\
 	"\\begin{scope}["\
 	"every node/.style={rectangle,inner sep=3pt,minimum width=%dpt, "\
-	"minimum height=%dpt, text height=5pt,yshift=0pt}, -]\n"\
-	"\\node (symalign) at (0pt,-%dpt) {};\n\n", TIKZ_MINWIDTH, TIKZ_MINHEIGHT,\
+	"minimum height=20pt, text height=5pt,yshift=0pt}, -]\n"\
+	"\\node (symalign) at (0pt,-%dpt) {};\n\n", TIKZ_MINWIDTH, \
 	(TIKZ_MINHEIGHT + TIKZ_DIST) * maxdepth
 #define TIKZ_FLAG_A \
 	"\\draw[-{Triangle[length=%dpt,width=%dpt]}, color="
@@ -198,7 +198,7 @@
 	(((double) TIKZ_NUM_FLAGS - 1) / 2 - shift) * TIKZ_FLAG_SIZE,\
 	TIKZ_FLAG_SIZE, pnum
 #define TIKZ_SYMNODE(pnum, psym) \
-	"\\node[draw] (s%d) at (symalign -| %d) {\\lstinline| %s |};\n",\
+	"\\node[] (s%d) at (symalign -| %d) {\\lstinline| %s |};\n",\
 	pnum, pnum, psym
 #define TIKZ_SYMARROW(pnum) \
 	"\\draw[thin, dash dot, color=gray] (%d.south) -- (s%d.north);\n",\

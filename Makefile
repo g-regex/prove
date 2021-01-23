@@ -26,7 +26,7 @@ tikz: tikz.c tikz.h | $(BINDIR)
 $(BINDIR):
 	mkdir $(BINDIR)
 
-.PHONY: all clean check checknd checkcmplt pdf runchecks safecheck debug
+.PHONY: all clean check checknd checkcmplt pdf runchecks safecheck debug docgen doc
 
 all: proveparser
 
@@ -55,11 +55,24 @@ checkcmplt: CHECKARGS=--dparser --dtikz --dcomplete --dfinish
 checkcmplt: debug runchecks
 checknd: all runchecks
 
+doc: cleanbin cleantex debug tikz docgen
+
 pdf: cleanbin cleantex safecheck pdflatex
 
 .ONESHELL:
 safecheck:
 	@-${MAKE} check
+docgen:
+	for T in `ls doc/examples/*.prove`
+	do
+		$(BINDIR)/proveparser $$T --dtikz --dfinish
+		$(BINDIR)/tikz
+		pdflatex -output-directory doc/tikz debug/$$(basename $$T .prove).tex
+		pdflatex -output-directory doc/tikz debug/legend.tex
+		cd doc
+		biber -E utf8 doc
+		pdflatex --shell-escape doc.tex
+	done
 runchecks:
 	@rm -rf testcases/out
 	mkdir -p testcases/out
