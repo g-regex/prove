@@ -20,6 +20,9 @@ verify.o: verify.c verify.h
 token.o: token.c token.h
 	$(COMPILE) -c $<
 
+tikz: tikz.c tikz.h | $(BINDIR)
+	$(COMPILE) -o $(BINDIR)/$@ $^
+
 $(BINDIR):
 	mkdir $(BINDIR)
 

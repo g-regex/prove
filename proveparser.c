@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "error opening '%s'\n", tikzfile);
 		exit(EXIT_FAILURE);
 	}
-	fprintf(tikz, TIKZ_HEADER TIKZ_GRAPHSCOPE);)
+	fprintf(tikz, TIKZ_HEADER TIKZ_LGND TIKZ_GRAPHSCOPE);)
 
 	prev_node = NULL;
 	init_pgraph(&pnode);
@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
 
 	free_graph(pnode);
 
-	TIKZ(fprintf(tikz, TIKZ_FOOTER);
+	TIKZ(fprintf(tikz, TIKZ_ENDPIC TIKZ_FOOTER_WITH_LGND);
 	fclose(tikz);)
 
 	fclose(file);

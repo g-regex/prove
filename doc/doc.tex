@@ -1,0 +1,404 @@
+\documentclass[british]{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{geometry}
+\geometry{verbose,lmargin=2cm,rmargin=2cm}
+\usepackage{babel}
+\usepackage{amsmath}
+\usepackage{setspace}
+\usepackage[unicode=true]
+ {hyperref}
+
+\makeatletter
+
+\providecommand{\tabularnewline}{\\}
+
+\usepackage{graphicx}
+\usepackage{subfig}
+
+\usepackage[newfloat]{minted}
+\usepackage{xcolor}
+%\usepackage{natbib}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usetikzlibrary{positioning}
+\usetikzlibrary{arrows.meta}
+\usepackage{caption}
+
+\definecolor{magnolia}{rgb}{0.97, 0.96, 1.0}
+\setminted{%
+  bgcolor=magnolia,%
+}
+
+\newcommand\prv{bc}
+\newcommand\m[1]{\mintinline{\prv}{#1}}
+\newcommand\cm[1]{\mintinline{c}{#1}}
+
+\newenvironment{code}{\captionsetup{type=listing}}{}
+\SetupFloatingEnvironment{listing}{name=Source-Code}
+
+\newcommand\scref[1]{Source-Code~\ref{code:#1}}
+
+%\usepackage{subfiles}
+\usepackage{standalone}
+
+\usepackage{csquotes}
+\usepackage[style=authoryear-ibid,backend=biber]{biblatex}
+\addbibresource{references.bib}
+%\usepackage[style=authoryear-ibid,backend=bibtex]{biblatex}
+%\bibliography{references} 
+
+\title{\texttt{\textsc{{[}prove{]}}}}
+
+\makeatother
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+This document is work in progress. All source code as well as the most recent version of this document can be found on GitHub (see: \href{https://github.com/g-regex/prove/blob/main/doc/doc.pdf}{\texttt{https://github.com/g-regex/prove/blob/main/doc/doc.pdf}}). The purpose of this document to introduce
+notation, vocabulary and some underlying principles in order to facilitate
+efficient communication about this project. Furthermore this document
+could serve as an introduction to the project, if anybody wants to
+join.
+
+\pagebreak{}
+
+\section{Terminology}
+
+Let us start with some basic definitions
+\begin{itemize}
+\item A \emph{statement} is a concatenation of one or more pair(s) of square
+brackets enclosing another statement, a formula or an identifier.
+\item A \emph{formula} is a concatenation of statements and formulators.
+The empty string is a special case of a formula. Apart from this special
+case every formula must contain at least one statement and at least
+one formulator.
+\item A \emph{formulator }is a sequence of legal (see later definition)
+characters. A formulator does not contain any square brackets but
+is delimited by a closing square bracket or the beginning of the file
+at its beginning and an opening square bracket or the end of the file
+at its end.
+\item An \emph{identifier} is a sequence of legal characters and is delimited
+by an opening square bracket at its beginning and by a closing square
+bracket at its end.
+\item To refer to formulators or identifiers more generally, we will use
+the term \emph{symbol }in this document.
+\item To refer to statements or formulas more generally, we will use the
+term \emph{expression }in this document.
+\item To refer to a formula, which is not an equality and not an implication, the term \emph{ordinary formula} will be used throughout the document.
+\item When we speak of a \emph{character} in this document, we mean a uppercase
+or lowercase Latin letter, a number or a special character from a
+list that may be extended. Opening and closing square brackets, the
+literals used in the reserved formulators \m{=}, \m{=>} and the
+negation \m{!} are not referred to as characters in this document.
+\item In the current implementation and negated statement is still a statement
+and not a formula. The \m{!} is currently not a formulator - probably
+this has to be discussed.
+\item The terms \emph{variable} and \emph{constant} can be used to refer
+to an identifier. Which term is to be used depends on the context,
+we are using it in (see later definition).
+\item The term \emph{real constant} refers to a formula, comprised of exactly
+one formulator and exactly one empty statement.
+\end{itemize}
+\pagebreak{}
+
+\section{Syntax}
+
+\subsection{EBNF}
+
+The syntax of the \texttt{\textsc{{[}prove{]}}} language can conveniently
+be described by means of the extended Backus-Naur form%\cite{EBNF Wikipedia page}
+(EBNF), which is a meta syntax notation defined in the ISO/IEC 14977
+%\cite{ISO/IEC 14977 standard} standard. Using an EBNF enables us
+to recursively and unambiguously describe nested patterns by grouping
+syntactic elements to so called $\langle\texttt{production}\rangle$s.
+It must always be possible to `unpack' a production in a unique
+and finite way, resulting in a (sequence of) \textit{terminal} symbols,
+indicated by quotation marks. In order to correctly interpret the
+\texttt{\textsc{{[}prove{]}}}-EBNF it is sufficient to understand
+the meaning of the following meta characters:
+
+\bigskip{}
+
+\begin{doublespace}
+\begin{tabular}{l|l}
+$|$ & indicates `or'\tabularnewline
+$(\dots)$ & groups productions and/or terminals together; only useful in combination
+with $|$\tabularnewline
+$[\dots]$ & indicates optionality\tabularnewline
+$\{\dots\}$ & indicates zero or more repetitions\tabularnewline
+\end{tabular}\bigskip{}
+
+\end{doublespace}
+
+Using this notation the \texttt{\textsc{{[}prove{]}}} language can
+be described by the following EBNF:
+
+\input{ebnf}
+
+\medskip{}
+
+Every EBNF needs to have an initial production as a starting point.
+It is convention that this distinguished production is to be listed
+first, so in this case, $\langle\texttt{expr}\rangle$ is the initial
+production. As one might notice a valid \texttt{{[}PROVE{]}} file
+might contain either a statement or a formula. This design choice
+has been made in order to account for axioms and theorems that might
+be given in the human readable form of the \texttt{{[}PROVE{]}} language.
+Proofs on the other hand will be given in the form of a formula, having
+only \m{=>} formulators at its outermost level. We could easily think
+of other formulas, which will not satisfy this requirement and thereby
+neither constitute an axiom/theorem nor a proof. A \texttt{{[}PROVE{]}}
+file containing such a formula would be syntactically correct but
+would violate semantic rules, which will be established later. \pagebreak{}
+
+\subsubsection{Examples}
+
+Here are some examples of productions and some motivations for the
+design of the syntax. We will work our way up from bottom to top through
+the EBNF.
+\begin{itemize}
+\item A $\langle\texttt{character}\rangle$ can be any letter, number or
+one of the 10 special characters as indicated in the EBNF\@. Examples
+of valid $\langle\texttt{character}\rangle$s are \m{a}, \m{T},
+\m{7}, \m{&}.
+\item A $\langle\texttt{symbol}\rangle$ is a sequence of one or more characters.
+Examples of valid $\langle\texttt{symbols}\rangle$s are: \m{a7we},
+\m{T}, \m{76}, \m{&q}. Note that \m{T} is a $\langle\texttt{symbol}\rangle$
+and a $\langle\texttt{character}\rangle$ at the same time. This does
+not mean that the grammar is ambiguous. A single \m{T} will always
+be interpreted in this way, but it depends on the context, whether
+we are interested in the fact of \m{T} being a $\langle\texttt{symbol}\rangle$
+or \m{T} being a $\langle\texttt{character}\rangle$.
+\item A $\langle\texttt{formulator}\rangle$ is either a $\langle\texttt{symbol}\rangle$
+or any one of the terminals (fixed, not \textquotedbl unpack-able\textquotedbl{}
+elements of an EBNF) \m{=} or \m{=>}. Examples of valid $\langle\texttt{formulator}\rangle$s
+are \m{a7we}, \m{T}, \m{=}, \m{=>}. Note that \m{=T} is not a
+valid $\langle\texttt{formulator}\rangle$. Seeing that \m{T} can
+be a $\langle\texttt{formulator}\rangle$ (comprised of a $\langle\texttt{symbol}\rangle$)
+in one case and just a $\langle\texttt{symbol}\rangle$ (not packed
+inside a $\langle\texttt{formulator}\rangle$) in another case, one
+might worry about ambiguity. However, having a close look at the EBNF,
+we see that $\langle\texttt{formulator}\rangle$s only occur in between
+$\langle\texttt{statement}\rangle$s and $\langle\texttt{string}\rangle$s
+only within $\langle\texttt{statement}\rangle$s. The user of the
+language has great freedom in naming formulators and identifiers (TODO:
+define formulators and identifiers in this document, i.e.\ not the
+productions, but what they represent), so it is up to the user to
+choose them wisely. It could for example be confusing to name a formulator
+\m{7}, but \m{add7} makes intuitively sense.
+\item A $\langle\texttt{statement}\rangle$ is a concatenation of one or
+more pairs of square brackets each containing either a $\langle\texttt{formula}\rangle$,
+a $\langle\texttt{symbol}\rangle$ or a $\langle\texttt{statement}\rangle$.
+Examples of valid $\langle\texttt{statement}\rangle$s are \m{[]},
+\m{[a][b][[a]in[b]]}, \m{[[]]}, \m{[[a]or[b]]}.
+\item A $\langle\texttt{formula}\rangle$ is comprised of at least one $\langle\texttt{statement}\rangle$
+and at least one $\langle\texttt{formulator}\rangle$. The order of
+occurrence does not matter. Examples of valid $\langle\texttt{formula}\rangle$e
+are \m{[a]in[b]}, \m{[a]=[b][c]}, \m{[[a]a7we[b]]=>[c]}.
+\end{itemize}
+%\pagebreak{}
+
+\section{Semantic}
+
+When generating a couple of syntactically correct snippets of \texttt{\textsc{{[}prove{]}}}
+code, one realises that not all code adhering to the rules of the
+EBNF makes sense - at least not without introducing more conventions.
+
+\medskip{}
+
+Consider the following code:
+
+\begin{minted}{\prv}
+[a]and[b]=[c]=>[b][c]
+\end{minted}
+
+The use of \m{=} and \m{=>} is ambiguous in this context, since
+\m{=} could refer to everything on its right hand side or just to
+\m{[c]}. Similarly \m{=>} could refer to everything to its left
+hand side or just to \m{[c]}. This problem could be addressed by
+introducing an order of precedence (e.g.\ non reserved formulators,
+\m{=}, \m{=>}). However, the implications of this approach should
+be carefully considered. Precedence can easily be encoded in the EBNF,
+without changing the set of valid code patterns. By doing so we could
+elegantly encode a part of the language's meaning in its syntactic
+structure. As tempting as this idea might be, I can see a negative
+side effect coming along with this approach. Introducing precedence
+between formulators will set brackets \textit{implicitly. }Since the
+visibility and meaning of identifiers (variables/constants) depends
+on the depth of nesting of statements (i.e.\ on brackets), the approach
+of precedence might lead to counter-intuitive code. Therefore I recommend
+against the precedence approach.
+
+\pagebreak{}
+
+Instead I suggest the following semantic rule, which will address
+this issue:
+\begin{itemize}
+\item \m{=}, \m{=>} and other formulators must not be mixed
+\end{itemize}
+\medskip{}
+
+Consider the following code:
+
+\begin{minted}{\prv}
+[a][b]=>[c]
+\end{minted}
+
+Translated to English this means `Let a and b be identifiers, then
+we have an identifier c'. We do not know, where c comes from, since
+it was not introduced before. Therefore I suggest the following rule:
+\begin{itemize}
+\item New identifiers must only be introduced in a part of a formula, which
+is reserved for assumptions.
+\end{itemize}
+\medskip{}
+
+To determine, which statements within a formula are assumptions and
+which statements are conclusions, I'd like to put the following three
+rules up for discussion:
+\begin{itemize}
+\item If the formula is an implication (i.e., all formulators are \m{=>}),
+then every statement occurring before the first formulator is an assumption.
+\item Every statement in an equality (i.e., all formulators are \m{=})
+is an assumption, from which all other statements can be concluded.
+(Remark: An equality has all the properties a two-sided implication
+would have, but in addition to that in also allows substituting one
+statement with another)
+\item If a statement is an assumption, all statements contained in it are
+assumptions as well.
+\end{itemize}
+\medskip{}
+
+It might also be convenient to restrict the form an equality can have.
+Especially with respect to a straight forward implementation, it would
+make sense to only let single statements (i.e.\ only one pair of square
+brackets at the outermost level) to be equal to each other. Therefore
+I suggest the following rules:
+\begin{itemize}
+\item Equalities are only such formulas, which are a concatenation of single
+statements and \m{=}, where no single statement is next to another
+single statement and no \m{=} is next to another \m{=}
+\item An equality must start and end with a single statement.
+\end{itemize}
+\medskip{}
+Further I suggest the following rule for implications for obvious
+reasons:
+\begin{itemize}
+\item \m{=>} must not appear at the end of a $\langle\texttt{statement}\rangle$
+\end{itemize}
+\pagebreak{}
+
+\section{Representation}
+
+Let us have a look at the following statement:
+
+\begin{code}
+\captionof{listing}{Example 1}
+\label{code:first}
+\inputminted[linenos]{\prv}{examples/exmp1.prove}
+\end{code}
+
+An intuitive approach for representing the structure of this proof
+is by means of a graph (in particular a special planar tree).
+
+\begin{figure}[!h]
+\caption{Representation of \scref{first}}
+\label{russell_graph}
+\centering
+
+\subfloat[\centering Legend]{
+	\includegraphics[width=\textwidth, height=10cm, keepaspectratio]{tikz/legend.pdf}
+}
+\subfloat[\centering Graph of \scref{first}]{
+	\includegraphics[width=\textwidth, height=10cm, keepaspectratio]{tikz/exmp1.pdf}
+}
+
+\end{figure}
+
+\pagebreak{}
+
+\section{Verification}
+
+\subsection{Variables and constants}
+
+TODO
+%%Identifiers can be either variables, constants or unknown depending
+%%on the context (i.e.\ the node from whose perspective we intend to
+%%make use of that identifier). In the following, we will say that a
+%%node is \emph{below} another node, when it is its child or below its
+%%child. Further we will say that a node is a \emph{younger sibling}
+%%of another node, if it is right of that node or right of a younger
+%%sibling of that node. We can now define the following:
+%%\begin{itemize}
+%%\item An identifier is a constant for all nodes, which are below the younger
+%%siblings of the parent node of the identifier.
+%%\item An identifier is a variable for all nodes, which are below the younger
+%%siblings of the parent node of the parent node of the identifier.
+%%\item An identifier is unknown for every other node.
+%%\end{itemize}
+
+\subsection{Negation}
+
+TODO
+\pagebreak{}
+
+\section{Output}
+
+TODO
+%\begin{code}
+%\captionof{listing}{\texttt{[prove]} output after processing \scref{russell}}
+%\label{code:russell_output}
+%\begin{minted}[linenos]{\prv}
+%
+%\end{minted}
+%\end{code}
+%
+%Currently the \texttt{\textsc{{[}prove{]}}} software produces hardly
+%more than debugging output. It can be very helpful though for understanding
+%the process of verification. To refer to the nodes of the graph, the
+%nodes are numbered in pre-order traversal %\cite{pre-order traversal}
+%as illustrated in MISSING The corresponding
+%output (\scref{russell_output} {[}some line breaks have been added
+%to improve readibility{]}) can be understood as follows:
+%\begin{itemize}
+%\item When verifying a node, \texttt{\textsc{{[}prove{]}}} prints the number
+%of the node within curly braces (e.g. \m{{83}}).
+%\item The number of every reachable node that the node to be verified is
+%checked against is printed within angle brackets (e.g. \m{<76>}).
+%\item If the verification was successful, a hash is added to the number
+%of the reachable node (e.g. \texttt{<64\#>}).
+%\item If verification of the current node is not necessary, because the
+%VRFD flag is set, a star is printed before the node number (e.g. \m{*{67}}
+%\end{itemize}
+%Currently no verification steps are skipped and nodes are often verified
+%multiple times. This is desired at the current stage for debugging
+%purposes and to illustrate the underlying verification mechanism.
+%
+%Most semantic rules are also still not checked and some of them still
+%have to be defined. One very important issue, which I would like to
+%discuss, is how identifiers are allowed to be introduced. For the
+%verification of this proof I had to relax a few restrictions that
+%I have originally imposed on this issue, but without further elaboration
+%of this, I suggest a proper discussion of the matter.
+
+%\begin{thebibliography}{1}
+%\bibitem{=00005Bprove=00005D GitHub repository}\href{https://github.com/g-regex/prove}{https://github.com/g-regex/prove}
+%
+%\bibitem{latest}\href{https://github.com/g-regex/prove/blob/master/doc/doc.pdf}{https://github.com/g-regex/prove/blob/master/doc/doc.pdf}
+%
+%\bibitem{EBNF Wikipedia page}\href{https://en.wikipedia.org/wiki/Extended_Backus\%E2\%80\%93Naur_form}{https://en.wikipedia.org/wiki/Extended\_Backus\%E2\%80\%93Naur\_form}
+%
+%\bibitem{ISO/IEC 14977 standard}\href{https://www.cl.cam.ac.uk/~mgk25/iso-14977.pdf}{https://www.cl.cam.ac.uk/$\sim$mgk25/iso-14977.pdf}
+%
+%\bibitem{BNF Wikipedia page}\href{https://en.wikipedia.org/wiki/Backus\%E2\%80\%93Naur_Form}{https://en.wikipedia.org/wiki/Backus\%E2\%80\%93Naur\_Form}
+%
+%\bibitem{pre-order traversal}\href{https://en.wikipedia.org/wiki/Tree_traversal\#Pre-order_(NLR)}{https://en.wikipedia.org/wiki/Tree\_traversal\#Pre-order\_(NLR)}
+%\end{thebibliography}
+
+\printbibliography
+
+\end{document}
