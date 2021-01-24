@@ -20,7 +20,7 @@ verify.o: verify.c verify.h
 token.o: token.c token.h
 	$(COMPILE) -c $<
 
-tikz: tikz.c tikz.h | $(BINDIR)
+docc: doc.c tikz.h | $(BINDIR)
 	$(COMPILE) -o $(BINDIR)/$@ $^
 
 $(BINDIR):
@@ -55,7 +55,7 @@ checkcmplt: CHECKARGS=--dparser --dtikz --dcomplete --dfinish
 checkcmplt: debug runchecks
 checknd: all runchecks
 
-doc: cleanbin cleantex debug tikz docgen
+doc: cleanbin cleantex debug docc docgen
 
 pdf: cleanbin cleantex safecheck pdflatex
 
@@ -66,13 +66,15 @@ docgen:
 	for T in `ls doc/examples/*.prove`
 	do
 		$(BINDIR)/proveparser $$T --dtikz --dfinish
-		$(BINDIR)/tikz
+		$(BINDIR)/docc
 		pdflatex -output-directory doc/tikz debug/$$(basename $$T .prove).tex
-		pdflatex -output-directory doc/tikz debug/legend.tex
-		cd doc
-		biber -E utf8 doc
-		pdflatex --shell-escape doc.tex
 	done
+	pdflatex -output-directory doc/tikz debug/legend.tex
+	cd doc
+	pdflatex --shell-escape doc.tex
+	biber -E utf8 doc
+	pdflatex --shell-escape doc.tex
+	pdflatex --shell-escape doc.tex
 runchecks:
 	@rm -rf testcases/out
 	mkdir -p testcases/out

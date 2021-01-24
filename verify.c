@@ -285,6 +285,9 @@ void init_sub(Pnode* pnode)
 		sub->sym = *(var->pnode->symbol);
 		sub->var = var;
 
+		/* FIXME: added this. correct? */
+		sub_var(sub);
+
 		var = var->next;
 	} while (var != NULL);
 

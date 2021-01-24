@@ -17,8 +17,13 @@
 
 #include <stdio.h>
 #include <sys/stat.h>
+
 #define DTIKZ
 #include "tikz.h"
+
+#define MD
+#define DEBUG
+#include "error.h"
 
 int main(int argc, char *argv)
 {
@@ -37,5 +42,14 @@ int main(int argc, char *argv)
 	}
 
 	fclose(file);
+
+	file = fopen("HELP.md", "w");
+
+	if (file != NULL) {
+		fprintf(file, USAGE HELP, "$PATH_TO_PROVE_BINARY");
+	}
+
+	fclose(file);
+
 	return 0;
 }

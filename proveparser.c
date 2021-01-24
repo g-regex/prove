@@ -25,48 +25,10 @@
 #include "debug.h"
 #include "verify.h"
 #include "pgraph.h"
+#include "error.h"
 
 #define TRUE 1
 #define FALSE 0
-
-#ifdef DEBUG
-#define USAGE \
-	"Usage: %s --help | "\
-	"[--dall | --dparser | --dverify | --dtikz | --dcomplete] "\
-	"<filename>\n"
-
-#define HELP \
-	"\nGENERAL options:\n\n"\
-	"--help\tdisplay this message\n"\
-	"\nDEBUGGING options:\n\n"\
-	"--dparser  \tactivate debugging output for parser\n"\
-	"--dgraph  \tactivate debugging output for graph creation "\
-				"(implies --dparser)\n"\
-	"--dverify  \tactivate debugging output for verification "\
-				"(implies --dparser)\n"\
-	"--dtikz    \tgenerate TikZ graph representation in ./debug/\n"\
-	"--dcomplete\tdo not break verification loop after first success\n"\
-	"--dfinish  \tfinish execution, even if verification fails\n"\
-	"--dall     \tactivate all debugging options\n"
-
-#else
-
-#define USAGE \
-	"Usage: %s --help | <filename>\n"
-
-#define HELP \
-	"\nGENERAL options:\n\n"\
-	"--help\tdisplay this message\n"\
-	"\nDEBUGGING options:\n\n"\
-	"--dcomplete\tdo not break verification loop after first success\n"\
-	"--dfinish  \tfinish execution, even if verification fails\n"\
-	"\nFor more debugging options, compile with full debugging support.\n"
-
-#endif
-
-#define NOSUPPORT \
-	fprintf(stderr, "Executable has been compiled without this feature.");\
-	exit(EXIT_FAILURE);
 
 char* toktype[] = {"TOK_EOF", "TOK_LBRACK", "TOK_RBRACK", "TOK_IMPLY",
 					"TOK_EQ", "TOK_NOT", "TOK_SYM"};
