@@ -46,6 +46,14 @@ cleantex:
 
 cleandoc:
 	$(RM) -rf doc/_minted-doc
+	$(RM) -rf doc/*.aux
+	$(RM) -rf doc/*.lyx~
+	$(RM) -rf doc/*.bbl
+	$(RM) -rf doc/*.blg
+	$(RM) -rf doc/*.bcf
+	$(RM) -rf doc/*.log
+	$(RM) -rf doc/*.out
+	$(RM) -rf doc/*.xml
 	$(RM) -rf doc/tikz
 
 clean: cleanbin cleandbg cleantex cleandoc
