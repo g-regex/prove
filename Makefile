@@ -33,7 +33,7 @@ all: proveparser
 cleanbin:
 	$(RM) $(foreach EXEFILE, $(EXES), $(BINDIR)/$(EXEFILE))
 	$(RM) *.o
-	$(RM) -rf $(BINDIR)/*.dSYM
+	$(RM) -rf $(BINDIR)
 
 cleandbg:
 	$(RM) -rf testcases/out
