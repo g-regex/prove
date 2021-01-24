@@ -9,7 +9,7 @@
 #define MDS ""
 #endif
 #define USAGE \
-	MDS "Usage: " MDS MDC "%s --help | "\
+	MDS "Usage:" MDS " " MDC "%s --help | "\
 	"[--dall | --dparser | --dverify | --dtikz | --dcomplete] "\
 	"<filename>" MDC "\n" MDN
 

@@ -1,4 +1,4 @@
-**Usage: **`$PATH_TO_PROVE_BINARY --help | [--dall | --dparser | --dverify | --dtikz | --dcomplete] <filename>`
+**Usage:** `$PATH_TO_PROVE_BINARY --help | [--dall | --dparser | --dverify | --dtikz | --dcomplete] <filename>`
 
 
 **GENERAL options:**
