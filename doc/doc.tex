@@ -106,8 +106,6 @@ one formulator and exactly one empty statement.
 
 \section{Syntax}
 
-\subsection{EBNF}
-
 The syntax of the \name\ language can conveniently
 be described by means of the extended Backus-Naur form \parencite{Extended}, which is a meta syntax notation defined in the ISO/IEC 14977
 \parencite{ISO} standard. Using an EBNF enables us
@@ -152,7 +150,7 @@ neither constitute an axiom/theorem nor a proof. A \name\
 file containing such a formula would be syntactically correct but
 would violate semantic rules, which will be established later. \pagebreak{}
 
-\subsubsection{Examples}
+\subsection{Examples}
 
 Here are some examples of productions and some motivations for the
 design of the syntax. We will work our way up from bottom to top through
@@ -403,7 +401,7 @@ To illustrate the concept of variables and constants, let us slightly modify \sc
 \subfloat[\centering Legend]{
 	\includegraphics[width=\textwidth, height=10cm, keepaspectratio]{tikz/legend.pdf}
 }
-\subfloat[\centering Graph of \scref{ex1}]{
+\subfloat[\centering Graph of \scref{var1}]{
 	\includegraphics[width=\textwidth, height=10cm, keepaspectratio]{tikz/var1.pdf}
 }
 \end{figure}
@@ -429,7 +427,12 @@ As mentioned before verification of a node involves comparing the current node a
 \begin{figure}[!h]
 \caption{Representation of \scref{reach1}}\label{fig:reach1}
 \centering
-\includegraphics[width=\textwidth, height=10cm, keepaspectratio]{tikz/reach1.pdf}
+\subfloat[\centering Legend]{
+	\includegraphics[width=\textwidth, height=10cm, keepaspectratio]{tikz/legend.pdf}
+}
+\subfloat[\centering Graph of \scref{reach1}]{
+	\includegraphics[width=\textwidth, height=10cm, keepaspectratio]{tikz/reach1.pdf}
+}
 \end{figure}
 
 To determine which nodes are reachable from the current node, we go back in the tree node by node moving to the left and upwards. All of these nodes containing statements are reachable from the current node. Further, the following holds:
@@ -476,7 +479,6 @@ Note that without statement 17, statement 22 could currently not be verified, si
 \subsection{Negation}
 When making a statement it is desirable to be able to express that something is not true. This can be achieved by means of negation. The negation operator \m{!} in the current implementation is not a formulator, but a part of the statement that follows it. A statement, which is negated, is assumed to be false and true otherwise. The effect of verification can therefore be inverted by the negation operator.
 Let us modify \scref{var1}, which could not be verified, to see, how this works:
-
 \begin{code}
 \captionof{listing}{Example}\label{code:neg1}
 \inputminted[linenos]{\prv}{examples/neg1.prove}
@@ -485,13 +487,17 @@ Let us modify \scref{var1}, which could not be verified, to see, how this works:
 \begin{figure}[!h]
 \caption{Representation of \scref{neg1}}\label{fig:neg1}
 \centering
-\includegraphics[width=\textwidth, height=10cm, keepaspectratio]{tikz/neg1.pdf}
+\subfloat[\centering Legend]{
+	\includegraphics[width=\textwidth, height=10cm, keepaspectratio]{tikz/legend.pdf}
+}
+\subfloat[\centering Graph of \scref{neg1}]{
+	\includegraphics[width=\textwidth, height=10cm, keepaspectratio]{tikz/neg1.pdf}
+}
 \end{figure}
-
 Translated to English \scref{neg1} can be read as follows: There are two variables and a constant identifier \m{c}. Therefore there is not an identifier \m{a}.
 \newline
 
-Since the existence of an identifier \m{a} has not been stated before, the statement that there is no such identifier must be true. As opposed to \scref{var1} in \scref{neg1} node 8 carries the \texttt{TRUE} flag.
+Since the existence of an identifier \m{a} has not been stated before, the statement that there is no such identifier is true. As opposed to \scref{var1} in \scref{neg1} node 8 carries the \texttt{TRUE} flag.
 
 \pagebreak{}
 
