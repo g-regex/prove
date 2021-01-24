@@ -44,7 +44,11 @@ cleantex:
 	$(RM) -rf debug/*.aux
 	$(RM) -rf debug/*.log
 
-clean: cleanbin cleandbg cleantex
+cleandoc:
+	$(RM) -rf _minted-doc
+	$(RM) -rf doc/tikz
+
+clean: cleanbin cleandbg cleantex cleandoc
 
 debug: DFLAGS+=-DDPARSER -DDTIKZ -DDVERIFY -DDGRAPH
 debug: proveparser
