@@ -420,6 +420,8 @@ bb.out.*
 *.xml
 *.pdf
 
+!*.tex
+
 bin/
 testcases/out/
 #doc/

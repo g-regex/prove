@@ -63,6 +63,7 @@ pdf: cleanbin cleantex safecheck pdflatex
 safecheck:
 	@-${MAKE} check
 docgen:
+	mkdir -p doc/tikz
 	for T in `ls doc/examples/*.prove`
 	do
 		$(BINDIR)/proveparser $$T --dtikz --dfinish
