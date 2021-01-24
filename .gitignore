@@ -412,8 +412,18 @@ bb.out.*
 
 # End of https://www.toptal.com/developers/gitignore/api/assembler,c,jabref,java,latex,tags,valgrind
 
+*.aux
+*.log
+*.bbl
+*.blg
+*.bcf
+*.xml
+*.pdf
+
 bin/
 testcases/out/
-doc/
+#doc/
+txt/
+debug/
 *.sh
 *.vim
