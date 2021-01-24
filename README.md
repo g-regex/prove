@@ -25,7 +25,7 @@ $make debug
 $make
 ```
 
-The path to the \[prove\] executable is now `./bin/proveparser`
+The path to the \[prove\] binary is now `./bin/proveparser`
 
 ## Usage
 
