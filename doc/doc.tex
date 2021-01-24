@@ -1,13 +1,12 @@
 \documentclass[british]{article}
 \usepackage[T1]{fontenc}
-\usepackage[latin9]{inputenc}
+\usepackage[utf8]{inputenc}
 \usepackage{geometry}
-\geometry{verbose,lmargin=2cm,rmargin=2cm}
+\geometry{verbose,lmargin=3cm,rmargin=3cm}
 \usepackage{babel}
 \usepackage{amsmath}
 \usepackage{setspace}
-\usepackage[unicode=true]
- {hyperref}
+\usepackage[unicode=true, colorlinks=true, citecolor=blue, linkcolor=blue, urlcolor=blue]{hyperref}
 
 \makeatletter
 
@@ -33,11 +32,13 @@
 \newcommand\prv{bc}
 \newcommand\m[1]{\mintinline{\prv}{#1}}
 \newcommand\cm[1]{\mintinline{c}{#1}}
+\newcommand\name{\texttt{\textsc{[prove]}}}
 
 \newenvironment{code}{\captionsetup{type=listing}}{}
 \SetupFloatingEnvironment{listing}{name=Source-Code}
 
 \newcommand\scref[1]{Source-Code~\ref{code:#1}}
+\newcommand\figref[1]{Figure~\ref{fig:#1}}
 
 %\usepackage{subfiles}
 \usepackage{standalone}
@@ -45,10 +46,8 @@
 \usepackage{csquotes}
 \usepackage[style=authoryear-ibid,backend=biber]{biblatex}
 \addbibresource{references.bib}
-%\usepackage[style=authoryear-ibid,backend=bibtex]{biblatex}
-%\bibliography{references} 
 
-\title{\texttt{\textsc{{[}prove{]}}}}
+\title{\name\ }
 
 \makeatother
 
@@ -70,7 +69,7 @@ join.
 
 Let us start with some basic definitions
 \begin{itemize}
-\item A \emph{statement} is a concatenation of one or more pair(s) of square
+\item A \emph{statement} is a concatenation of one or more pair/s of square
 brackets enclosing another statement, a formula or an identifier.
 \item A \emph{formula} is a concatenation of statements and formulators.
 The empty string is a special case of a formula. Apart from this special
@@ -95,7 +94,7 @@ list that may be extended. Opening and closing square brackets, the
 literals used in the reserved formulators \m{=}, \m{=>} and the
 negation \m{!} are not referred to as characters in this document.
 \item In the current implementation and negated statement is still a statement
-and not a formula. The \m{!} is currently not a formulator - probably
+and not a formula. The \m{!} is currently not a formulator -\ probably
 this has to be discussed.
 \item The terms \emph{variable} and \emph{constant} can be used to refer
 to an identifier. Which term is to be used depends on the context,
@@ -109,33 +108,31 @@ one formulator and exactly one empty statement.
 
 \subsection{EBNF}
 
-The syntax of the \texttt{\textsc{{[}prove{]}}} language can conveniently
-be described by means of the extended Backus-Naur form%\cite{EBNF Wikipedia page}
-(EBNF), which is a meta syntax notation defined in the ISO/IEC 14977
-%\cite{ISO/IEC 14977 standard} standard. Using an EBNF enables us
+The syntax of the \name\ language can conveniently
+be described by means of the extended Backus-Naur form \parencite{Extended}, which is a meta syntax notation defined in the ISO/IEC 14977
+\parencite{ISO} standard. Using an EBNF enables us
 to recursively and unambiguously describe nested patterns by grouping
 syntactic elements to so called $\langle\texttt{production}\rangle$s.
 It must always be possible to `unpack' a production in a unique
 and finite way, resulting in a (sequence of) \textit{terminal} symbols,
 indicated by quotation marks. In order to correctly interpret the
-\texttt{\textsc{{[}prove{]}}}-EBNF it is sufficient to understand
+\name\ EBNF it is sufficient to understand
 the meaning of the following meta characters:
 
 \bigskip{}
 
 \begin{doublespace}
 \begin{tabular}{l|l}
-$|$ & indicates `or'\tabularnewline
+$|$ & indicates `or'\tabularnewline\
 $(\dots)$ & groups productions and/or terminals together; only useful in combination
-with $|$\tabularnewline
-$[\dots]$ & indicates optionality\tabularnewline
-$\{\dots\}$ & indicates zero or more repetitions\tabularnewline
+with $|$\tabularnewline\
+$[\dots]$ & indicates optionality\tabularnewline\
+$\{\dots\}$ & indicates zero or more repetitions\tabularnewline\
 \end{tabular}\bigskip{}
 
 \end{doublespace}
 
-Using this notation the \texttt{\textsc{{[}prove{]}}} language can
-be described by the following EBNF:
+Using this notation the \name\ language can be described by the following EBNF:
 
 \input{ebnf}
 
@@ -144,14 +141,14 @@ be described by the following EBNF:
 Every EBNF needs to have an initial production as a starting point.
 It is convention that this distinguished production is to be listed
 first, so in this case, $\langle\texttt{expr}\rangle$ is the initial
-production. As one might notice a valid \texttt{{[}PROVE{]}} file
+production. As one might notice a valid \name\ file
 might contain either a statement or a formula. This design choice
 has been made in order to account for axioms and theorems that might
-be given in the human readable form of the \texttt{{[}PROVE{]}} language.
+be given in the human readable form of the \name\ language.
 Proofs on the other hand will be given in the form of a formula, having
 only \m{=>} formulators at its outermost level. We could easily think
 of other formulas, which will not satisfy this requirement and thereby
-neither constitute an axiom/theorem nor a proof. A \texttt{{[}PROVE{]}}
+neither constitute an axiom/theorem nor a proof. A \name\
 file containing such a formula would be syntactically correct but
 would violate semantic rules, which will be established later. \pagebreak{}
 
@@ -174,7 +171,7 @@ be interpreted in this way, but it depends on the context, whether
 we are interested in the fact of \m{T} being a $\langle\texttt{symbol}\rangle$
 or \m{T} being a $\langle\texttt{character}\rangle$.
 \item A $\langle\texttt{formulator}\rangle$ is either a $\langle\texttt{symbol}\rangle$
-or any one of the terminals (fixed, not \textquotedbl unpack-able\textquotedbl{}
+or any one of the terminals (fixed, not \textquotedbl\ unpack-able\textquotedbl{}
 elements of an EBNF) \m{=} or \m{=>}. Examples of valid $\langle\texttt{formulator}\rangle$s
 are \m{a7we}, \m{T}, \m{=}, \m{=>}. Note that \m{=T} is not a
 valid $\langle\texttt{formulator}\rangle$. Seeing that \m{T} can
@@ -200,13 +197,12 @@ and at least one $\langle\texttt{formulator}\rangle$. The order of
 occurrence does not matter. Examples of valid $\langle\texttt{formula}\rangle$e
 are \m{[a]in[b]}, \m{[a]=[b][c]}, \m{[[a]a7we[b]]=>[c]}.
 \end{itemize}
-%\pagebreak{}
 
 \section{Semantic}
 
-When generating a couple of syntactically correct snippets of \texttt{\textsc{{[}prove{]}}}
+When generating a couple of syntactically correct snippets of \name\
 code, one realises that not all code adhering to the rules of the
-EBNF makes sense - at least not without introducing more conventions.
+EBNF makes sense -\ at least not without introducing more conventions.
 
 \medskip{}
 
@@ -232,8 +228,6 @@ visibility and meaning of identifiers (variables/constants) depends
 on the depth of nesting of statements (i.e.\ on brackets), the approach
 of precedence might lead to counter-intuitive code. Therefore I recommend
 against the precedence approach.
-
-\pagebreak{}
 
 Instead I suggest the following semantic rule, which will address
 this issue:
@@ -297,108 +291,214 @@ reasons:
 Let us have a look at the following statement:
 
 \begin{code}
-\captionof{listing}{Example 1}
-\label{code:first}
+\captionof{listing}{Example}\label{code:ex1}
 \inputminted[linenos]{\prv}{examples/exmp1.prove}
 \end{code}
 
-An intuitive approach for representing the structure of this proof
-is by means of a graph (in particular a special planar tree).
+An intuitive approach for representing the structure of this code
+is by thinking of it as a tree, where every statement and every symbol is represented by a node. It is worth mentioning that this tree can be interpreted as a binary tree (each node has one parent node and at most two children -\ one at the left and one at the right). However it is more intuitive to not think of this binary tree in its usual form, but to rotate it leftwards. Then every node can have (at most two) children either below or to the right and a parent (exactly one -\ expect for the root) to the left or above it.
 
-\begin{figure}[!h]
-\caption{Representation of \scref{first}}
-\label{russell_graph}
+As we see, there are several ways of thinking of a node as a child or a parent to another node (i.e., does a node lie in between another node and the root or does it lie above another node in the graphical representation). For the rest of the document, we will use the following terminology, always referring to the proposed graphical representation of the tree:
+
+\begin{itemize}
+	\item
+		A \emph{child} is a node, which lies below another node.
+	\item
+		A \emph{parent} is a node, which lies above another node.
+	\item
+		The nodes to the sides of another node are referred to as the \emph{left} and \emph{right} nodes respectively.
+\end{itemize}
+
+When creating a tree for some corresponding \name\ code, we start with a single node at the root of the tree. Since we refer to other nodes in terms relative to another node, we have to keep track of our current position in the tree, while creating it. This position will be referred to as the \emph{current} node. In the beginning the root is the current node.
+
+Every node can have a number of properties, some of which exclude others. For example, every node can have a child or carry a symbol, but not both. Processing the code bracket by bracket and symbol by symbol, we now perform the following steps:
+
+\begin{itemize}
+	\item When encountering a \m{[}, we check, whether the current node carries a symbol. If not, we create a child to the current node. This child becomes the current node. Otherwise we create a node to the right and a child to that node. That node then becomes the current node.
+	\item When encountering a symbol, the symbol property of the current node is set.
+	\item When encountering a \m{]}, we move from one node to another leftwards until we encouter the leftmost node, which has a parent. Then we move to that parent, which becomes the current node.
+\end{itemize}
+
+On the next page you find the graphical representation of \scref{ex1}.
+\pagebreak{}
+
+\begin{figure}[!ht]
+\caption{Representation of \scref{ex1}}\label{fig:ex1}
 \centering
-
 \subfloat[\centering Legend]{
 	\includegraphics[width=\textwidth, height=10cm, keepaspectratio]{tikz/legend.pdf}
 }
-\subfloat[\centering Graph of \scref{first}]{
+\subfloat[\centering Graph of \scref{ex1}]{
 	\includegraphics[width=\textwidth, height=10cm, keepaspectratio]{tikz/exmp1.pdf}
 }
-
 \end{figure}
+
+The tree shown in \figref{ex1} (b) was automatically generated by \name\ following the steps described above. The nodes have been number in the order they have been created, which corresponds to a pre-order traversal numbering of the tree \parencite{Tree}. The flags drawn on the righthand side of each node encode information, which has been gathered during the creation of the graph. E.g.\ the \texttt{ASMP} flag indicates that the statement contained by a node is an assumption. These flags are set and unset in a variable, which is part of the structure of the node in memory. This setup simplifies the verification process by storing already gained information and thereby avoiding repeated computation of frequently used steps.
+
+Some of these flags are set for nodes, which they are not applicable to. This has technical reasons (mainly related to computational efficiency) and is nothing we have to worry about.
 
 \pagebreak{}
 
 \section{Verification}
 
-\subsection{Variables and constants}
+Verifying a proof means, checking that every conclusion can be justified.
+With respect to \name\ code, we imposed certain conditions on statements to be an assumption. For a statement to be a conclusion, two conditions have to be satisfied:
 
-TODO
-%%Identifiers can be either variables, constants or unknown depending
-%%on the context (i.e.\ the node from whose perspective we intend to
-%%make use of that identifier). In the following, we will say that a
-%%node is \emph{below} another node, when it is its child or below its
-%%child. Further we will say that a node is a \emph{younger sibling}
-%%of another node, if it is right of that node or right of a younger
-%%sibling of that node. We can now define the following:
-%%\begin{itemize}
-%%\item An identifier is a constant for all nodes, which are below the younger
-%%siblings of the parent node of the identifier.
-%%\item An identifier is a variable for all nodes, which are below the younger
-%%siblings of the parent node of the parent node of the identifier.
-%%\item An identifier is unknown for every other node.
-%%\end{itemize}
+\begin{itemize}
+	\item The statement must not be an assumption.
+	\item The statement must be part of a formula, which contains (only!) \m{=>} formulators. 
+\end{itemize}
 
-\subsection{Negation}
+To illustrate these ideas, let us now look at the following implication:
 
-TODO
+\begin{code}
+\captionof{listing}{Example}\label{code:impl1}
+\inputminted[linenos]{\prv}{examples/impl1.prove}
+\end{code}
+
+\begin{figure}[!h]
+\caption{Representation of \scref{impl1}}\label{fig:impl1}
+\centering
+\includegraphics[width=\textwidth, height=10cm, keepaspectratio]{tikz/impl1.pdf}
+\end{figure}
+
+In \scref{impl1} we make three assumptions: We state thate there are three identifiers \m{a}, \m{b} and \m{c}. Note the flags in the graph telling us that the statements 0, 2 and 4 are assumptions. The identifiers themselves are not assumptions, so these flags are not applicable there. After the \m{=>} formulator, we have another statement stating that there is an \m{a}. This is not an assumption anymore and requires verification. In order to verify statement 7, we compare the sub-tree with node 8 (node 7's child) as its root against the sub-trees with the nodes 1, 3 and 5 as their roots respectively. Two sub-trees are found to be similar, when the following two conditions hold:
+
+\begin{itemize}
+	\item 
+		Each node from the one sub-tree has a corresponding node in the other subtree.
+	\item
+		If one of the nodes has a node to its right, the corresponding node does so as well.
+	\item
+		If one of the nodes has a child, the corresponding node does so as well.
+	\item
+		If one of the nodes carries a symbol, the other node must carry the same symbol.
+\end{itemize}
+
+In the example of \scref{impl1} the compared sub-trees consist of only a single node, each carrying a symbol. The similarity of the sub-trees under nodes 0 and 7 (with the nodes 1 and 8 as their roots respectively) is trivial. Note the \texttt{TRUE} flag at node 7 indicating that the node has successfully been verified. If we want to verify slightly more involved formulas, we have to discuss some more concepts, namely the following:
+
+\begin{itemize}
+	\item 
+		Variables and constants
+	\item 
+		Reachability
+	\item 
+		Negation
+\end{itemize}
+
 \pagebreak{}
 
-\section{Output}
+\subsection{Variables and constants}
 
-TODO
-%\begin{code}
-%\captionof{listing}{\texttt{[prove]} output after processing \scref{russell}}
-%\label{code:russell_output}
-%\begin{minted}[linenos]{\prv}
-%
-%\end{minted}
-%\end{code}
-%
-%Currently the \texttt{\textsc{{[}prove{]}}} software produces hardly
-%more than debugging output. It can be very helpful though for understanding
-%the process of verification. To refer to the nodes of the graph, the
-%nodes are numbered in pre-order traversal %\cite{pre-order traversal}
-%as illustrated in MISSING The corresponding
-%output (\scref{russell_output} {[}some line breaks have been added
-%to improve readibility{]}) can be understood as follows:
-%\begin{itemize}
-%\item When verifying a node, \texttt{\textsc{{[}prove{]}}} prints the number
-%of the node within curly braces (e.g. \m{{83}}).
-%\item The number of every reachable node that the node to be verified is
-%checked against is printed within angle brackets (e.g. \m{<76>}).
-%\item If the verification was successful, a hash is added to the number
-%of the reachable node (e.g. \texttt{<64\#>}).
-%\item If verification of the current node is not necessary, because the
-%VRFD flag is set, a star is printed before the node number (e.g. \m{*{67}}
-%\end{itemize}
-%Currently no verification steps are skipped and nodes are often verified
-%multiple times. This is desired at the current stage for debugging
-%purposes and to illustrate the underlying verification mechanism.
-%
-%Most semantic rules are also still not checked and some of them still
-%have to be defined. One very important issue, which I would like to
-%discuss, is how identifiers are allowed to be introduced. For the
-%verification of this proof I had to relax a few restrictions that
-%I have originally imposed on this issue, but without further elaboration
-%of this, I suggest a proper discussion of the matter.
+To illustrate the concept of variables and constants, let us slightly modify \scref{impl1} and put square brackets around the first two statements:
 
-%\begin{thebibliography}{1}
-%\bibitem{=00005Bprove=00005D GitHub repository}\href{https://github.com/g-regex/prove}{https://github.com/g-regex/prove}
-%
-%\bibitem{latest}\href{https://github.com/g-regex/prove/blob/master/doc/doc.pdf}{https://github.com/g-regex/prove/blob/master/doc/doc.pdf}
-%
-%\bibitem{EBNF Wikipedia page}\href{https://en.wikipedia.org/wiki/Extended_Backus\%E2\%80\%93Naur_form}{https://en.wikipedia.org/wiki/Extended\_Backus\%E2\%80\%93Naur\_form}
-%
-%\bibitem{ISO/IEC 14977 standard}\href{https://www.cl.cam.ac.uk/~mgk25/iso-14977.pdf}{https://www.cl.cam.ac.uk/$\sim$mgk25/iso-14977.pdf}
-%
-%\bibitem{BNF Wikipedia page}\href{https://en.wikipedia.org/wiki/Backus\%E2\%80\%93Naur_Form}{https://en.wikipedia.org/wiki/Backus\%E2\%80\%93Naur\_Form}
-%
-%\bibitem{pre-order traversal}\href{https://en.wikipedia.org/wiki/Tree_traversal\#Pre-order_(NLR)}{https://en.wikipedia.org/wiki/Tree\_traversal\#Pre-order\_(NLR)}
-%\end{thebibliography}
+\begin{code}
+\captionof{listing}{Example}\label{code:var1}
+\inputminted[linenos]{\prv}{examples/var1.prove}
+\end{code}
 
-\printbibliography
+\begin{figure}[!h]
+\caption{Representation of \scref{var1}}\label{fig:var1}
+\centering
+\subfloat[\centering Legend]{
+	\includegraphics[width=\textwidth, height=10cm, keepaspectratio]{tikz/legend.pdf}
+}
+\subfloat[\centering Graph of \scref{ex1}]{
+	\includegraphics[width=\textwidth, height=10cm, keepaspectratio]{tikz/var1.pdf}
+}
+\end{figure}
+
+Notice now that statement 8 cannot be verified now. Instead of the \texttt{TRUE} flag it now carries the \texttt{NEWC} flag indicating that a new constant has been introduced. Node 0 on the other hand now carries the \texttt{VAR} flag telling us that its sub-tree contains at least one variable.
+This is, because the constants, declared in statement 0, are only constants within that sub-tree: 
+As can be seen in \figref{var1} (b), the nodes 1 and 3 -\ just as the nodes 0 and 2 in \scref{impl1} -\ still carry the \texttt{NEWC} flag.
+For all nodes to the right of node 0 the identifiers \m{a} and \m{b} are treated as variables. They cannot be used directly, but have to be replaced by another sub-tree (statement) or symbol.
+
+\pagebreak{}
+
+\subsection{Reachability}
+
+
+As mentioned before verification of a node involves comparing the current node against a number of sub-trees.\\ To select the sub-trees the current node is compared against, we have to introduce the concept of \emph{reachability}.
+
+
+\begin{code}
+\captionof{listing}{Example}\label{code:reach1}
+\inputminted[linenos]{\prv}{examples/reach1.prove}
+\end{code}
+
+\begin{figure}[!h]
+\caption{Representation of \scref{reach1}}\label{fig:reach1}
+\centering
+\includegraphics[width=\textwidth, height=10cm, keepaspectratio]{tikz/reach1.pdf}
+\end{figure}
+
+To determine which nodes are reachable from the current node, we go back in the tree node by node moving to the left and upwards. All of these nodes containing statements are reachable from the current node. Further, the following holds:
+
+\begin{itemize}
+	\item
+		If a reachable statement contains variables, all variables have to be substituted by reachable nodes containing no variables.
+	\item
+		If a reachable statement contains another statement, that statement is also reachable.
+	\item
+		If a reachable statement contains an implication, the conclusions of the implication are reachable, when the assumptions can be verified. 
+	\item
+		If a reachable statement contains an equality, all statements in that equality are reachable, if at least one statement can be verified.
+\end{itemize}
+
+The verification of assumptions might depend on the substitution of variables.
+\newline
+
+Let us consider \scref{reach1}. Translated to English \scref{reach1} says: There is an identifier \m{a} and there is a property \m{[b]prop}, which can be applied to any variable \m{b}. It follows that \m{a} has this property.
+\newline
+
+Now let us understand, how the \name\ code can be verified using the tree from \figref{reach1}: Nodes 0 and 2 and their respective sub-trees are assumptions and do not have to be verified. Node 7 is part of an implication formula and not an assumption -\ in fact is is the only node in the tree, which satisfies these conditions -\ so it has to be verified. The nodes 0 and 2 are the only nodes, which are reachable from node 7. Node 0 is a constant statement (i.e.\ a statement not containing any variables), whereas node 2 is a variable statement. Before attempting to compare node 7 with node 2 the variable has to be substitutes. The variable node in the sub-tree below statement 2 is node number 4 (\m{b}), which is to be replaced by the children of all constant statements (one at a time of course), which are reachable from node 7. In this case the only constant statement, which is reachable from node 7 is statement 0 (\m{[a]}), so we substitute node 4 (\m{b}) by the child of node 0, namely node 1 (\m{a}), before we compare the sub-tree under node 2 (now \m{[a]prop}) against the sub-tree under node 7 (\m{[a]prop}).
+\newline
+
+To get deeper insight in how the reachability in sub-trees is determined, let us look at a slightly more involved example.
+In \scref{reach2} we make three assumptions: There is an identifier \m{a}, there is a property \m{[b]prop}, which can by applied to any identifier, and if \m{a} has this property, then it also has a second property. In this example the statements 17 and 22 require verification. Statement 17 can like in the previous example be justified by statement 2. For statement 22 however, we have to explore the sub-tree below node 6. Node 6 contains an implication, which depends on the assumption of statement 7, so before we can determine, whether any of the statements in implication 6 are reachable, we have to verify assumption 7. Assumption 7 therefore has to be compared against all constant nodes, which are directly reachable from node 22, namely 17 and 0. It turns out that assumption 7 can be verified using statement 17, which lets us reach statement 12 from node 22, which we intend to verify. Since the statements (\m{[a]prop2}) in node 22 and node 12 are similar, the verification is successful.
+
+Note that without statement 17, statement 22 could currently not be verified, since assumption 7 is compared against all \emph{constant} statements, which are directly reachable from node 22.
+\pagebreak{}
+
+\begin{code}
+\captionof{listing}{Example}\label{code:reach2}
+\inputminted[linenos]{\prv}{examples/reach2.prove}
+\end{code}
+
+\begin{figure}[!h]
+\caption{Representation of \scref{reach2}}\label{fig:reach2}
+\centering
+\includegraphics[width=\textwidth, height=15cm, keepaspectratio]{tikz/reach2.pdf}
+\end{figure}
+
+\pagebreak{}
+
+\subsection{Negation}
+When making a statement it is desirable to be able to express that something is not true. This can be achieved by means of negation. The negation operator \m{!} in the current implementation is not a formulator, but a part of the statement that follows it. A statement, which is negated, is assumed to be false and true otherwise. The effect of verification can therefore be inverted by the negation operator.
+Let us modify \scref{var1}, which could not be verified, to see, how this works:
+
+\begin{code}
+\captionof{listing}{Example}\label{code:neg1}
+\inputminted[linenos]{\prv}{examples/neg1.prove}
+\end{code}
+
+\begin{figure}[!h]
+\caption{Representation of \scref{neg1}}\label{fig:neg1}
+\centering
+\includegraphics[width=\textwidth, height=10cm, keepaspectratio]{tikz/neg1.pdf}
+\end{figure}
+
+Translated to English \scref{neg1} can be read as follows: There are two variables and a constant identifier \m{c}. Therefore there is not an identifier \m{a}.
+\newline
+
+Since the existence of an identifier \m{a} has not been stated before, the statement that there is no such identifier must be true. As opposed to \scref{var1} in \scref{neg1} node 8 carries the \texttt{TRUE} flag.
+
+\pagebreak{}
+
+\begingroup
+\setstretch{0.8}
+\setlength\bibitemsep{10pt}
+\printbibliography\
+\endgroup
 
 \end{document}
