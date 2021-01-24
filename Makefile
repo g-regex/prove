@@ -45,7 +45,7 @@ cleantex:
 	$(RM) -rf debug/*.log
 
 cleandoc:
-	$(RM) -rf _minted-doc
+	$(RM) -rf doc/_minted-doc
 	$(RM) -rf doc/tikz
 
 clean: cleanbin cleandbg cleantex cleandoc
