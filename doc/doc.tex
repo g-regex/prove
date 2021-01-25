@@ -1,4 +1,5 @@
 \documentclass[british]{article}
+
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{babel}
@@ -26,6 +27,8 @@ urlcolor=blue]{hyperref}
 \newenvironment{code}{\captionsetup{type=listing}}{}
 \SetupFloatingEnvironment{listing}{name=Source Code}
 
+%for EBNF:
+\usepackage{csquotes}
 
 \newcommand\prv{bc}
 \newcommand\m[1]{\mintinline{\prv}{#1}}
@@ -98,7 +101,7 @@ Let us start with some basic definitions
 	\item
 		The terms \emph{variable} and \emph{constant} can be used to refer
 		to an identifier. Which term is to be used depends on the context,
-		we are using it in (see subsection~\ref{sec:var}).
+		we are using it in (see Subsection~\ref{sec:var}).
 	\item
 		The term \emph{real constant} refers to a formula, comprised of exactly
 		one formulator and exactly one empty statement.
@@ -166,7 +169,7 @@ would violate semantic rules, which will be established later. \pagebreak{}
 
 Here are some examples of productions and some motivations for the
 design of the syntax. We will work our way up from bottom to top through
-the EBNF.
+the EBNF\@.
 
 \begin{itemize}
 	\item
@@ -199,11 +202,11 @@ the EBNF.
 		$\langle\texttt{formulator}\rangle$s only occur in between
 		$\langle\texttt{statement}\rangle$s and $\langle\texttt{string}\rangle$s
 		only within $\langle\texttt{statement}\rangle$s. The user of the
-		language has great freedom in naming formulators and identifiers (TODO:
-		define formulators and identifiers in this document, i.e.\ not the
-		productions, but what they represent), so it is up to the user to choose
-		them wisely. It could for example be confusing to name a formulator
-		\m{7}, but \m{add7} makes intuitively sense.
+		language has great freedom in naming formulators and identifiers
+		(TODO\@: define formulators and identifiers in this document, i.e.\ not
+		the productions, but what they represent), so it is up to the user to
+		choose them wisely. It could for example be confusing to name a
+		formulator \m{7}, but \m{add7} makes intuitively sense.
 	\item
 		A $\langle\texttt{statement}\rangle$ is a concatenation of one or more
 		pairs of square brackets each containing either a
@@ -380,11 +383,11 @@ source~code~\ref{code:ex1}.
 \begin{figure}[!ht]
 \caption{Representation of source~code~\ref{code:ex1}}\label{fig:ex1}
 \centering
-\subfloat[\centering Legend]{
+\subfloat[\centering Legend]{%
 	\includegraphics[width=\textwidth, height=10cm,
 	keepaspectratio]{tikz/legend.pdf}
 }
-\subfloat[\centering Graph of source~code~\ref{code:ex1}]{
+\subfloat[\centering Graph of source~code~\ref{code:ex1}]{%
 	\includegraphics[width=\textwidth, height=10cm,
 	keepaspectratio]{tikz/exmp1.pdf}
 }
@@ -477,7 +480,7 @@ formulas, we have to discuss some more concepts, namely the following:
 
 \pagebreak{}
 
-\subsection{Variables and constants} \label{sec:var}
+\subsection{Variables and constants}\label{sec:var}
 
 To illustrate the concept of variables and constants, let us slightly modify
 source~code~\ref{code:impl1} and put square brackets around the first two
@@ -491,11 +494,11 @@ statements:
 \begin{figure}[!h]
 \caption{Representation of source~code~\ref{code:var1}}\label{fig:var1}
 \centering
-\subfloat[\centering Legend]{
+\subfloat[\centering Legend]{%
 	\includegraphics[width=\textwidth, height=10cm,
 	keepaspectratio]{tikz/legend.pdf}
 }
-\subfloat[\centering Graph of source~code~\ref{code:var1}]{
+\subfloat[\centering Graph of source~code~\ref{code:var1}]{%
 	\includegraphics[width=\textwidth, height=10cm,
 	keepaspectratio]{tikz/var1.pdf}
 }
@@ -532,11 +535,11 @@ compared against, we have to introduce the concept of \emph{reachability}.
 \begin{figure}[!h]
 \caption{Representation of source~code~\ref{code:reach1}}\label{fig:reach1}
 \centering
-\subfloat[\centering Legend]{
+\subfloat[\centering Legend]{%
 	\includegraphics[width=\textwidth, height=10cm,
 	keepaspectratio]{tikz/legend.pdf}
 }
-\subfloat[\centering Graph of source~code~\ref{code:reach1}]{
+\subfloat[\centering Graph of source~code~\ref{code:reach1}]{%
 	\includegraphics[width=\textwidth, height=10cm,
 	keepaspectratio]{tikz/reach1.pdf}
 }
@@ -638,11 +641,11 @@ verified, to see, how this works:
 \begin{figure}[!h]
 \caption{Representation of source~code~\ref{code:neg1}}\label{fig:neg1}
 \centering
-\subfloat[\centering Legend]{
+\subfloat[\centering Legend]{%
 	\includegraphics[width=\textwidth, height=10cm,
 	keepaspectratio]{tikz/legend.pdf}
 }
-\subfloat[\centering Graph of source~code~\ref{code:neg1}]{
+\subfloat[\centering Graph of source~code~\ref{code:neg1}]{%
 	\includegraphics[width=\textwidth, height=10cm,
 	keepaspectratio]{tikz/neg1.pdf}
 }

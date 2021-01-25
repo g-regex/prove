@@ -5,6 +5,9 @@
 \save_transient_properties true
 \origin unavailable
 \textclass article
+\begin_preamble
+\usepackage{csquotes}
+\end_preamble
 \use_default_options true
 \maintain_unincluded_children false
 \begin_local_layout
@@ -88,10 +91,10 @@ OutputFormat latex
 \begin{align*}
 \langle\texttt{expr}\rangle & =\langle\texttt{statement}\rangle\Big|\langle\texttt{formula}\rangle\\
 \langle\texttt{formula}\rangle & =\bigg\{\langle\texttt{statement}\rangle\langle\texttt{formulator}\rangle\Big|\langle\texttt{formulator}\rangle\langle\texttt{statement}\rangle\bigg\}\\
-\langle\texttt{statement}\rangle & =\textrm{\Big["!"\Big] "[" }\Big(\langle\texttt{expr}\rangle\Big|\langle\texttt{symbol}\rangle\Big)\textrm{"]"}\bigg\{\Big["!"\Big]\textrm{ "[" }\Big(\langle\texttt{expr}\rangle\Big|\langle\texttt{symbol}\rangle\Big)\textrm{ "]" }\bigg\}\\
-\langle\texttt{formulator\ensuremath{\rangle}} & =\textrm{"="\ensuremath{\Big|\texttt{"=>"}\Big|\langle\texttt{symbol\ensuremath{\rangle}}}}\\
+\langle\texttt{statement}\rangle & =\textrm{\Big[`!'\Big]`['}\Big(\langle\texttt{expr}\rangle\Big|\langle\texttt{symbol}\rangle\Big)\textrm{`]'}\bigg\{\textrm{\Big[`!'\Big]`['}\Big(\langle\texttt{expr}\rangle\Big|\langle\texttt{symbol}\rangle\Big)\textrm{`]'\bigg\}}\\
+\langle\texttt{formulator\ensuremath{\rangle}} & =\textrm{`='\Big|`=>'\Big|}\textrm{\langle\texttt{symbol\ensuremath{\rangle}}}\\
 \langle\texttt{symbol\ensuremath{\rangle}} & =\langle\texttt{character}\rangle\bigg\{\langle\texttt{character}\rangle\bigg\}\\
-\langle\texttt{character\ensuremath{\rangle}} & =\Big(\textrm{"a"}\Big|\dots\Big|\textrm{"z"}\Big|\textrm{"A"}\Big|\dots\Big|\textrm{"Z"}\Big|\textrm{"0"}\Big|\dots\Big|\textrm{"9"}\Big|\textrm{"+"\Big|\textrm{"-"}\Big|\textrm{"/"\Big|\textrm{"*"}\Big|\textrm{"\%"\Big|\textrm{"\textasciicircum"}\Big|\textrm{"\&"}\Big|\textrm{"."}\Big|\textrm{"?"}\Big|\textrm{":"}}}}\Big)
+\langle\texttt{character\ensuremath{\rangle}} & =\Big(\textrm{`a'}\Big|\dots\Big|\textrm{`z'}\Big|\textrm{`A'}\Big|\dots\Big|\textrm{`Z'}\Big|\textrm{`0'}\Big|\dots\Big|\textrm{`9'}\Big|\textrm{`+'\Big|\textrm{`-'}\Big|\textrm{`/'\Big|\textrm{`*'}\Big|\textrm{`\%'\Big|\textrm{`\textasciicircum'}\Big|\textrm{`\&'}\Big|\textrm{`.'}\Big|\textrm{`?'}\Big|\textrm{`:'}}}}\Big)
 \end{align*}
 
 \end_inset
