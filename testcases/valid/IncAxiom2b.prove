@@ -1,4 +1,4 @@
-[ [x][[x]:plane] ]
+[ =>[x][[x]:plane] ]
 
 [ [x][[x]:plane]=>
 
@@ -17,7 +17,7 @@
 [[p3]in[[x]]
 
 [not[
-[y][[y]:line]
+=>[y][[y]:line]
 [[p1]in[[y]]
 [[p2]in[[y]]
 [[p3]in[[y]]
@@ -28,5 +28,6 @@
 [ [y][[y]:line]=>
 [p1][[p1]:point]
 [p2][[p2]:point]
+[ [[p1]=[p2]]=> [[]False] ]
 [[p1]in[[y]]
 [[p2]in[[y]] ]
