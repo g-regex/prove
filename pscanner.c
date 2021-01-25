@@ -77,12 +77,12 @@ void next_token(Token *token)
 				strcpy(token->id, "]");
 				next_char();
 				break;
-			case '!':
+			/*case '!':
 				cursor.col = col;
 				token->type = TOK_NOT;
 				strcpy(token->id, "!");
 				next_char();
-				break;
+				break;*/
 			case '=':
 				cursor.col = col;
 				next_char();

@@ -341,14 +341,14 @@ void print_flags(Pnode* pnode) {
 			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR7 TIKZ_FLAG_B(pnode->num, 6));
 		}
 	}
-	if (HAS_NFLAG_TRUE(pnode)) {
+	/*if (HAS_NFLAG_TRUE(pnode)) {
 		if (HAS_SYMBOL(pnode)) {
 			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR_INACT
 					TIKZ_FLAG_B(pnode->num, 7));
 		} else {
 			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR8 TIKZ_FLAG_B(pnode->num, 7));
 		}
-	}
+	}*/
 	if (pnode->var != NULL) {
 		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR9 TIKZ_FLAG_B(pnode->num, 8));
 	}

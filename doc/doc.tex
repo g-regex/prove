@@ -92,12 +92,12 @@ Let us start with some basic definitions
 		When we speak of a \emph{character} in this document, we mean a
 		uppercase or lowercase Latin letter, a number or a special character
 		from a list that may be extended. Opening and closing square brackets,
-		the literals used in the reserved formulators \m{=}, \m{=>} and the
-		negation \m{!} are not referred to as characters in this document.
-	\item
-		In the current implementation and negated statement is still a statement
-		and not a formula. The \m{!} is currently not a formulator -\ probably
-		this has to be discussed.
+		and the literals used in the reserved formulators \m{=}, \m{=>}
+		are not referred to as characters in this document.
+%	\item
+%		In the current implementation and negated statement is still a statement
+%		and not a formula. The \m{!} is currently not a formulator -\ probably
+%		this has to be discussed.
 	\item
 		The terms \emph{variable} and \emph{constant} can be used to refer
 		to an identifier. Which term is to be used depends on the context,
@@ -465,17 +465,16 @@ sub-trees are found to be similar, when the following two conditions hold:
 In the example of source~code~\ref{code:impl1} the compared sub-trees consist of
 only a single node, each carrying a symbol. The similarity of the sub-trees
 under nodes 0 and 7 (with the nodes 1 and 8 as their roots respectively) is
-trivial. Note the \texttt{TRUE} flag at node 7 indicating that the node has
-successfully been verified. If we want to verify slightly more involved
-formulas, we have to discuss some more concepts, namely the following:
+trivial. If we want to verify slightly more involved formulas, we have to
+discuss some more concepts, namely the following:
 
 \begin{itemize}
 	\item 
 		Variables and constants
 	\item 
 		Reachability
-	\item 
-		Negation
+%	\item 
+%		Negation
 \end{itemize}
 
 \pagebreak{}
@@ -504,17 +503,15 @@ statements:
 }
 \end{figure}
 
-Notice now that statement 8 cannot be verified now. Instead of the \texttt{TRUE}
-flag it now carries the \texttt{NEWC} flag indicating that a new constant has
-been introduced. Node 0 on the other hand now carries the \texttt{VAR} flag
-telling us that its sub-tree contains at least one variable.
-This is, because the constants, declared in statement 0, are only constants
-within that sub-tree: 
-As can be seen in figure~\ref{fig:var1} (b), the nodes 1 and 3 -\ just as the
-nodes 0 and 2 in source~code~\ref{code:impl1} -\ still carry the \texttt{NEWC}
-flag.
-For all nodes to the right of node 0 the identifiers \m{a} and \m{b} are treated
-as variables. They cannot be used directly, but have to be replaced by another
+Notice that statement 8 cannot be verified. It now carries the \texttt{NEWC}
+flag indicating that a new constant has been introduced. Node 0 on the other
+hand now carries the \texttt{VAR} flag telling us that its sub-tree contains at
+least one variable.  This is, because the constants, declared in statement 0,
+are only constants within that sub-tree: As can be seen in figure~\ref{fig:var1}
+(b), the nodes 1 and 3 -\ just as the nodes 0 and 2 in
+source~code~\ref{code:impl1} -\ still carry the \texttt{NEWC} flag.  For all
+nodes to the right of node 0 the identifiers \m{a} and \m{b} are treated as
+variables. They cannot be used directly, but have to be replaced by another
 sub-tree (statement) or symbol.
 
 \pagebreak{}
@@ -625,41 +622,41 @@ keepaspectratio]{tikz/reach2.pdf}
 
 \pagebreak{}
 
-\subsection{Negation}
-When making a statement it is desirable to be able to express that something is
-not true. This can be achieved by means of negation. The negation operator \m{!}
-in the current implementation is not a formulator, but a part of the statement
-that follows it. A statement, which is negated, is assumed to be false and true
-otherwise. The effect of verification can therefore be inverted by the negation
-operator.  Let us modify source~code~\ref{code:var1}, which could not be
-verified, to see, how this works:
-\begin{code}
-\captionof{listing}{Example}\label{code:neg1}
-\inputminted[linenos]{\prv}{examples/neg1.prove}
-\end{code}
-
-\begin{figure}[!h]
-\caption{Representation of source~code~\ref{code:neg1}}\label{fig:neg1}
-\centering
-\subfloat[\centering Legend]{%
-	\includegraphics[width=\textwidth, height=10cm,
-	keepaspectratio]{tikz/legend.pdf}
-}
-\subfloat[\centering Graph of source~code~\ref{code:neg1}]{%
-	\includegraphics[width=\textwidth, height=10cm,
-	keepaspectratio]{tikz/neg1.pdf}
-}
-\end{figure}
-Translated to English source~code~\ref{code:neg1} can be read as follows: There
-are two variables and a constant identifier \m{c}. Therefore there is not an
-identifier \m{a}.\newline
-
-Since the existence of an identifier \m{a} has not been stated before, the
-statement that there is no such identifier is true. As opposed to
-source~code~\ref{code:var1} in source~code~\ref{code:neg1} node 8 carries the
-\texttt{TRUE} flag.
-
-\pagebreak{}
+%\subsection{Negation}
+%When making a statement it is desirable to be able to express that something is
+%not true. This can be achieved by means of negation. The negation operator \m{!}
+%in the current implementation is not a formulator, but a part of the statement
+%that follows it. A statement, which is negated, is assumed to be false and true
+%otherwise. The effect of verification can therefore be inverted by the negation
+%operator.  Let us modify source~code~\ref{code:var1}, which could not be
+%verified, to see, how this works:
+%\begin{code}
+%\captionof{listing}{Example}\label{code:neg1}
+%\inputminted[linenos]{\prv}{examples/neg1.prove}
+%\end{code}
+%
+%\begin{figure}[!h]
+%\caption{Representation of source~code~\ref{code:neg1}}\label{fig:neg1}
+%\centering
+%\subfloat[\centering Legend]{%
+%	\includegraphics[width=\textwidth, height=10cm,
+%	keepaspectratio]{tikz/legend.pdf}
+%}
+%\subfloat[\centering Graph of source~code~\ref{code:neg1}]{%
+%	\includegraphics[width=\textwidth, height=10cm,
+%	keepaspectratio]{tikz/neg1.pdf}
+%}
+%\end{figure}
+%Translated to English source~code~\ref{code:neg1} can be read as follows: There
+%are two variables and a constant identifier \m{c}. Therefore there is not an
+%identifier \m{a}.\newline
+%
+%Since the existence of an identifier \m{a} has not been stated before, the
+%statement that there is no such identifier is true. As opposed to
+%source~code~\ref{code:var1} in source~code~\ref{code:neg1} node 8 carries the
+%\texttt{TRUE} flag.
+%
+%\pagebreak{}
 
 \begingroup
 \setstretch{0.8}

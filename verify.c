@@ -92,9 +92,9 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 		}
 	}
 
-	if (HAS_NFLAG_TRUE(p1) != HAS_NFLAG_TRUE(p2)) {
+	/*if (HAS_NFLAG_TRUE(p1) != HAS_NFLAG_TRUE(p2)) {
 		return FALSE;
-	}
+	}*/
 
 	equal = TRUE;
 	if (IS_ID(p1)) {
@@ -175,10 +175,10 @@ unsigned short int check_asmp(Pnode* pnode)
 
 unsigned short int trigger_verify(Pnode* pn)
 {
-	if (IS_EMPTY(pn) || (HAS_CHILD(pn) && IS_EMPTY((*(pn->child))))) {
+	/*if (IS_EMPTY(pn) || (HAS_CHILD(pn) && IS_EMPTY((*(pn->child))))) {
 		//DBG_PARSER(fprintf(stderr, "T");)
 		return HAS_NFLAG_TRUE(pn);
-	}
+	}*/
 	init_backtrack(pn);
 	DBG_PARSER(if(HAS_GFLAG_VRFD) fprintf(stderr, "*");)
 	DBG_PARSER(fprintf(stderr, "{%d}", pn->num);)
@@ -203,13 +203,11 @@ unsigned short int trigger_verify(Pnode* pn)
 
 	if (!HAS_GFLAG_VRFD) {	
 		TOGGLE_NFLAG_TRUE(pn)
-		//DBG_PARSER(fprintf(stderr, "V");)
-		if (!HAS_NFLAG_TRUE(pn)) {
-			//DBG_PARSER(fprintf(stderr, "v");)
+		/*if (!HAS_NFLAG_TRUE(pn)) {*/
 			return FALSE;
-		} else {
+		/*} else {
 			SET_GFLAG_VRFD
-		}
+		}*/
 	}
 	return TRUE;
 }

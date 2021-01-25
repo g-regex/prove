@@ -116,9 +116,7 @@
 	"{" TIKZ_LGND_LOCK "};\n"\
 	"\\node[" p1 p2 " of LOCK] (FRST)"\
 	"{" TIKZ_LGND_FRST "};\n"\
-	"\\node[" p1 p2 " of FRST] (TRUE)"\
-	"{" TIKZ_LGND_TRUE "};\n"\
-	"\\node[" p1 p2 " of TRUE] (VAR)"\
+	"\\node[" p1 p2 " of FRST] (VAR)"\
 	"{" TIKZ_LGND_VAR "};\n"\
 	"\\node[" p1 p2 " of VAR] (INACT)"\
 	"{" TIKZ_LGND_INACT "};\n"\
@@ -143,9 +141,6 @@
 	"\\draw[-{Triangle[length=" TIKZ_LGND_ASIZE "pt,width=" TIKZ_LGND_ASIZE \
 	"pt]}, color=" TIKZ_COLOR7 "] ([xshift=-" TIKZ_LGND_ASIZE "pt] FRST.west)"\
 	"to (FRST.west);\n"\
-	"\\draw[-{Triangle[length=" TIKZ_LGND_ASIZE "pt,width=" TIKZ_LGND_ASIZE \
-	"pt]}, color=" TIKZ_COLOR8 "] ([xshift=-" TIKZ_LGND_ASIZE "pt] TRUE.west)"\
-	"to (TRUE.west);\n"\
 	"\\draw[-{Triangle[length=" TIKZ_LGND_ASIZE "pt,width=" TIKZ_LGND_ASIZE \
 	"pt]}, color=" TIKZ_COLOR9 "] ([xshift=-" TIKZ_LGND_ASIZE "pt] VAR.west)"\
 	"to (VAR.west);\n"\

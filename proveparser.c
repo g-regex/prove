@@ -387,11 +387,12 @@ unsigned short int parse_statement(void)
 		/* verification is triggered here */
 		//TODO: REVIEW
 		if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)) {
-			tstatus = tstatus && (trigger_verify(pnode) || HAS_GFLAG_VRFD);	
-			tstatus = tstatus && HAS_NFLAG_TRUE(pnode);
+			/*tstatus = tstatus && (trigger_verify(pnode) || HAS_GFLAG_VRFD);	
+			tstatus = tstatus && HAS_NFLAG_TRUE(pnode);*/
+			tstatus = trigger_verify(pnode) || HAS_GFLAG_VRFD;
 		}
 
-		if (lvl == 0 && HAS_NFLAG_IMPL(pnode) && !tstatus) {
+		if (/*lvl == 0 && */HAS_NFLAG_IMPL(pnode) && !tstatus) {
 			fprintf(stderr,
 					"verification failed on line %d, column %d\n",
 					 cursor.line, cursor.col);
