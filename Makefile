@@ -46,6 +46,7 @@ cleantex:
 
 cleandoc:
 	$(RM) -rf doc/_minted-doc
+	$(RM) -rf _minted-doc
 	$(RM) -rf doc/*.aux
 	$(RM) -rf doc/*.lyx~
 	$(RM) -rf doc/*.bbl
