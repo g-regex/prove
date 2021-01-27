@@ -60,7 +60,7 @@
 #define TIKZ_LGND_NEWC \
 	"\\texttt{NEWC}: node contains a newly introduced constant"
 #define TIKZ_LGND_LOCK \
-	"\\texttt{LOCK}: \\texttt{ASMP} flag is locked for the entire subtree"
+	"\\texttt{LOCK}: \\texttt{JUST} flag is locked for the entire subtree"
 #define TIKZ_LGND_FRST \
 	"\\texttt{FRST}: node is positioned before first "\
 	"occurrence of an implication formulator in that formula"
