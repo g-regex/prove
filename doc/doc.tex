@@ -110,17 +110,15 @@ Let us start with some basic definitions
 
 \section{Syntax}
 
-The syntax of the \name\ language can conveniently
-be described by means of the extended Backus-Naur form \parencite{Extended},
-which is a meta syntax notation defined in the ISO/IEC 14977
-\parencite{ISO} standard. Using an EBNF enables us
-to recursively and unambiguously describe nested patterns by grouping
-syntactic elements to so called $\langle\texttt{production}\rangle$s.
-It must always be possible to `unpack' a production in a unique
-and finite way, resulting in a (sequence of) \textit{terminal} symbols,
-indicated by quotation marks. In order to correctly interpret the
-\name\ EBNF it is sufficient to understand
-the meaning of the meta characters shown in figure~\ref{fig:meta}
+The syntax of the \name\ language can conveniently be described by means of the
+extended Backus-Naur form (EBNF), which is a meta syntax notation defined in the
+ISO/IEC 14977 standard \parencite{ISO}. Using an EBNF enables us to recursively
+and unambiguously describe nested patterns by grouping syntactic elements to so
+called $\langle\texttt{production}\rangle$s.  It must always be possible to
+`unpack' a production in a unique and finite way, resulting in a (sequence of)
+\textit{terminal} symbols, indicated by quotation marks. In order to correctly
+interpret the \name\ EBNF it is sufficient to understand the meaning of the meta
+characters shown in figure~\ref{fig:meta}
 
 \bigskip{}
 
@@ -138,9 +136,6 @@ $\{\dots\}$ & indicates zero or more repetitions\tabularnewline\
 \end{doublespace}
 \end{figure}
 
-
-%Using this notation the \name\ language can be described by the following EBNF:
-
 \begin{figure}[!ht]
 \centering
 \input{ebnf}
@@ -149,63 +144,63 @@ $\{\dots\}$ & indicates zero or more repetitions\tabularnewline\
 
 \medskip{}
 
-Using this notation the \name\ language can be described by the EBNF shown in 
-figure~\ref{fig:ebnf}.
-Every EBNF needs to have an initial production as a starting point.
-It is convention that this distinguished production is to be listed
-first, so in this case, $\langle\texttt{expr}\rangle$ is the initial
-production. As one might notice a valid \name\ file
-might contain either a statement or a formula. This design choice
-has been made in order to account for axioms and theorems that might
-be given in the human readable form of the \name\ language.
-Proofs on the other hand will be given in the form of a formula, having
-only \m{=>} formulators at its outermost level. We could easily think
-of other formulas, which will not satisfy this requirement and thereby
-neither constitute an axiom/theorem nor a proof. A \name\
-file containing such a formula would be syntactically correct but
-would violate semantic rules, which will be established later. \pagebreak{}
+Using this notation the \name\ language can be described by the EBNF shown in
+figure~\ref{fig:ebnf}.  Every EBNF needs to have an initial production as a
+starting point.  It is convention that this distinguished production is to be
+listed first, so in this case, $\langle\texttt{expr}\rangle$ is the initial
+production. As one might notice a valid \name\ file might contain either a
+statement or a formula. This design choice has been made in order to account for
+axioms and theorems that might be given in the human readable form of statements
+in the \name\ language.  Proofs on the other hand will be given in the form of a
+formula, having only \m{=>} formulators at its outermost level. We could easily
+think of other formulas, which will not satisfy this requirement and thereby
+neither constitute an axiom/theorem nor a proof. A \name\ file containing such a
+formula would be syntactically correct but would not have any meaning.
+
+\pagebreak{}
 
 \subsection{Examples}
 
 Here are some examples of productions and some motivations for the
-design of the syntax. We will work our way up from bottom to top through
+design of the syntax. We will work our way up -\ from bottom to top -\ through
 the EBNF\@.
 
 \begin{itemize}
 	\item
-		A $\langle\texttt{character}\rangle$ can be any letter, number or
-		one of the 10 special characters as indicated in the EBNF\@. Examples
+		A $\langle\texttt{character}\rangle$ can be any letter, number or any
+		one of the special characters indicated in the EBNF\@. Examples
 		of valid $\langle\texttt{character}\rangle$s are \m{a}, \m{T},
 		\m{7}, \m{&}.
 	\item
 		A $\langle\texttt{symbol}\rangle$ is a sequence of one or more
 		characters. Examples of valid $\langle\texttt{symbols}\rangle$s are:
-		\m{a7we}, \m{T}, \m{76}, \m{&q}. Note that \m{T} is a 
+		\m{a7we}, \m{T}, \m{76}, \m{&q}. Note that \m{T} is a
 		$\langle\texttt{symbol}\rangle$ and a $\langle\texttt{character}\rangle$
-		at the same time. This does not mean that the grammar is ambiguous.
-		A single \m{T} will always be interpreted in this way, but it depends
-		on the context, whether we are interested in the fact of \m{T} being a
-		$\langle\texttt{symbol} \rangle$ or \m{T} being a 
+		at the same time. This does not mean that the grammar is ambiguous.  A
+		single \m{T} will always be interpreted as a
+		$\langle\texttt{character}\rangle$, which -\ when not followed or
+		preceded by other $\langle\texttt{character}\rangle$s -\ is the only
+		character of a $\langle\texttt{symbol}\rangle$. It depends on the
+		context, whether we are interested in the fact of \m{T} being a
+		$\langle\texttt{symbol} \rangle$ or \m{T} being a
 		$\langle\texttt{character}\rangle$.
 	\item
 		A $\langle\texttt{formulator}\rangle$ is either a
 		$\langle\texttt{symbol}\rangle$ or any one of the terminals (fixed, not
-		\textquotedbl\ unpack-able \textquotedbl{} elements of an EBNF) \m{=} or
-		\m{=>}. Examples of valid $\langle\texttt{formulator}\rangle$s are
-		\m{a7we}, \m{T}, \m{=}, \m{=>}.  Note that \m{=T} is not a valid
-		$\langle\texttt{formulator}\rangle$.  Seeing that \m{T} can be a
-		$\langle\texttt{formulator}\rangle$ (comprised of a
-		$\langle\texttt{symbol}\rangle$) in one case and just a
+		``unpack-able'' elements of an EBNF) \m{=} or \m{=>}. Examples of valid
+		$\langle\texttt{formulator}\rangle$s are \m{a7we}, \m{T}, \m{=}, \m{=>}.
+		Note that \m{=T} is not a valid $\langle\texttt{formulator}\rangle$.
+		Seeing that \m{T} can be a $\langle\texttt{formulator}\rangle$
+		(containing of a $\langle\texttt{symbol}\rangle$) in one case and just a
 		$\langle\texttt{symbol}\rangle$ (not packed inside a
 		$\langle\texttt{formulator}\rangle$) in another case, one might worry
 		about ambiguity. However, having a close look at the EBNF, we see that
 		$\langle\texttt{formulator}\rangle$s only occur in between
-		$\langle\texttt{statement}\rangle$s and $\langle\texttt{string}\rangle$s
-		only within $\langle\texttt{statement}\rangle$s. The user of the
-		language has great freedom in naming formulators and identifiers
-		(TODO\@: define formulators and identifiers in this document, i.e.\ not
-		the productions, but what they represent), so it is up to the user to
-		choose them wisely. It could for example be confusing to name a
+		$\langle\texttt{statement}\rangle$s and
+		$\langle\texttt{symbols}\rangle$s only within
+		$\langle\texttt{statement}\rangle$s. The user of the language has great
+		freedom in naming formulators and identifiers, so it is up to the user
+		to choose them wisely. It could for example be confusing to name a
 		formulator \m{7}, but \m{add7} makes intuitively sense.
 	\item
 		A $\langle\texttt{statement}\rangle$ is a concatenation of one or more
@@ -216,15 +211,15 @@ the EBNF\@.
 		\m{[[]]}, \m{[[a]or[b]]}.  \item A $\langle\texttt{formula}\rangle$ is
 		comprised of at least one $\langle\texttt{statement}\rangle$ and at
 		least one $\langle\texttt{formulator}\rangle$. The order of occurrence
-		does not matter. Examples of valid $\langle\texttt{formula}\rangle$e are
+		does not matter. Examples of valid $\langle\texttt{formula}\rangle$s are
 		\m{[a]in[b]}, \m{[a]=[b][c]}, \m{[[a]a7we[b]]=>[c]}.
 \end{itemize}
 
 \section{Semantic}
 
-When generating a couple of syntactically correct snippets of \name\
-code, one realises that not all code adhering to the rules of the
-EBNF makes sense -\ at least not without introducing more conventions.
+When generating a couple of syntactically correct snippets of \name\ code, one
+realises that not all code adhering to the rules of the EBNF makes sense -\ at
+least not without introducing more conventions.
 
 \medskip{}
 
@@ -234,71 +229,56 @@ Consider the following code:
 [a]and[b]=[c]=>[b][c]
 \end{minted}
 
-The use of \m{=} and \m{=>} is ambiguous in this context, since
-\m{=} could refer to everything on its right hand side or just to
-\m{[c]}. Similarly \m{=>} could refer to everything to its left
-hand side or just to \m{[c]}. This problem could be addressed by
-introducing an order of precedence (e.g.\ non reserved formulators,
-\m{=}, \m{=>}). However, the implications of this approach should
-be carefully considered. Precedence can easily be encoded in the EBNF,
-without changing the set of valid code patterns. By doing so we could
-elegantly encode a part of the language's meaning in its syntactic
-structure. As tempting as this idea might be, I can see a negative
-side effect coming along with this approach. Introducing precedence
-between formulators will set brackets \textit{implicitly. }Since the
-visibility and meaning of identifiers (variables/constants) depends
-on the depth of nesting of statements (i.e.\ on brackets), the approach
-of precedence might lead to counter-intuitive code. Therefore I recommend
-against the precedence approach.
+The use of \m{=} and \m{=>} is ambiguous in this context, since \m{=} could
+refer to everything on its right hand side or just to \m{[c]}. Similarly \m{=>}
+could refer to everything to its left hand side or just to \m{[c]}. This problem
+could be addressed by introducing an order of precedence (e.g.\ non reserved
+formulators, \m{=}, \m{=>}). However, the implications of this approach should
+be carefully considered. Precedence can easily be encoded in the EBNF, without
+changing the set of valid code patterns. By doing so we could elegantly encode a
+part of the language's meaning in its syntactic structure. As tempting as this
+idea might be, there is a negative side effect coming along with this approach.
+Introducing precedence between formulators will set brackets \emph{implicitly}.
+Since the visibility and meaning of identifiers (variables/constants) depends on
+the depth of nesting of statements (i.e.\ on brackets), the approach of
+precedence might lead to counter-intuitive code.\newline 
 
-Instead I suggest the following semantic rule, which will address
-this issue:
+Instead the following semantic rule is introduced:
 \begin{itemize}
 \item \m{=}, \m{=>} and other formulators must not be mixed
 \end{itemize}
+
 \medskip{}
 
-Consider the following code:
-
-\begin{minted}{\prv}
-[a][b]=>[c]
-\end{minted}
-
-Translated to English this means `Let a and b be identifiers, then
-we have an identifier c'. We do not know, where c comes from, since
-it was not introduced before. Therefore I suggest the following rule:
+To determine, which expressions require a justification, we will also need a few
+rules:
 \begin{itemize}
 	\item
-		New identifiers must only be introduced in a part of a formula, which
-		is reserved for assumptions.
+		If an expression is an implication (i.e., all formulators are \m{=>}),
+		then every statement occurring after the first formulator is not
+		justified.
+	\item
+		Every expression in an equality (i.e., all formulators are \m{=}) is
+		already justified. (Remark: An equality has all the properties a
+		two-sided implication would have, but in addition to that it also allows
+		for substituting one statement with another)
+	\item
+		If an expression is justified, all statements contained within it are
+		justified as well.
+	\item
+		If and only if an expression is not justified and part of an
+		implication, it requires verification (see Section~\ref{sec:verif}).
 \end{itemize}
-\medskip{}
-
-To determine, which statements within a formula are assumptions and
-which statements are conclusions, I'd like to put the following three
-rules up for discussion:
-\begin{itemize}
-	\item
-		If the formula is an implication (i.e., all formulators are \m{=>}),
-		then every statement occurring before the first formulator is an
-		assumption.
-	\item
-		Every statement in an equality (i.e., all formulators are \m{=}) is an
-		assumption, from which all other statements can be concluded.  (Remark:
-		An equality has all the properties a two-sided implication would
-		have, but in addition to that in also allows substituting one
-		statement with another)
-	\item
-		If a statement is an assumption, all statements contained in it are
-		assumptions as well.
-	\end{itemize}
+Justified statements, which are part of an implication, will be called
+\emph{assumptions}.
 \medskip{}
 
 It might also be convenient to restrict the form an equality can have.
-Especially with respect to a straight forward implementation, it would
+Especially with respect to a straight-forward implementation, it would
 make sense to only let single statements (i.e.\ only one pair of square
-brackets at the outermost level) to be equal to each other. Therefore
-I suggest the following rules:
+brackets at the outermost level) to be equal to each other.\newline
+
+Therefore the following rules are suggested:
 \begin{itemize}
 	\item
 		Equalities are only such formulas, which are a concatenation of single
@@ -308,8 +288,8 @@ I suggest the following rules:
 		An equality must start and end with a single statement.
 \end{itemize}
 \medskip{}
-Further I suggest the following rule for implications for obvious
-reasons:
+
+Further, the following rule for implications is suggested:
 
 \begin{itemize}
 \item \m{=>} must not appear at the end of a $\langle\texttt{statement}\rangle$
@@ -331,11 +311,11 @@ node. It is worth mentioning that this tree can be interpreted as a binary tree
 (each node has one parent node and at most two children -\ one at the left and
 one at the right). However it is more intuitive to not think of this binary tree
 in its usual form, but to rotate it leftwards. Then every node can have (at most
-two) children either below or to the right and a parent (exactly one -\ expect
-for the root) to the left or above it.
+two) children -\ either below or to the right -\ and a parent (exactly one -\
+expect for the root) to the left or above it.
 
 As we see, there are several ways of thinking of a node as a child or a parent
-to another node (i.e., does a node lie in between another node and the root or
+to another node (i.e.\ does a node lie in between another node and the root or
 does it lie above another node in the graphical representation). For the rest of
 the document, we will use the following terminology, always referring to the
 proposed graphical representation of the tree:
@@ -351,7 +331,7 @@ proposed graphical representation of the tree:
 \end{itemize}
 
 When creating a tree for some corresponding \name\ code, we start with a single
-node at the root of the tree. Since we refer to other nodes in terms relative to
+node at the root of the tree. Since we refer to nodes in terms relative to
 another node, we have to keep track of our current position in the tree, while
 creating it. This position will be referred to as the \emph{current} node. In
 the beginning the root is the current node.
@@ -362,11 +342,12 @@ the code bracket by bracket and symbol by symbol, we now perform the following
 steps:
 
 \begin{itemize}
-	\item
-		When encountering a \m{[}, we check, whether the current node carries a
-		symbol. If not, we create a child to the current node. This child
-		becomes the current node. Otherwise we create a node to the right and a
-		child to that node. That node then becomes the current node.
+	\item 
+		When encountering a \m{[}, we check, whether the current node has a
+		child or carries a symbol. If not, we create a child to the current
+		node. This child becomes the current node. Otherwise we create a
+		node to the right and a child to that node. That node then becomes
+		the current node.
 	\item
 		When encountering a symbol, the symbol property of the current node is
 		set.
@@ -376,8 +357,8 @@ steps:
 		that parent, which becomes the current node.
 \end{itemize}
 
-On the next page you find the graphical representation of
-source~code~\ref{code:ex1}.
+On the next page a graphical representation of
+source~code~\ref{code:ex1} can be found.
 \pagebreak{}
 
 \begin{figure}[!ht]
@@ -396,33 +377,36 @@ source~code~\ref{code:ex1}.
 The tree shown in figure~\ref{fig:ex1} (b) was automatically generated by \name\
 following the steps described above. The nodes have been number in the order
 they have been created, which corresponds to a pre-order traversal numbering of
-the tree \parencite{Tree}. The flags drawn on the righthand side of each node
+the tree. The flags drawn on the righthand side of each node
 encode information, which has been gathered during the creation of the graph.
-E.g.\ the \texttt{ASMP} flag indicates that the statement contained by a node is
+E.g.\ the \texttt{JUST} flag indicates that the statement contained by a node is
 an assumption. These flags are set and unset in a variable, which is part of the
 structure of the node in memory. This setup simplifies the verification process
 by storing already gained information and thereby avoiding repeated computation
-of frequently used steps.
+of frequently used steps.\newline
 
-Some of these flags are set for nodes, which they are not applicable to. This
-has technical reasons (mainly related to computational efficiency) and is
-nothing we have to worry about.
+Remark: Some of these flags are set for nodes, which they are not applicable to.
+This has technical reasons (mainly related to computational efficiency) and is
+nothing we have to worry about. Further, some flags are not set, where they
+could be. This has technical reasons as well. E.g.\ node~4 in
+figure~\ref{fig:ex1} could carry the \texttt{JUST}~flag. This flag would be set,
+if we would continue reading more code, but since node~4 is not part of an
+implication, we do not have to worry about it not being set.
 
 \pagebreak{}
 
-\section{Verification}
+\section{Verification}\label{sec:verif}
 
 Verifying a proof means, checking that every conclusion can be justified.  With
 respect to \name\ code, we imposed certain conditions on statements to be an
-assumption. For a statement to be a conclusion, two conditions have to be
-satisfied:
+assumption. A conclusion is a statement satisfying the following conditions:
 
 \begin{itemize}
 	\item
-		The statement must not be an assumption.
+		The statement is not justified already.
 	\item
-		The statement must be part of a formula, which contains (only!) \m{=>}
-		formulators. 
+		The statement must be part of an implication (i.e.\ a formula, which
+		contains (only!) \m{=>} formulators). 
 \end{itemize}
 
 To illustrate these ideas, let us now look at the following implication:
@@ -435,16 +419,28 @@ To illustrate these ideas, let us now look at the following implication:
 \begin{figure}[!h]
 \caption{Representation of source~code~\ref{code:impl1}}\label{fig:impl1}
 \centering
-\includegraphics[width=\textwidth, height=10cm, keepaspectratio]{tikz/impl1.pdf}
+\includegraphics[width=\textwidth, height=8cm, keepaspectratio]{tikz/impl1.pdf}
 \end{figure}
 
-In source~code~\ref{code:impl1} we make three assumptions: We state thate there
+Remark on figure~\ref{fig:impl1}: Nodes 0, 2 and 4 are part of an implication
+but do not have the \texttt{IMPL} flag set. This has technical reasons: The
+flags indicating the type of formula (i.e. \texttt{IMPL}, \texttt{EQTY} and
+\texttt{FMLA}) are set after encountering the first formulator. When stepping
+through the nodes leftwards to finally get to the parent level, these flags are
+copied over. Since this does not happen at the topmost level, these flags are
+not set. As we are not interested in these flags at those positions, we do not
+have to worry about that.
+
+\pagebreak{}
+
+In source~code~\ref{code:impl1} we make three assumptions: We state that there
 are three identifiers \m{a}, \m{b} and \m{c}. Note the flags in the graph
-telling us that the statements 0, 2 and 4 are assumptions. The identifiers
-themselves are not assumptions, so these flags are not applicable there. After
-the \m{=>} formulator, we have another statement stating that there is an \m{a}.
-This is not an assumption anymore and requires verification. In order to verify
-statement 7, we compare the sub-tree with node 8 (node 7's child) as its root
+telling us that the statements 0, 2 and 4 are already justified. The identifiers
+themselves are not expressions, so the \texttt{JUST} flags are not applicable to
+them. After
+the \m{=>} formulator, we have another expression stating that there is an \m{a}.
+This is an unjustified statement and requires verification. In order to verify
+statement~7, we compare the sub-tree with node~8 (node~7's child) as its root
 against the sub-trees with the nodes 1, 3 and 5 as their roots respectively. Two
 sub-trees are found to be similar, when the following two conditions hold:
 
@@ -473,8 +469,6 @@ discuss some more concepts, namely the following:
 		Variables and constants
 	\item 
 		Reachability
-%	\item 
-%		Negation
 \end{itemize}
 
 \pagebreak{}
@@ -503,16 +497,17 @@ statements:
 }
 \end{figure}
 
-Notice that statement 8 cannot be verified. It now carries the \texttt{NEWC}
-flag indicating that a new constant has been introduced. Node 0 on the other
-hand now carries the \texttt{VAR} flag telling us that its sub-tree contains at
-least one variable.  This is, because the constants, declared in statement 0,
-are only constants within that sub-tree: As can be seen in figure~\ref{fig:var1}
-(b), the nodes 1 and 3 -\ just as the nodes 0 and 2 in
-source~code~\ref{code:impl1} -\ still carry the \texttt{NEWC} flag.  For all
-nodes to the right of node 0 the identifiers \m{a} and \m{b} are treated as
-variables. They cannot be used directly, but have to be replaced by another
-sub-tree (statement) or symbol.
+Notice that statement~8 cannot be verified. It now carries the \texttt{NEWC}
+flag indicating that a new constant has been introduced -\ it would be
+verifyable when adding an intermediate step: \m{[c=a]}. Node~0 on now carries
+the \texttt{VAR} flag telling us that its sub-tree contains at least one
+variable.  This is, because the constants, declared in statement 0, are only
+constants within that sub-tree: As can be seen in figure~\ref{fig:var1} (b), the
+nodes 1 and 3 -\ just as the nodes 0 and 2 in source~code~\ref{code:impl1} -\
+still carry the \texttt{NEWC} flag.  For all nodes to the right of node 0 the
+identifiers \m{a} and \m{b} are treated as variables. They cannot be used
+directly, but have to be replaced by another sub-tree (i.e.\ statement) or
+symbol.
 
 \pagebreak{}
 
@@ -564,48 +559,48 @@ statements are reachable from the current node. Further, the following holds:
 The verification of assumptions might depend on the substitution of variables.
 \newline
 
-Let us consider source~code~\ref{code:reach1}. Translated to English
-source~code~\ref{code:reach1} says: There is an identifier \m{a} and there is a
-property \m{[b]prop}, which can be applied to any variable \m{b}. It follows
-that \m{a} has this property.
+Let us consider source~code~\ref{code:reach1}. Translated to English it says:
+There is an identifier \m{a} and there is a property \m{[b]prop}, which can be
+applied to any variable \m{b}. It follows that \m{a} has this property.
 \newline
 
 Now let us understand, how the \name\ code can be verified using the tree from
 figure~\ref{fig:reach1}: Nodes 0 and 2 and their respective sub-trees are
 assumptions and do not have to be verified. Node 7 is part of an implication
-formula and not an assumption -\ in fact is is the only node in the tree, which
+and not already justified -\ in fact it is the only node in the tree, which
 satisfies these conditions -\ so it has to be verified. The nodes 0 and 2 are
-the only nodes, which are reachable from node 7. Node 0 is a constant statement
-(i.e.\ a statement not containing any variables), whereas node 2 is a variable
-statement. Before attempting to compare node 7 with node 2 the variable has to
-be substitutes. The variable node in the sub-tree below statement 2 is node
-number 4 (\m{b}), which is to be replaced by the children of all constant
-statements (one at a time of course), which are reachable from node 7. In this
-case the only constant statement, which is reachable from node 7 is statement 0
-(\m{[a]}), so we substitute node 4 (\m{b}) by the child of node 0, namely node 1
-(\m{a}), before we compare the sub-tree under node 2 (now \m{[a]prop}) against
-the sub-tree under node 7 (\m{[a]prop}).
+the only nodes, which are reachable from node~7. Node~0 is a constant statement
+(i.e.\ a statement not containing any variables), whereas node~2 is a variable
+statement. Before attempting to compare node~7 with node~2 the variable has to
+be substituted. The variable node in the sub-tree below statement~2 is node
+number~4 (\m{b}), which is to be replaced by the children of all constant
+statements (one at a time of course), which are reachable from node~7. In this
+case the only constant statement, which is reachable from node~7 is statement~0
+(\m{[a]}), so we substitute node~4 (\m{b}) by the child of node~0, namely node~1
+(\m{a}), before we compare the sub-tree under node~2 (now \m{[a]prop}) against
+the sub-tree under node~7 (\m{[a]prop}).
 \newline
 
 To get deeper insight in how the reachability in sub-trees is determined, let us
-look at a slightly more involved example.  In source~code~\ref{code:reach2} we
+look at a slightly more involved example. In source~code~\ref{code:reach2} we
 make three assumptions: There is an identifier \m{a}, there is a property
 \m{[b]prop}, which can by applied to any identifier, and if \m{a} has this
 property, then it also has a second property. In this example the statements 17
-and 22 require verification. Statement 17 can like in the previous example be
-justified by statement 2. For statement 22 however, we have to explore the
-sub-tree below node 6. Node 6 contains an implication, which depends on the
-assumption of statement 7, so before we can determine, whether any of the
-statements in implication 6 are reachable, we have to verify assumption 7.
-Assumption 7 therefore has to be compared against all constant nodes, which are
-directly reachable from node 22, namely 17 and 0. It turns out that assumption 7
-can be verified using statement 17, which lets us reach statement 12 from node
-22, which we intend to verify. Since the statements (\m{[a]prop2}) in node 22
-and node 12 are similar, the verification is successful.
+and 22 require verification. Statement~17 can -\ like in the previous example -\
+be justified by statement~2. For statement~22 however, we have to explore the
+sub-tree below node~6. Node~6 contains an implication, which depends on the
+assumption of statement~7, so before we can determine, whether any of the
+statements in implication~6 are reachable, we have to verify assumption~7.
+Assumption~7 therefore has to be compared against all constant nodes, which are
+directly reachable from node~22, namely nodes 17 and 0. It turns out that
+assumption~7 can be verified using statement~17, which lets us reach
+statement~12 from node~22, which we intend to verify. Since the statements
+(\m{[a]prop2}) in node~22 and node~12 are similar, the verification is
+successful.
 
-Note that without statement 17, statement 22 could currently not be verified,
-since assumption 7 is compared against all \emph{constant} statements, which are
-directly reachable from node 22.
+Note that without statement~17, statement~22 could not be verified, since
+assumption~7 is compared against all \emph{constant} statements, which are
+directly reachable from node~22.
 \pagebreak{}
 
 \begin{code}
@@ -621,42 +616,6 @@ keepaspectratio]{tikz/reach2.pdf}
 \end{figure}
 
 \pagebreak{}
-
-%\subsection{Negation}
-%When making a statement it is desirable to be able to express that something is
-%not true. This can be achieved by means of negation. The negation operator \m{!}
-%in the current implementation is not a formulator, but a part of the statement
-%that follows it. A statement, which is negated, is assumed to be false and true
-%otherwise. The effect of verification can therefore be inverted by the negation
-%operator.  Let us modify source~code~\ref{code:var1}, which could not be
-%verified, to see, how this works:
-%\begin{code}
-%\captionof{listing}{Example}\label{code:neg1}
-%\inputminted[linenos]{\prv}{examples/neg1.prove}
-%\end{code}
-%
-%\begin{figure}[!h]
-%\caption{Representation of source~code~\ref{code:neg1}}\label{fig:neg1}
-%\centering
-%\subfloat[\centering Legend]{%
-%	\includegraphics[width=\textwidth, height=10cm,
-%	keepaspectratio]{tikz/legend.pdf}
-%}
-%\subfloat[\centering Graph of source~code~\ref{code:neg1}]{%
-%	\includegraphics[width=\textwidth, height=10cm,
-%	keepaspectratio]{tikz/neg1.pdf}
-%}
-%\end{figure}
-%Translated to English source~code~\ref{code:neg1} can be read as follows: There
-%are two variables and a constant identifier \m{c}. Therefore there is not an
-%identifier \m{a}.\newline
-%
-%Since the existence of an identifier \m{a} has not been stated before, the
-%statement that there is no such identifier is true. As opposed to
-%source~code~\ref{code:var1} in source~code~\ref{code:neg1} node 8 carries the
-%\texttt{TRUE} flag.
-%
-%\pagebreak{}
 
 \begingroup
 \setstretch{0.8}

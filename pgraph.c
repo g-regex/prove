@@ -225,14 +225,14 @@ void create_right(Pnode* pnode)
 /* move leftwards through the subtree and create a linked list of all
  * identifiers, which are variables at the parent level; then move up
  * to the parent level */
-unsigned short int move_and_sum_up(Pnode** pnode)
+void move_and_sum_up(Pnode** pnode)
 {
 	Variable* var;
 	Variable* oldvar;
 	
-	unsigned short int success;
+	/*unsigned short int success;
 
-	success = TRUE;
+	success = TRUE;*/
 
 	/* only update rightmost child, if a new right node was created before */
 	TIKZ(if (rightmost_child == 0) {
@@ -253,7 +253,7 @@ unsigned short int move_and_sum_up(Pnode** pnode)
 			UNSET_NFLAG_ASMP((*pnode))
 		}
 		if (HAS_NFLAG_NEWC((*pnode))) {
-			if (!HAS_NFLAG_ASMP((*pnode))) success = FALSE; /* TODO: sem ERROR*/ 
+			/*if (!HAS_NFLAG_ASMP((*pnode))) success = FALSE; REMOVED:semERROR*/ 
 			var = (Variable*) malloc(sizeof(Variable));
 			var->pnode = *((*pnode)->child);
 			var->next = oldvar;
@@ -268,10 +268,7 @@ unsigned short int move_and_sum_up(Pnode** pnode)
 	} while (move_left(pnode) &&
 			DO((*pnode)->flags |= GET_NFFLAGS((*((*pnode)->right)))));
 
-	if ((*pnode)->parent == NULL) {
-		//return FALSE;
-		return success;
-	} else {
+	if ((*pnode)->parent != NULL) {
 		*pnode = (*pnode)->parent;
 		(*pnode)->var = var;
 		DBG_GRAPH(
@@ -280,8 +277,6 @@ unsigned short int move_and_sum_up(Pnode** pnode)
 				fprintf(stderr, "%s,", *(var->pnode->symbol));
 			fprintf(stderr, "\\");
 		)
-		//return TRUE;
-		return success;
 	}
 }
 

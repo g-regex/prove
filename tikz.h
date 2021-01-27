@@ -56,7 +56,7 @@
 #define TIKZ_LGND_IMPL "\\texttt{IMPL}: node is part of an implication"
 #define TIKZ_LGND_EQTY "\\texttt{EQTY}: node is part of an equality"
 #define TIKZ_LGND_FMLA "\\texttt{FMLA}: node is part of an ordinary formula"
-#define TIKZ_LGND_ASMP "\\texttt{ASMP}: node is an assumption"
+#define TIKZ_LGND_ASMP "\\texttt{JUST}: expression in node is already justified"
 #define TIKZ_LGND_NEWC \
 	"\\texttt{NEWC}: node contains a newly introduced constant"
 #define TIKZ_LGND_LOCK \

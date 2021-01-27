@@ -40,9 +40,9 @@ FILE*    file;                      /* [prove] source file					*/
 
 static unsigned short int lvl;      /* level/depth of current node in tree	*/
 
-unsigned short int parse_expr(void);
-unsigned short int parse_formula(void);
-unsigned short int parse_statement(void);
+void parse_expr(void);
+void parse_formula(void);
+void parse_statement(void);
 
 void expect(TType type);
 void check_conflict(Pnode* pnode, TType ttype);
@@ -165,20 +165,18 @@ int main(int argc, char *argv[])
 
 /* --- parser functions ------------------------------------------------------*/
 
-unsigned short int parse_expr(void)
+void parse_expr(void)
 {
 	/* maybe the EBNF should be altered a bit,
 	 * this seems to be a bit non-sensical */
-	return parse_formula();
+	parse_formula();
 }
 
-unsigned short int parse_formula(void)
+void parse_formula(void)
 {
 	int proceed;
-	unsigned short int tstatus;
 
 	proceed = TRUE;
-	tstatus = TRUE;
 
 	/* TODO perform some check for ERRORS (wrt to EQ and IMP positioning */
 	while (proceed) {
@@ -188,14 +186,14 @@ unsigned short int parse_formula(void)
 			check_conflict(pnode, token.type);
 
 			next_token(&token);
-			tstatus &= parse_statement();
+			parse_statement();
 			if (!IS_FORMULATOR(token.type)) {
 				proceed = FALSE;
 			}
 		} else {
-			tstatus &= parse_statement();
+			parse_statement();
 			if (!IS_FORMULATOR(token.type)) {
-				return tstatus;
+				return;
 			} else {
 				DBG_PARSER(fprintf(stderr, "%s", token.id);)
 
@@ -213,30 +211,29 @@ unsigned short int parse_formula(void)
 		}
 	}
 	prev_node = NULL;
-	return tstatus;
 }
 
-unsigned short int parse_statement(void)
+void parse_statement(void)
 {
 	Pnode* ptmp;
 	int proceed;
 	unsigned short int found;
-	unsigned short int neg;		/* set, if current pair of brackets is negated*/
-	unsigned short int tstatus; /* truth status */
+	/*unsigned short int neg;*/		/* set, if current pair of brackets is negated*/
+	unsigned short int vstatus;		/* verification status */
 
 	proceed = TRUE;
-	tstatus = TRUE;
+	vstatus = TRUE;
 
 	while (proceed) {
 		lvl++;
 		DBG_PARSER(fprintf(stderr, "%s", token.id);)
 
-		neg = FALSE;
+		/*neg = FALSE;
 		if (token.type == TOK_NOT) {
 			neg = TRUE;
 			next_token(&token);
 			DBG_PARSER(fprintf(stderr, "%s", token.id);)
-		}
+		}*/
 
 		expect(TOK_LBRACK); if (HAS_GFLAG_VRFD) {
 			UNSET_GFLAG_VRFD
@@ -246,10 +243,9 @@ unsigned short int parse_statement(void)
 			create_right(pnode);
 			move_right(&pnode);
 		}
-		if (neg) {
+		/*if (neg) {
 			TOGGLE_NFLAG_TRUE(pnode)
-			//DBG_PARSER(fprintf(stderr, "N");)
-		}
+		}*/
 		if (HAS_NFLAG_EQTY(pnode)) {
 			equate(prev_node, pnode);
 			prev_node = pnode;
@@ -304,10 +300,9 @@ unsigned short int parse_statement(void)
 		DBG_PARSER(fprintf(stderr, "%s", token.id);)
 		expect(TOK_RBRACK);
 		lvl--;
-		//DBG_PARSER(fprintf(stderr, "G%d", tstatus);)
 
-		if (!move_and_sum_up(&pnode)) {
-			/* TODO: REVIEW */
+		move_and_sum_up(&pnode);
+		/*if (!move_and_sum_up(&pnode)) {
 			fprintf(stderr, "semantic error on line %d, "
 					"column %d: identifier introduced in non-implication "\
 					"formula\n", cursor.line, cursor.col);
@@ -316,7 +311,7 @@ unsigned short int parse_statement(void)
 			} else {
 				success = EXIT_FAILURE;
 			}
-		}
+		}*/
 
 		/* check whether a new identifier was introduced */
 		if (CONTAINS_ID(pnode)) {
@@ -374,7 +369,6 @@ unsigned short int parse_statement(void)
 			}
 		} else if (!HAS_FFLAGS((*(pnode->child)))) {
 			/* verify children, if we have nested statements */
-
 			if (!HAS_NFLAG_ASMP(pnode)) {
 				ptmp = *(pnode->child);
 				do {
@@ -384,22 +378,18 @@ unsigned short int parse_statement(void)
 			}
 		}
 
-		/* verification is triggered here */
-		//TODO: REVIEW
-		if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)) {
-			/*tstatus = tstatus && (trigger_verify(pnode) || HAS_GFLAG_VRFD);	
-			tstatus = tstatus && HAS_NFLAG_TRUE(pnode);*/
-			tstatus = trigger_verify(pnode) || HAS_GFLAG_VRFD;
-		}
-
-		if (/*lvl == 0 && */HAS_NFLAG_IMPL(pnode) && !tstatus) {
-			fprintf(stderr,
-					"verification failed on line %d, column %d\n",
-					 cursor.line, cursor.col);
-			if (!DBG_FINISH_IS_SET) {
-				exit(EXIT_FAILURE);
-			} else {
-				success = EXIT_FAILURE;
+		if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)
+				&& !HAS_GFLAG_VRFD) {
+			/* verification is triggered here */
+			if (!trigger_verify(pnode)) {
+				fprintf(stderr,
+						"verification failed on line %d, column %d\n",
+						 cursor.line, cursor.col);
+				if (!DBG_FINISH_IS_SET) {
+					exit(EXIT_FAILURE);
+				} else {
+					success = EXIT_FAILURE;
+				}
 			}
 		}
 
@@ -407,8 +397,6 @@ unsigned short int parse_statement(void)
 			proceed = FALSE;
 		}
 	}
-
-	return tstatus;
 }
 
 /* --- helpers ---------------------------------------------------------------*/

@@ -137,7 +137,8 @@ unsigned short int move_left(Pnode** pnode);
 unsigned short int move_up(Pnode** pnode);
 unsigned short int move_down(Pnode** pnode);
 unsigned short int wrap_right();
-unsigned short int move_and_sum_up(Pnode** pnode);
+
+void move_and_sum_up(Pnode** pnode);
 
 /* memory deallocation */
 void free_graph(Pnode* pnode);
