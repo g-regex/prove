@@ -421,6 +421,7 @@ bb.out.*
 *.pdf
 
 !*.tex
+\#*
 
 bin/
 testcases/out/
