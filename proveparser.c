@@ -150,6 +150,7 @@ int main(int argc, char *argv[])
 	//while (token.type != TOK_EOF) {
 		parse_expr();
 	//}
+	expect(TOK_EOF);
 
 	TIKZ(fprintf(tikz, TIKZ_ENDSCOPE);)
 
@@ -286,7 +287,8 @@ void parse_statement(void)
 			DBG_PARSER(fprintf(stderr, "%s", token.id);)
 		}*/
 
-		expect(TOK_LBRACK); if (HAS_GFLAG_VRFD) {
+		expect(TOK_LBRACK);
+		if (HAS_GFLAG_VRFD) {
 			UNSET_GFLAG_VRFD
 		}
 
