@@ -147,9 +147,9 @@ int main(int argc, char *argv[])
 
 	/* <expr>
 	 * (loop probably not needed) */
-	while (token.type != TOK_EOF) {
+	//while (token.type != TOK_EOF) {
 		parse_expr();
-	}
+	//}
 
 	TIKZ(fprintf(tikz, TIKZ_ENDSCOPE);)
 
@@ -175,6 +175,57 @@ void parse_expr(void)
 void parse_formula(void)
 {
 	int proceed;
+	
+	if (token.type == TOK_SYM) {
+		set_symbol(pnode, token.id);	
+		next_token(&token);
+		if (token.type == TOK_RBRACK) {
+			/* token is an identifier */
+			DBG_PARSER(fprintf(stderr, "%s", *(pnode->symbol));)
+			return;
+		} else if (token.type == TOK_LBRACK /*|| token.type == TOK_NOT*/) {
+			/* token is a formulator */
+			/* check for conflicting flags and report ERROR */
+			DBG_PARSER(fprintf(stderr, "%s", *(pnode->symbol));)
+			SET_NFLAG_FMLA(pnode)
+			//parse_expr();
+		} else {
+			/* formulators must not be mixed/identifiers must not contain = */
+			/* ERROR */
+			return;
+		}
+	} else if (token.type == TOK_IMPLY) {
+		DBG_PARSER(fprintf(stderr, "%s", token.id);)
+		/* token is an implication symbol */
+		next_token(&token);
+		if (token.type == TOK_RBRACK) {
+			/* statements must not contain only an implication symbol */
+			/* ERROR */
+			return;
+		} else if (token.type == TOK_LBRACK /*|| token.type == TOK_NOT*/) {
+			/* only valid option */
+			SET_NFLAG_IMPL(pnode)
+			//parse_expr();
+		} else {
+			/* formulators must not be mixed/identifiers must not contain = */
+			/* ERROR */
+			return;
+		}
+	} else if (token.type == TOK_EQ) {
+		DBG_PARSER(fprintf(stderr, "%s", token.id);)
+		/* statements must not begin with an equality token */
+		/* ERROR */
+		return;
+	} else if (token.type == TOK_LBRACK /*|| token.type == TOK_NOT*/) {
+		//parse_expr();
+	} else if (token.type == TOK_RBRACK) {
+		/* empty statement */
+		return;
+	} else {
+		/* cannot go here, undefined behaviour */
+		/* ERROR */
+		return;
+	}
 
 	proceed = TRUE;
 
@@ -253,6 +304,7 @@ void parse_statement(void)
 		create_child(pnode);
 		move_down(&pnode);
 
+#if 0
 		if (token.type == TOK_SYM) {
 			set_symbol(pnode, token.id);	
 			next_token(&token);
@@ -296,6 +348,8 @@ void parse_statement(void)
 			/* cannot go here, undefined behaviour */
 			/* ERROR */
 		}
+#endif
+		parse_expr();
 
 		DBG_PARSER(fprintf(stderr, "%s", token.id);)
 		expect(TOK_RBRACK);
