@@ -31,7 +31,7 @@
 #define FALSE 0
 
 char* toktype[] = {"TOK_EOF", "TOK_LBRACK", "TOK_RBRACK", "TOK_IMPLY",
-					"TOK_EQ", "TOK_NOT", "TOK_SYM"};
+					"TOK_EQ", /*"TOK_NOT",*/ "TOK_SYM"};
 
 Token    token;                     /* current token						*/
 Pnode*   pnode;                     /* current node in graph				*/
@@ -204,7 +204,7 @@ void parse_formula(void)
 				set_symbol(pnode, token.id);
 
 				next_token(&token);
-				if (token.type != TOK_LBRACK && token.type != TOK_NOT) {
+				if (token.type != TOK_LBRACK /*&& token.type != TOK_NOT*/) {
 					proceed = FALSE;
 				}
 			}
@@ -259,7 +259,7 @@ void parse_statement(void)
 			if (token.type == TOK_RBRACK) {
 				/* token is an identifier */
 				DBG_PARSER(fprintf(stderr, "%s", *(pnode->symbol));)
-			} else if (token.type == TOK_LBRACK || token.type == TOK_NOT) {
+			} else if (token.type == TOK_LBRACK /*|| token.type == TOK_NOT*/) {
 				/* token is a formulator */
 				/* check for conflicting flags and report ERROR */
 				DBG_PARSER(fprintf(stderr, "%s", *(pnode->symbol));)
@@ -276,7 +276,7 @@ void parse_statement(void)
 			if (token.type == TOK_RBRACK) {
 				/* statements must not contain only an implication symbol */
 				/* ERROR */
-			} else if (token.type == TOK_LBRACK || token.type == TOK_NOT) {
+			} else if (token.type == TOK_LBRACK /*|| token.type == TOK_NOT*/) {
 				/* only valid option */
 				SET_NFLAG_IMPL(pnode)
 				parse_expr();
@@ -288,7 +288,7 @@ void parse_statement(void)
 			DBG_PARSER(fprintf(stderr, "%s", token.id);)
 			/* statements must not begin with an equality token */
 			/* ERROR */
-		} else if (token.type == TOK_LBRACK || token.type == TOK_NOT) {
+		} else if (token.type == TOK_LBRACK /*|| token.type == TOK_NOT*/) {
 			parse_expr();
 		} else if (token.type == TOK_RBRACK) {
 			/* empty statement */
@@ -393,7 +393,7 @@ void parse_statement(void)
 			}
 		}
 
-		if (token.type != TOK_LBRACK && token.type != TOK_NOT) {
+		if (token.type != TOK_LBRACK /*&& token.type != TOK_NOT*/) {
 			proceed = FALSE;
 		}
 	}

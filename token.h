@@ -32,7 +32,7 @@ typedef enum {
 
 	TOK_IMPLY,   /* implication ("=>") */
 	TOK_EQ,		 /* equality ("=") */
-	TOK_NOT,	 /* not ("!") */
+	/*TOK_NOT,*/ /* not ("!") */
 	TOK_SYM      /* symbol */
 } TType;
 
