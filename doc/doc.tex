@@ -70,18 +70,23 @@ Let us start with some basic definitions
 		The empty string is a special case of a formula. Apart from this special
 		case every formula must contain at least one statement and at least
 		one formulator.
+%	\item
+%		A \emph{formulator }is a sequence of legal (see figure~\ref{fig:ebnf})
+%		characters. A formulator does not contain any square brackets but
+%		is delimited by a closing square bracket or the beginning of the file
+%		at its beginning and an opening square bracket or the end of the file
+%		at its end.
 	\item
-		A \emph{formulator }is a sequence of legal (see figure~\ref{fig:ebnf})
-		characters. A formulator does not contain any square brackets but
-		is delimited by a closing square bracket or the beginning of the file
-		at its beginning and an opening square bracket or the end of the file
-		at its end.
-	\item An \emph{identifier} is a sequence of legal characters and is
-		delimited by an opening square bracket at its beginning and by a closing
-		square bracket at its end.
+		A \emph{formulator} is a sequence of legal (see figure~\ref{fig:ebnf})
+		characters delimited by either square brackets or the beginning or the
+		end of the file.
 	\item
-		To refer to formulators or identifiers more generally, we will use
-		the term \emph{symbol }in this document.
+		An \emph{identifier} is a formulator, which is delimited by an opening
+		square bracket at its beginning and by a closing square bracket at its
+		end.
+%	\item
+%		To refer to formulators or identifiers more generally, we will use
+%		the term \emph{symbol }in this document.
 	\item
 		To refer to statements or formulas more generally, we will use the
 		term \emph{expression }in this document.
@@ -91,9 +96,9 @@ Let us start with some basic definitions
 	\item
 		When we speak of a \emph{character} in this document, we mean a
 		uppercase or lowercase Latin letter, a number or a special character
-		from a list that may be extended. Opening and closing square brackets,
-		and the literals used in the reserved formulators \m{=}, \m{=>}
-		are not referred to as characters in this document.
+		(see figure~\ref{fig:ebnf}). Opening and closing square brackets, and
+		the reserved formulators \m{=}, \m{=>} are not referred to as characters
+		in this document.
 %	\item
 %		In the current implementation and negated statement is still a statement
 %		and not a formula. The \m{!} is currently not a formulator -\ probably
@@ -116,7 +121,7 @@ ISO/IEC 14977 standard \parencite{ISO}. Using an EBNF enables us to recursively
 and unambiguously describe nested patterns by grouping syntactic elements to so
 called $\langle\texttt{production}\rangle$s.  It must always be possible to
 `unpack' a production in a unique and finite way, resulting in a (sequence of)
-\textit{terminal} symbols, indicated by quotation marks. In order to correctly
+\textit{terminal} strings, indicated by quotation marks. In order to correctly
 interpret the \name\ EBNF it is sufficient to understand the meaning of the meta
 characters shown in figure~\ref{fig:meta}
 
@@ -147,7 +152,7 @@ $\{\dots\}$ & indicates zero or more repetitions\tabularnewline\
 Using this notation the \name\ language can be described by the EBNF shown in
 figure~\ref{fig:ebnf}.  Every EBNF needs to have an initial production as a
 starting point.  It is convention that this distinguished production is to be
-listed first, so in this case, $\langle\texttt{expr}\rangle$ is the initial
+listed first, so in this case, $\langle\texttt{expression}\rangle$ is the initial
 production. As one might notice a valid \name\ file might contain either a
 statement or a formula. This design choice has been made in order to account for
 axioms and theorems that might be given in the human readable form of statements
@@ -157,63 +162,63 @@ think of other formulas, which will not satisfy this requirement and thereby
 neither constitute an axiom/theorem nor a proof. A \name\ file containing such a
 formula would be syntactically correct but would not have any meaning.
 
-\pagebreak{}
+%\pagebreak{}
 
-\subsection{Examples}
-
-Here are some examples of productions and some motivations for the
-design of the syntax. We will work our way up -\ from bottom to top -\ through
-the EBNF\@.
-
-\begin{itemize}
-	\item
-		A $\langle\texttt{character}\rangle$ can be any letter, number or any
-		one of the special characters indicated in the EBNF\@. Examples
-		of valid $\langle\texttt{character}\rangle$s are \m{a}, \m{T},
-		\m{7}, \m{&}.
-	\item
-		A $\langle\texttt{symbol}\rangle$ is a sequence of one or more
-		characters. Examples of valid $\langle\texttt{symbols}\rangle$s are:
-		\m{a7we}, \m{T}, \m{76}, \m{&q}. Note that \m{T} is a
-		$\langle\texttt{symbol}\rangle$ and a $\langle\texttt{character}\rangle$
-		at the same time. This does not mean that the grammar is ambiguous.  A
-		single \m{T} will always be interpreted as a
-		$\langle\texttt{character}\rangle$, which -\ when not followed or
-		preceded by other $\langle\texttt{character}\rangle$s -\ is the only
-		character of a $\langle\texttt{symbol}\rangle$. It depends on the
-		context, whether we are interested in the fact of \m{T} being a
-		$\langle\texttt{symbol} \rangle$ or \m{T} being a
-		$\langle\texttt{character}\rangle$.
-	\item
-		A $\langle\texttt{formulator}\rangle$ is either a
-		$\langle\texttt{symbol}\rangle$ or any one of the terminals (fixed, not
-		``unpack-able'' elements of an EBNF) \m{=} or \m{=>}. Examples of valid
-		$\langle\texttt{formulator}\rangle$s are \m{a7we}, \m{T}, \m{=}, \m{=>}.
-		Note that \m{=T} is not a valid $\langle\texttt{formulator}\rangle$.
-		Seeing that \m{T} can be a $\langle\texttt{formulator}\rangle$
-		(containing of a $\langle\texttt{symbol}\rangle$) in one case and just a
-		$\langle\texttt{symbol}\rangle$ (not packed inside a
-		$\langle\texttt{formulator}\rangle$) in another case, one might worry
-		about ambiguity. However, having a close look at the EBNF, we see that
-		$\langle\texttt{formulator}\rangle$s only occur in between
-		$\langle\texttt{statement}\rangle$s and
-		$\langle\texttt{symbols}\rangle$s only within
-		$\langle\texttt{statement}\rangle$s. The user of the language has great
-		freedom in naming formulators and identifiers, so it is up to the user
-		to choose them wisely. It could for example be confusing to name a
-		formulator \m{7}, but \m{add7} makes intuitively sense.
-	\item
-		A $\langle\texttt{statement}\rangle$ is a concatenation of one or more
-		pairs of square brackets each containing either a
-		$\langle\texttt{formula}\rangle$, a $\langle\texttt{symbol}\rangle$ or a
-		$\langle\texttt{statement}\rangle$.  Examples of valid
-		$\langle\texttt{statement}\rangle$s are \m{[]}, \m{[a][b][[a]in[b]]},
-		\m{[[]]}, \m{[[a]or[b]]}.  \item A $\langle\texttt{formula}\rangle$ is
-		comprised of at least one $\langle\texttt{statement}\rangle$ and at
-		least one $\langle\texttt{formulator}\rangle$. The order of occurrence
-		does not matter. Examples of valid $\langle\texttt{formula}\rangle$s are
-		\m{[a]in[b]}, \m{[a]=[b][c]}, \m{[[a]a7we[b]]=>[c]}.
-\end{itemize}
+%\subsection{Examples}
+%
+%Here are some examples of productions and some motivations for the
+%design of the syntax. We will work our way up -\ from bottom to top -\ through
+%the EBNF\@.
+%
+%\begin{itemize}
+%	\item
+%		A $\langle\texttt{character}\rangle$ can be any letter, number or any
+%		one of the special characters indicated in the EBNF\@. Examples
+%		of valid $\langle\texttt{character}\rangle$s are \m{a}, \m{T},
+%		\m{7}, \m{&}.
+%	\item
+%		A $\langle\texttt{symbol}\rangle$ is a sequence of one or more
+%		characters. Examples of valid $\langle\texttt{symbols}\rangle$s are:
+%		\m{a7we}, \m{T}, \m{76}, \m{&q}. Note that \m{T} is a
+%		$\langle\texttt{symbol}\rangle$ and a $\langle\texttt{character}\rangle$
+%		at the same time. This does not mean that the grammar is ambiguous.  A
+%		single \m{T} will always be interpreted as a
+%		$\langle\texttt{character}\rangle$, which -\ when not followed or
+%		preceded by other $\langle\texttt{character}\rangle$s -\ is the only
+%		character of a $\langle\texttt{symbol}\rangle$. It depends on the
+%		context, whether we are interested in the fact of \m{T} being a
+%		$\langle\texttt{symbol} \rangle$ or \m{T} being a
+%		$\langle\texttt{character}\rangle$.
+%	\item
+%		A $\langle\texttt{formulator}\rangle$ is either a
+%		$\langle\texttt{symbol}\rangle$ or any one of the terminals (fixed, not
+%		``unpack-able'' elements of an EBNF) \m{=} or \m{=>}. Examples of valid
+%		$\langle\texttt{formulator}\rangle$s are \m{a7we}, \m{T}, \m{=}, \m{=>}.
+%		Note that \m{=T} is not a valid $\langle\texttt{formulator}\rangle$.
+%		Seeing that \m{T} can be a $\langle\texttt{formulator}\rangle$
+%		(containing of a $\langle\texttt{symbol}\rangle$) in one case and just a
+%		$\langle\texttt{symbol}\rangle$ (not packed inside a
+%		$\langle\texttt{formulator}\rangle$) in another case, one might worry
+%		about ambiguity. However, having a close look at the EBNF, we see that
+%		$\langle\texttt{formulator}\rangle$s only occur in between
+%		$\langle\texttt{statement}\rangle$s and
+%		$\langle\texttt{symbols}\rangle$s only within
+%		$\langle\texttt{statement}\rangle$s. The user of the language has great
+%		freedom in naming formulators and identifiers, so it is up to the user
+%		to choose them wisely. It could for example be confusing to name a
+%		formulator \m{7}, but \m{add7} makes intuitively sense.
+%	\item
+%		A $\langle\texttt{statement}\rangle$ is a concatenation of one or more
+%		pairs of square brackets each containing either a
+%		$\langle\texttt{formula}\rangle$, a $\langle\texttt{symbol}\rangle$ or a
+%		$\langle\texttt{statement}\rangle$.  Examples of valid
+%		$\langle\texttt{statement}\rangle$s are \m{[]}, \m{[a][b][[a]in[b]]},
+%		\m{[[]]}, \m{[[a]or[b]]}.  \item A $\langle\texttt{formula}\rangle$ is
+%		comprised of at least one $\langle\texttt{statement}\rangle$ and at
+%		least one $\langle\texttt{formulator}\rangle$. The order of occurrence
+%		does not matter. Examples of valid $\langle\texttt{formula}\rangle$s are
+%		\m{[a]in[b]}, \m{[a]=[b][c]}, \m{[[a]a7we[b]]=>[c]}.
+%\end{itemize}
 
 \section{Semantic}
 
@@ -250,29 +255,6 @@ Instead the following semantic rule is introduced:
 
 \medskip{}
 
-To determine, which expressions require a justification, we will also need a few
-rules:
-\begin{itemize}
-	\item
-		If an expression is an implication (i.e., all formulators are \m{=>}),
-		then every statement occurring after the first formulator is not
-		justified.
-	\item
-		Every expression in an equality (i.e., all formulators are \m{=}) is
-		already justified. (Remark: An equality has all the properties a
-		two-sided implication would have, but in addition to that it also allows
-		for substituting one statement with another)
-	\item
-		If an expression is justified, all statements contained within it are
-		justified as well.
-	\item
-		If and only if an expression is not justified and part of an
-		implication, it requires verification (see Section~\ref{sec:verif}).
-\end{itemize}
-Justified statements, which are part of an implication, will be called
-\emph{assumptions}.
-\medskip{}
-
 It might also be convenient to restrict the form an equality can have.
 Especially with respect to a straight-forward implementation, it would
 make sense to only let single statements (i.e.\ only one pair of square
@@ -306,7 +288,7 @@ Let us have a look at the following statement:
 \end{code}
 
 An intuitive approach for representing the structure of this code is by thinking
-of it as a tree, where every statement and every symbol is represented by a
+of it as a tree, where every statement and every formulator is represented by a
 node. It is worth mentioning that this tree can be interpreted as a binary tree
 (each node has one parent node and at most two children -\ one at the left and
 one at the right). However it is more intuitive to not think of this binary tree
@@ -330,6 +312,8 @@ proposed graphical representation of the tree:
 		\emph{left} and \emph{right} nodes respectively.
 \end{itemize}
 
+\subsection{Graph creation}\label{sec:creation}
+
 When creating a tree for some corresponding \name\ code, we start with a single
 node at the root of the tree. Since we refer to nodes in terms relative to
 another node, we have to keep track of our current position in the tree, while
@@ -337,19 +321,19 @@ creating it. This position will be referred to as the \emph{current} node. In
 the beginning the root is the current node.
 
 Every node can have a number of properties, some of which exclude others. For
-example, every node can have a child or carry a symbol, but not both. Processing
-the code bracket by bracket and symbol by symbol, we now perform the following
+example, every node can have a child or carry a formulator, but not both. Processing
+the code bracket by bracket and formulator by formulator, we now perform the following
 steps:
 
 \begin{itemize}
 	\item 
 		When encountering a \m{[}, we check, whether the current node has a
-		child or carries a symbol. If not, we create a child to the current
+		child or carries a formulator. If not, we create a child to the current
 		node. This child becomes the current node. Otherwise we create a
 		node to the right and a child to that node. That node then becomes
 		the current node.
 	\item
-		When encountering a symbol, the symbol property of the current node is
+		When encountering a formulator, the formulator property of the current node is
 		set.
 	\item
 		When encountering a \m{]}, we move from one node to another leftwards
@@ -375,38 +359,124 @@ source~code~\ref{code:ex1} can be found.
 \end{figure}
 
 The tree shown in figure~\ref{fig:ex1} (b) was automatically generated by \name\
-following the steps described above. The nodes have been number in the order
+following the steps described above. The nodes have been numbered in the order
 they have been created, which corresponds to a pre-order traversal numbering of
-the tree. The flags drawn on the righthand side of each node
-encode information, which has been gathered during the creation of the graph.
-E.g.\ the \texttt{JUST} flag indicates that the statement contained by a node is
-an assumption. These flags are set and unset in a variable, which is part of the
-structure of the node in memory. This setup simplifies the verification process
-by storing already gained information and thereby avoiding repeated computation
-of frequently used steps.\newline
+the tree. The flags drawn on the righthand side of each node encode information,
+which has been gathered during the creation of the graph.  E.g.\ the
+\texttt{NEWC} flag indicates that the statement contained by a node introduces a
+new constant (see Subsection~\ref{sec:var}). These flags correspond to single bits in the
+structure corresponding to each node in memory. Using these flags simplifies
+later tasks by storing already gained information and thereby avoiding repeated
+computation of frequently performed steps.\newline
 
-Remark: Some of these flags are set for nodes, which they are not applicable to.
+Remark: Some of these flags are set for nodes, which they are not applicable to
+and some flags are not set, where they could be.
 This has technical reasons (mainly related to computational efficiency) and is
-nothing we have to worry about. Further, some flags are not set, where they
-could be. This has technical reasons as well. E.g.\ node~4 in
-figure~\ref{fig:ex1} could carry the \texttt{JUST}~flag. This flag would be set,
-if we would continue reading more code, but since node~4 is not part of an
-implication, we do not have to worry about it not being set.
+nothing we have to worry about.
 
 \pagebreak{}
 
-\section{Verification}\label{sec:verif}
+\subsection{The \texttt{JUST} flag}
 
-Verifying a proof means, checking that every conclusion can be justified.  With
-respect to \name\ code, we imposed certain conditions on statements to be an
-assumption. A conclusion is a statement satisfying the following conditions:
+One of the flags used is the \texttt{JUST} flag (short for
+\emph{justified}). It only has a meaning in combination with the
+\texttt{IMPL} flag (short for \emph{implication}).
+
+During graph creation the flags \texttt{IMPL}, \texttt{EQTY} and \texttt{FMLA}
+are set respectively according to the following rules:
 
 \begin{itemize}
 	\item
-		The statement is not justified already.
+		When the current node contains an \m{=>} formulator, the \texttt{IMPL}
+		flag is set.
 	\item
-		The statement must be part of an implication (i.e.\ a formula, which
-		contains (only!) \m{=>} formulators). 
+		When the current node contains an \m{=} formulator, the \texttt{EQTY}
+		flag is set.
+	\item
+		When the current node contains any other formulator, the \texttt{FMLA}
+		flag is set.
+	\item
+		When a new node to the right of the current node is created, the
+		respective settings of the flags \texttt{IMPL}, \texttt{EQTY} and
+		\texttt{FMLA} of the current node are copied over to the new node.
+\end{itemize}
+
+The \texttt{JUST} flag is set according the following rules:
+
+\begin{itemize}
+	\item
+		When a new child node is created and the \texttt{JUST} flag of the
+		current node is set, the \texttt{JUST} flag of the new child node is set
+		as well.
+	\item
+		When a new node to the right of the current node is created and the
+		either the \texttt{EQTY} flag or \texttt{FMLA} of the current node is
+		set, the \texttt{JUST} flag of the new node to the right is set.
+	\item
+		When a new node to the right of the current node is created and the
+		\texttt{IMPL} flag of the current node is not set, the \texttt{JUST}
+		flag of the current node is set.
+	\item
+		When encountering a \m{]} and moving to the left-most node of the
+		current subtree (see Subsection~\ref{sec:creation}), the setting of the
+		\texttt{JUST} flag is copied over from right to left.
+\end{itemize}
+
+The setting of the \texttt{JUST} node can be interpreted as follows: If the
+\texttt{JUST} flag is said, the appearance of the corresponding node in the tree
+is justified in the sense that we accept its appearance in the currently
+processed subtree without verifying it (see Section~\ref{sec:verify}).
+
+We do not speak of \emph{justification}, since a missing \texttt{JUST} flag does
+not imply that there is no good reason for the corresponding node to appear at
+that position in the tree.
+
+However, the meaning of the combination of the \texttt{IMPL} flag and the
+\texttt{JUST} flag will be elaborated in the beginning of
+Section~\ref{sec:verify}.
+
+%\begin{itemize}
+%	\item
+%		If an expression is an implication (i.e., all formulators are \m{=>}),
+%		then every statement occurring after the first formulator is not
+%		justified.
+%	\item
+%		Every expression in an equality (i.e., all formulators are \m{=}) is
+%		already justified. (Remark: An equality has all the properties a
+%		two-sided implication would have, but in addition to that it also allows
+%		for substituting one statement with another)
+%	\item
+%		If an expression is justified, all statements contained within it are
+%		justified as well.
+%	\item
+%		If and only if an expression is not justified and part of an
+%		implication, it requires verification (see Section~\ref{sec:verif}).
+%\end{itemize}
+%Justified statements, which are part of an implication, will be called
+%\emph{assumptions}.
+%\medskip{}
+
+\pagebreak{}
+
+\section{Verification}\label{sec:verify}
+
+Verifying a node means finding another node at an eligible position in the tree
+(see Subsection~\ref{sec:reach}), which is similar to the current node (see
+Subsection~\ref{sec:similar}).  Whether a node has to be verified depends on the
+combination of the setting of its corresponding \texttt{IMPL} flag and
+\texttt{JUST} flag. The following rules apply:
+
+\begin{itemize}
+	\item
+		If both, the \texttt{IMPL} flag and the \texttt{JUST} flag, are set, the
+		corresponding node contains an assumption -\ a statement not depending
+		on any other statements. Such a node does not require verification.
+	\item
+		If neither the \texttt{IMPL} flag nor the \texttt{JUST} flag are set,
+		the corresponding node does not require verification.
+	\item
+		If the \texttt{IMPL} flag is set and the \texttt{JUST} flag is unset,
+		the corresponding node requires verification.
 \end{itemize}
 
 To illustrate these ideas, let us now look at the following implication:
@@ -419,30 +489,32 @@ To illustrate these ideas, let us now look at the following implication:
 \begin{figure}[!h]
 \caption{Representation of source~code~\ref{code:impl1}}\label{fig:impl1}
 \centering
-\includegraphics[width=\textwidth, height=8cm, keepaspectratio]{tikz/impl1.pdf}
+\includegraphics[width=\textwidth, height=7cm, keepaspectratio]{tikz/impl1.pdf}
 \end{figure}
 
-Remark on figure~\ref{fig:impl1}: Nodes 0, 2 and 4 are part of an implication
-but do not have the \texttt{IMPL} flag set. This has technical reasons: The
-flags indicating the type of formula (i.e. \texttt{IMPL}, \texttt{EQTY} and
-\texttt{FMLA}) are set after encountering the first formulator. When stepping
-through the nodes leftwards to finally get to the parent level, these flags are
-copied over. Since this does not happen at the topmost level, these flags are
-not set. As we are not interested in these flags at those positions, we do not
-have to worry about that.
-
-\pagebreak{}
+%Remark on figure~\ref{fig:impl1}: Nodes 0, 2 and 4 are part of an implication
+%but do not have the \texttt{IMPL} flag set. This has technical reasons: The
+%flags indicating the type of formula (i.e. \texttt{IMPL}, \texttt{EQTY} and
+%\texttt{FMLA}) are set after encountering the first formulator. When stepping
+%through the nodes leftwards to finally get to the parent level, these flags are
+%copied over. Since this does not happen at the topmost level, these flags are
+%not set. As we are not interested in these flags at those positions, we do not
+%have to worry about that.
 
 In source~code~\ref{code:impl1} we make three assumptions: We state that there
 are three identifiers \m{a}, \m{b} and \m{c}. Note the flags in the graph
-telling us that the statements 0, 2 and 4 are already justified. The identifiers
-themselves are not expressions, so the \texttt{JUST} flags are not applicable to
-them. After
-the \m{=>} formulator, we have another expression stating that there is an \m{a}.
-This is an unjustified statement and requires verification. In order to verify
-statement~7, we compare the sub-tree with node~8 (node~7's child) as its root
-against the sub-trees with the nodes 1, 3 and 5 as their roots respectively. Two
-sub-trees are found to be similar, when the following two conditions hold:
+telling us that the appearance of the nodes 0, 2 and 4 at their respective
+positions is justified.
+After the \m{=>} formulator, we have another expression stating that there is an
+\m{a}.  This node is not justified and part of an implication, so it requires verification. In order to
+verify statement~7, we check the similarity of the sub-tree with node~8 (node~7's child) as its
+root against the sub-trees with the nodes 1, 3 and 5 as their roots
+respectively.
+
+\pagebreak{}
+
+\subsection{Similarity of sub-trees}\label{sec:similar}
+Two sub-trees are found to be similar, when the following conditions hold:
 
 \begin{itemize}
 	\item 
@@ -454,22 +526,15 @@ sub-trees are found to be similar, when the following two conditions hold:
 	\item
 		If one of the nodes has a child, the corresponding node does so as well.
 	\item
-		If one of the nodes carries a symbol, the other node must carry the same
-		symbol.
+		If one of the nodes carries a formulator, the other node must carry the same
+		formulator.
 \end{itemize}
 
 In the example of source~code~\ref{code:impl1} the compared sub-trees consist of
-only a single node, each carrying a symbol. The similarity of the sub-trees
+only a single node, each carrying a formulator. The similarity of the sub-trees
 under nodes 0 and 7 (with the nodes 1 and 8 as their roots respectively) is
 trivial. If we want to verify slightly more involved formulas, we have to
-discuss some more concepts, namely the following:
-
-\begin{itemize}
-	\item 
-		Variables and constants
-	\item 
-		Reachability
-\end{itemize}
+discuss some more concepts. We will do so in the following subsections.
 
 \pagebreak{}
 
@@ -507,11 +572,11 @@ nodes 1 and 3 -\ just as the nodes 0 and 2 in source~code~\ref{code:impl1} -\
 still carry the \texttt{NEWC} flag.  For all nodes to the right of node 0 the
 identifiers \m{a} and \m{b} are treated as variables. They cannot be used
 directly, but have to be replaced by another sub-tree (i.e.\ statement) or
-symbol.
+(single!) formulator.
 
 \pagebreak{}
 
-\subsection{Reachability}
+\subsection{Reachability}\label{sec:reach}
 
 
 As mentioned before verification of a node involves comparing the current node

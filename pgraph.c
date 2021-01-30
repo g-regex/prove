@@ -310,23 +310,23 @@ void print_flags(Pnode* pnode) {
 		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR3 TIKZ_FLAG_B(pnode->num, 2));
 	}
 	if (HAS_NFLAG_ASMP(pnode)) {
-		if (HAS_SYMBOL(pnode)) {
+		/*if (HAS_SYMBOL(pnode)) {
 			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR_INACT
 					TIKZ_FLAG_B(pnode->num, 3));
-		} else {
+		} else {*/
 			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR4 TIKZ_FLAG_B(pnode->num, 3));
-		}
+		/*}*/
 	}
 	if (HAS_NFLAG_NEWC(pnode)) {
 		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR5 TIKZ_FLAG_B(pnode->num, 4));
 	}
 	if (HAS_NFLAG_LOCK(pnode)) {
-		if (HAS_SYMBOL(pnode)) {
+		/*if (HAS_SYMBOL(pnode)) {
 			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR_INACT
 					TIKZ_FLAG_B(pnode->num, 5));
-		} else {
+		} else {*/
 			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR6 TIKZ_FLAG_B(pnode->num, 5));
-		}
+		/*}*/
 	}
 	if (HAS_NFLAG_FRST(pnode)) {
 		if (!HAS_NFLAG_IMPL(pnode)) {
