@@ -114,7 +114,8 @@ Let us start with some basic definitions
 		The term \emph{real constant} refers to a formula, comprised of exactly
 		one formulator and exactly one empty statement.
 \end{itemize}}
-%\pagebreak{}
+
+\pagebreak{}
 
 \section{Syntax}
 
@@ -126,9 +127,9 @@ called $\langle\texttt{production}\rangle$s.  It must always be possible to
 `unpack' a production in a unique and finite way, resulting in a (sequence of)
 \textit{terminal} strings, indicated by quotation marks. In order to correctly
 interpret the \name\ EBNF it is sufficient to understand the meaning of the meta
-characters shown in figure~\ref{fig:meta}
+characters shown in figure~\ref{fig:meta}.
 
-\bigskip{}
+\medskip{}
 
 \begin{figure}[!ht]
 \centering
@@ -150,8 +151,6 @@ $\{\dots\}$ & indicates zero or more repetitions\tabularnewline\
 \caption{Extended Backus-Naur Form of the \name\ language}\label{fig:ebnf}
 \end{figure}
 
-\medskip{}
-
 Using this notation the \name\ language can be described by the EBNF shown in
 figure~\ref{fig:ebnf}.  Every EBNF needs to have an initial production as a
 starting point.  It is convention that this distinguished production is to be
@@ -165,63 +164,7 @@ think of other formulas, which will not satisfy this requirement and thereby
 neither constitute an axiom/theorem nor a proof. A \name\ file containing such a
 formula would be syntactically correct but would not have any meaning.
 
-%\pagebreak{}
-
-%\subsection{Examples}
-%
-%Here are some examples of productions and some motivations for the
-%design of the syntax. We will work our way up -\ from bottom to top -\ through
-%the EBNF\@.
-%
-%\begin{itemize}
-%	\item
-%		A $\langle\texttt{character}\rangle$ can be any letter, number or any
-%		one of the special characters indicated in the EBNF\@. Examples
-%		of valid $\langle\texttt{character}\rangle$s are \m{a}, \m{T},
-%		\m{7}, \m{&}.
-%	\item
-%		A $\langle\texttt{symbol}\rangle$ is a sequence of one or more
-%		characters. Examples of valid $\langle\texttt{symbols}\rangle$s are:
-%		\m{a7we}, \m{T}, \m{76}, \m{&q}. Note that \m{T} is a
-%		$\langle\texttt{symbol}\rangle$ and a $\langle\texttt{character}\rangle$
-%		at the same time. This does not mean that the grammar is ambiguous.  A
-%		single \m{T} will always be interpreted as a
-%		$\langle\texttt{character}\rangle$, which -\ when not followed or
-%		preceded by other $\langle\texttt{character}\rangle$s -\ is the only
-%		character of a $\langle\texttt{symbol}\rangle$. It depends on the
-%		context, whether we are interested in the fact of \m{T} being a
-%		$\langle\texttt{symbol} \rangle$ or \m{T} being a
-%		$\langle\texttt{character}\rangle$.
-%	\item
-%		A $\langle\texttt{formulator}\rangle$ is either a
-%		$\langle\texttt{symbol}\rangle$ or any one of the terminals (fixed, not
-%		``unpack-able'' elements of an EBNF) \m{=} or \m{=>}. Examples of valid
-%		$\langle\texttt{formulator}\rangle$s are \m{a7we}, \m{T}, \m{=}, \m{=>}.
-%		Note that \m{=T} is not a valid $\langle\texttt{formulator}\rangle$.
-%		Seeing that \m{T} can be a $\langle\texttt{formulator}\rangle$
-%		(containing of a $\langle\texttt{symbol}\rangle$) in one case and just a
-%		$\langle\texttt{symbol}\rangle$ (not packed inside a
-%		$\langle\texttt{formulator}\rangle$) in another case, one might worry
-%		about ambiguity. However, having a close look at the EBNF, we see that
-%		$\langle\texttt{formulator}\rangle$s only occur in between
-%		$\langle\texttt{statement}\rangle$s and
-%		$\langle\texttt{symbols}\rangle$s only within
-%		$\langle\texttt{statement}\rangle$s. The user of the language has great
-%		freedom in naming formulators and identifiers, so it is up to the user
-%		to choose them wisely. It could for example be confusing to name a
-%		formulator \m{7}, but \m{add7} makes intuitively sense.
-%	\item
-%		A $\langle\texttt{statement}\rangle$ is a concatenation of one or more
-%		pairs of square brackets each containing either a
-%		$\langle\texttt{formula}\rangle$, a $\langle\texttt{symbol}\rangle$ or a
-%		$\langle\texttt{statement}\rangle$.  Examples of valid
-%		$\langle\texttt{statement}\rangle$s are \m{[]}, \m{[a][b][[a]in[b]]},
-%		\m{[[]]}, \m{[[a]or[b]]}.  \item A $\langle\texttt{formula}\rangle$ is
-%		comprised of at least one $\langle\texttt{statement}\rangle$ and at
-%		least one $\langle\texttt{formulator}\rangle$. The order of occurrence
-%		does not matter. Examples of valid $\langle\texttt{formula}\rangle$s are
-%		\m{[a]in[b]}, \m{[a]=[b][c]}, \m{[[a]a7we[b]]=>[c]}.
-%\end{itemize}
+\pagebreak{}
 
 \section{Semantic}
 
@@ -547,10 +490,37 @@ under nodes 0 and 7 (with the nodes 1 and 8 as their roots respectively) is
 trivial. If we want to verify slightly more involved formulas, we have to
 discuss some more concepts. We will do so in the following subsections.
 
-\pagebreak{}
-
 \subsection{Variables and constants}\label{sec:var}
 
+As mentioned above, identifiers (i.e.\ formulas, which consist of a single
+formulator) can be variables or constants depending on the context. The context
+is given by the tree and the position of a specific node, from whose
+perspective we will determine the status of an identifier.
+
+\medskip{}
+\textcolor{dartmouthgreen}{An identifier can have two different states with
+respect to a specific node: \emph{unknown} and \emph{constant}.}
+
+\subsubsection{The flags \texttt{NEWC} and \texttt{VAR}}
+\textcolor{dartmouthgreen}{The state of an identifier can be determined by
+looking at the flags \texttt{NEWC} and \texttt{VAR}:}
+
+\textcolor{dartmouthgreen}{\begin{itemize}
+	\item 
+		If the \texttt{NEWC} flag of a node is set, then the identifier is a
+		constant for all nodes to the right of that node and their respective
+		sub-trees.
+	\item
+		If the \texttt{VAR} flag of a node is set, then the subtree below that
+		node contains node with the \texttt{NEWC} flag set. The identifiers in
+		these nodes are subject to substitution. To all nodes to the right of
+		the node carrying the \texttt{VAR} flag, the newly declared identifiers
+		are unknown.
+\end{itemize}}
+
+\pagebreak{}
+
+\subsubsection{Examples}
 To illustrate the concept of variables and constants, let us slightly modify
 source~code~\ref{code:impl1} and put square brackets around the first two
 statements:
