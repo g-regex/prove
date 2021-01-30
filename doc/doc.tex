@@ -361,6 +361,10 @@ The \texttt{JUST} flag is set according the following rules:
 		\texttt{LOCK} flag of the current node is set, the \texttt{JUST} flag
 		\emph{and} the \texttt{LOCK} flag of the new child node are set as well. 
 	\item
+		When a new child node is created and for the current node none of the
+		flags \texttt{IMPL}, \texttt{EQTY} or \texttt{FMLA} are set, the flags
+		\texttt{JUST} and \texttt{LOCK} are set for the new child node.
+	\item
 		When a new node to the right of the current node is created and any of
 		the flags \texttt{EQTY}, \texttt{FMLA} or \texttt{LOCK} of the current
 		node are set, the \texttt{JUST} flag of the new node to the right is
