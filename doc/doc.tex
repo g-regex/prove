@@ -512,10 +512,11 @@ looking at the flags \texttt{NEWC} and \texttt{VAR}:}
 		sub-trees.
 	\item
 		If the \texttt{VAR} flag of a node is set, then the subtree below that
-		node contains node with the \texttt{NEWC} flag set. The identifiers in
-		these nodes are subject to substitution. To all nodes to the right of
-		the node carrying the \texttt{VAR} flag, the newly declared identifiers
-		are unknown.
+		node contains at least one node with the \texttt{NEWC} flag set. The
+		identifiers in these nodes are subject to substitution and unknown to
+		the nodes (and their respective sub-trees) to the right of the node with
+		the set \texttt{VAR} flag. Of course this unknown status will be
+		overwritten as soon as an identifier will be declared.
 \end{itemize}}
 
 \pagebreak{}
