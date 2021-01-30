@@ -10,6 +10,7 @@ urlcolor=blue]{hyperref}
 \usepackage{standalone}
 \usepackage{graphicx}
 \usepackage{subfig}
+\usepackage{amssymb}
 
 \usepackage[style=authoryear-ibid,backend=biber]{biblatex}
 \addbibresource{references.bib}
@@ -19,6 +20,7 @@ urlcolor=blue]{hyperref}
 
 \usepackage{xcolor}
 \definecolor{magnolia}{rgb}{0.97, 0.96, 1.0}
+\definecolor{dartmouthgreen}{rgb}{0.05, 0.5, 0.06}
 
 \usepackage[newfloat]{minted}
 \setminted{bgcolor=magnolia}
@@ -61,7 +63,8 @@ anybody wants to join the project.
 \section{Terminology}
 
 Let us start with some basic definitions
-\begin{itemize}
+
+\textcolor{dartmouthgreen}{\begin{itemize}
 	\item
 		A \emph{statement} is a concatenation of one or more pair/s of square
 		brackets enclosing another statement, a formula or an identifier.
@@ -110,7 +113,7 @@ Let us start with some basic definitions
 	\item
 		The term \emph{real constant} refers to a formula, comprised of exactly
 		one formulator and exactly one empty statement.
-\end{itemize}
+\end{itemize}}
 %\pagebreak{}
 
 \section{Syntax}
@@ -143,7 +146,7 @@ $\{\dots\}$ & indicates zero or more repetitions\tabularnewline\
 
 \begin{figure}[!ht]
 \centering
-\input{ebnf}
+\textcolor{dartmouthgreen}{\input{ebnf}}
 \caption{Extended Backus-Naur Form of the \name\ language}\label{fig:ebnf}
 \end{figure}
 
@@ -250,7 +253,7 @@ precedence might lead to counter-intuitive code.\newline
 
 Instead the following semantic rule is introduced:
 \begin{itemize}
-\item \m{=}, \m{=>} and other formulators must not be mixed
+\item \m{=}, \m{=>} and other formulators must not be mixed \checkmark\
 \end{itemize}
 
 \medskip{}
@@ -265,9 +268,9 @@ Therefore the following rules are suggested:
 	\item
 		Equalities are only such formulas, which are a concatenation of single
 		statements and \m{=}, where no single statement is next to another
-		single statement and no \m{=} is next to another \m{=}
+		single statement and no \m{=} is next to another \m{=} \checkmark\
 	\item
-		An equality must start and end with a single statement.
+		An equality must start and end with a single statement. \checkmark\
 \end{itemize}
 \medskip{}
 
@@ -376,14 +379,10 @@ nothing we have to worry about.
 
 \pagebreak{}
 
-\subsection{The \texttt{JUST} flag}
-
-One of the flags used is the \texttt{JUST} flag (short for
-\emph{justified}). It only has a meaning in combination with the
-\texttt{IMPL} flag (short for \emph{implication}).
-
-During graph creation the flags \texttt{IMPL}, \texttt{EQTY} and \texttt{FMLA}
-are set respectively according to the following rules:
+\subsection{The flags \texttt{IMPL}, \texttt{EQTY} and \texttt{FMLA}}
+During graph creation the flags \texttt{IMPL},
+\texttt{EQTY} and \texttt{FMLA} are set respectively according to the following
+rules:
 
 \begin{itemize}
 	\item
@@ -397,43 +396,52 @@ are set respectively according to the following rules:
 		flag is set.
 	\item
 		When a new node to the right of the current node is created, the
-		respective settings of the flags \texttt{IMPL}, \texttt{EQTY} and
+		respective state of the flags \texttt{IMPL}, \texttt{EQTY} and
 		\texttt{FMLA} of the current node are copied over to the new node.
+	\item
+		When encountering a \m{]} and moving to the left-most node of the
+		current sub-tree (see Subsection~\ref{sec:creation}), the states of the
+		flags \texttt{IMPL}, \texttt{EQTY} and \texttt{FMLA} are copied over
+		from right to left.
 \end{itemize}
 
+\subsection{The flags \texttt{JUST} and \texttt{LOCK}}
+
+One of the flags used is the \texttt{JUST} flag (short for \emph{justified}). It
+only has a meaning in combination with the \texttt{IMPL} flag. 
+\medskip
 The \texttt{JUST} flag is set according the following rules:
 
 \begin{itemize}
 	\item
-		When a new child node is created and the \texttt{JUST} flag of the
-		current node is set, the \texttt{JUST} flag of the new child node is set
-		as well.
+		When a new child node is created and the \texttt{JUST} flag or the
+		\texttt{LOCK} flag of the current node is set, the \texttt{JUST} flag
+		\emph{and} the \texttt{LOCK} flag of the new child node are set as well. 
+	\item
+		When a new node to the right of the current node is created and any of
+		the flags \texttt{EQTY}, \texttt{FMLA} or \texttt{LOCK} of the current
+		node are set, the \texttt{JUST} flag of the new node to the right is
+		set. The state of the \texttt{LOCK} flag is carried over to the new
+		node.
 	\item
 		When a new node to the right of the current node is created and the
-		either the \texttt{EQTY} flag or \texttt{FMLA} of the current node is
-		set, the \texttt{JUST} flag of the new node to the right is set.
-	\item
-		When a new node to the right of the current node is created and the
-		\texttt{IMPL} flag of the current node is not set, the \texttt{JUST}
-		flag of the current node is set.
-	\item
-		When encountering a \m{]} and moving to the left-most node of the
-		current subtree (see Subsection~\ref{sec:creation}), the setting of the
-		\texttt{JUST} flag is copied over from right to left.
+		\texttt{IMPL} flag of the current node is \emph{not} set, the
+		\texttt{JUST} flag of the \emph{current} node is set.
 \end{itemize}
 
-The setting of the \texttt{JUST} node can be interpreted as follows: If the
-\texttt{JUST} flag is said, the appearance of the corresponding node in the tree
+The only function of the \texttt{LOCK} flag is to ensure that all nodes in a
+sub-tree below a node with a \texttt{JUST} flag set has also the \texttt{JUST}
+flag set.\newline
+
+The \texttt{JUST} flag can be interpreted as follows: If the
+\texttt{JUST} flag is set, the appearance of the corresponding node in the tree
 is justified in the sense that we accept its appearance in the currently
-processed subtree without verifying it (see Section~\ref{sec:verify}).
-
-We do not speak of \emph{justification}, since a missing \texttt{JUST} flag does
-not imply that there is no good reason for the corresponding node to appear at
-that position in the tree.
-
-However, the meaning of the combination of the \texttt{IMPL} flag and the
-\texttt{JUST} flag will be elaborated in the beginning of
-Section~\ref{sec:verify}.
+processed subtree without verifying it (see Section~\ref{sec:verify}). We do not
+speak of \emph{justification}, since a missing \texttt{JUST} flag does not imply
+that there is no good reason for the corresponding node to appear at that
+position in the tree. However, the meaning of the combination of the
+\texttt{IMPL} flag and the \texttt{JUST} flag will be elaborated in the
+beginning of Section~\ref{sec:verify}.
 
 %\begin{itemize}
 %	\item
@@ -460,11 +468,11 @@ Section~\ref{sec:verify}.
 
 \section{Verification}\label{sec:verify}
 
-Verifying a node means finding another node at an eligible position in the tree
-(see Subsection~\ref{sec:reach}), which is similar to the current node (see
-Subsection~\ref{sec:similar}).  Whether a node has to be verified depends on the
-combination of the setting of its corresponding \texttt{IMPL} flag and
-\texttt{JUST} flag. The following rules apply:
+\textcolor{dartmouthgreen}{Verifying a node means finding another node at an
+eligible position in the tree (see Subsection~\ref{sec:reach}), which is similar
+to the current node (see Subsection~\ref{sec:similar})}.  Whether a node has to
+be verified depends on the combination of the state of its corresponding
+\texttt{IMPL} flag and \texttt{JUST} flag. The following rules apply:
 
 \begin{itemize}
 	\item
@@ -506,15 +514,18 @@ are three identifiers \m{a}, \m{b} and \m{c}. Note the flags in the graph
 telling us that the appearance of the nodes 0, 2 and 4 at their respective
 positions is justified.
 After the \m{=>} formulator, we have another expression stating that there is an
-\m{a}.  This node is not justified and part of an implication, so it requires verification. In order to
-verify statement~7, we check the similarity of the sub-tree with node~8 (node~7's child) as its
-root against the sub-trees with the nodes 1, 3 and 5 as their roots
-respectively.
+\m{a}.  This node is not justified and part of an implication, so it requires
+verification. In order to verify statement~7, we check the similarity of the
+sub-tree with node~8 (node~7's child) as its root against the sub-trees with the
+nodes 1, 3 and 5 as their roots respectively.
 
 \pagebreak{}
 
 \subsection{Similarity of sub-trees}\label{sec:similar}
-Two sub-trees are found to be similar, when the following conditions hold:
+\textcolor{dartmouthgreen}{Two sub-trees can only be compared to each other,
+after all variables (with respect to the parent of the root of the
+respective sub-tree) have been substituted (see Subsection~\ref{sec:var}).} The
+compared sub-trees are found to be similar, when the following conditions hold:
 
 \begin{itemize}
 	\item 
