@@ -46,6 +46,7 @@ cleantex:
 
 cleandoc:
 	$(RM) -rf doc/_minted-doc
+	$(RM) -rf doc/examples/out
 	$(RM) -rf _minted-doc
 	$(RM) -rf doc/*.aux
 	$(RM) -rf doc/*.lyx~
@@ -77,9 +78,10 @@ safecheck:
 	@-${MAKE} check
 docgen:
 	mkdir -p doc/tikz
+	mkdir -p doc/examples/out
 	for T in `ls doc/examples/*.prove`
 	do
-		$(BINDIR)/proveparser $$T --dtikz --dfinish
+		$(BINDIR)/proveparser $$T --dtikz --dfinish --dparser --dverify &> doc/examples/out/$$(basename $$T .prove).out
 		$(BINDIR)/docc
 		pdflatex -output-directory doc/tikz debug/$$(basename $$T .prove).tex
 	done
