@@ -434,7 +434,19 @@ be verified depends on the combination of the state of its corresponding
 		the corresponding node requires verification.
 \end{itemize}
 
-To illustrate these ideas, let us now look at the following implication:
+\subsection{Output}
+
+%To illustrate these ideas, let us now look at the following implication:
+The \name\ software currently only produces debugging output. However, this
+output might help understanding the basic principles of the software and could
+be developed further to some meaningful and user-friendly output.\newline
+
+The debugging output is a modified version the original \name\ code, in which
+line breaks, tabstops and verification information has been inserted. On the
+next page you will find a short explanation of the debugging information and an
+example.
+
+\pagebreak{}
 
 \begin{code}
 \captionof{listing}{Example}\label{code:impl1}
@@ -447,6 +459,32 @@ To illustrate these ideas, let us now look at the following implication:
 \includegraphics[width=\textwidth, height=7cm, keepaspectratio]{tikz/impl1.pdf}
 \end{figure}
 
+\begin{code}
+\captionof{listing}{\name\ output for
+Source~Code~\ref{code:impl1}}\label{code:impl1out}
+\inputminted[linenos]{\prv}{examples/out/impl1.out}
+\end{code}
+
+Source~Code~\ref{code:impl1} shows a trivial example \name\ code, which requires
+a verification step after processing the last statement. As
+figure~\ref{fig:impl1} shows, node~7 has the \texttt{IMPL}~flag set and the
+\texttt{JUST}~flag unset. Thus node~7 requires verification.\newline
+
+Source~Code~\ref{code:impl1out} shows the verification information, which has to be
+interpreted as follows:
+
+\textcolor{dartmouthgreen}{\begin{itemize}
+	\item
+		If a node requires verification, the number of the node is printed in
+		braces (e.g.\ \m{{7}}) after the corresponding statement.
+	\item
+		The number of every node, the node to be verified is compared to, is
+		printed in angular brackets (e.g.\ \m{<4>}).
+	\item
+		If the sub-trees \emph{below} the two compared nodes are similar to each
+		other, a hash is printed within the angular brackets (e.g.\ \m{<0#>}).
+\end{itemize}}
+
 %Remark on figure~\ref{fig:impl1}: Nodes 0, 2 and 4 are part of an implication
 %but do not have the \texttt{IMPL} flag set. This has technical reasons: The
 %flags indicating the type of formula (i.e. \texttt{IMPL}, \texttt{EQTY} and
@@ -456,15 +494,15 @@ To illustrate these ideas, let us now look at the following implication:
 %not set. As we are not interested in these flags at those positions, we do not
 %have to worry about that.
 
-In source~code~\ref{code:impl1} we make three assumptions: We state that there
-are three identifiers \m{a}, \m{b} and \m{c}. Note the flags in the graph
-telling us that the appearance of the nodes 0, 2 and 4 at their respective
-positions is justified.
-After the \m{=>} formulator, we have another expression stating that there is an
-\m{a}.  This node is not justified and part of an implication, so it requires
-verification. In order to verify statement~7, we check the similarity of the
-sub-tree with node~8 (node~7's child) as its root against the sub-trees with the
-nodes 1, 3 and 5 as their roots respectively.
+%In source~code~\ref{code:impl1} we make three assumptions: We state that there
+%are three identifiers \m{a}, \m{b} and \m{c}. Note the flags in the graph
+%telling us that the appearance of the nodes 0, 2 and 4 at their respective
+%positions is justified.
+%After the \m{=>} formulator, we have another expression stating that there is an
+%\m{a}.  This node is not justified and part of an implication, so it requires
+%verification. In order to verify statement~7, we check the similarity of the
+%sub-tree with node~8 (node~7's child) as its root against the sub-trees with the
+%nodes 1, 3 and 5 as their roots respectively.
 
 \pagebreak{}
 
@@ -539,26 +577,69 @@ statements:
 \caption{Representation of source~code~\ref{code:var1}}\label{fig:var1}
 \centering
 \subfloat[\centering Legend]{%
-	\includegraphics[width=\textwidth, height=10cm,
+	\includegraphics[width=\textwidth, height=8cm,
 	keepaspectratio]{tikz/legend.pdf}
 }
 \subfloat[\centering Graph of source~code~\ref{code:var1}]{%
-	\includegraphics[width=\textwidth, height=10cm,
+	\includegraphics[width=\textwidth, height=8cm,
 	keepaspectratio]{tikz/var1.pdf}
 }
 \end{figure}
 
+\begin{code}
+\captionof{listing}{\name\ output for
+Source~Code~\ref{code:var1}}\label{code:var1out}
+\inputminted[linenos]{\prv}{examples/out/var1.out}
+\end{code}
+
 Notice that statement~8 cannot be verified. It now carries the \texttt{NEWC}
 flag indicating that a new constant has been introduced -\ it would be
-verifyable when adding an intermediate step: \m{[c=a]}. Node~0 on now carries
-the \texttt{VAR} flag telling us that its sub-tree contains at least one
-variable.  This is, because the constants, declared in statement 0, are only
-constants within that sub-tree: As can be seen in figure~\ref{fig:var1} (b), the
-nodes 1 and 3 -\ just as the nodes 0 and 2 in source~code~\ref{code:impl1} -\
-still carry the \texttt{NEWC} flag.  For all nodes to the right of node 0 the
-identifiers \m{a} and \m{b} are treated as variables. They cannot be used
-directly, but have to be replaced by another sub-tree (i.e.\ statement) or
-(single!) formulator.
+verifyable when adding two additional assumptions: \m{[a]} and \m{[c=a]}.
+\newline
+
+\textcolor{dartmouthgreen}{%
+We might want to change this behaviour and allow new identifiers to be
+introduced anywhere in the code (i.e.\ also after a \m{=>} formulator). Then
+however, wee will have to agree on rules, under which conditions we are allowed
+to conclude an equality. The next pages show different approaches.}
+
+%Node~0 on now carries the \texttt{VAR} flag telling us that its sub-tree
+%contains at least one variable.  This is, because the constants, declared in
+%statement 0, are only constants within that sub-tree: As can be seen in
+%figure~\ref{fig:var1} (b), the nodes 1 and 3 -\ just as the nodes 0 and 2 in
+%source~code~\ref{code:impl1} -\ still carry the \texttt{NEWC} flag.  For all
+%nodes to the right of node 0 the identifiers \m{a} and \m{b} are treated as
+%variables. They cannot be used directly, but have to be replaced by another
+%sub-tree (i.e.\ statement) or (single!) formulator.
+
+\pagebreak{}
+
+\begin{code}
+\captionof{listing}{Example}\label{code:var2}
+\inputminted[linenos]{\prv}{examples/var2.prove}
+\end{code}
+
+\begin{figure}[!h]
+\caption{Representation of source~code~\ref{code:var2}}\label{fig:var2}
+\centering
+\subfloat[\centering Legend]{%
+	\includegraphics[width=\textwidth, height=8cm,
+	keepaspectratio]{tikz/legend.pdf}
+}
+\subfloat[\centering Graph of source~code~\ref{code:var2}]{%
+	\includegraphics[width=\textwidth, height=8cm,
+	keepaspectratio]{tikz/var2.pdf}
+}
+\end{figure}
+
+\begin{code}
+\captionof{listing}{\name\ output for
+Source~Code~\ref{code:var2}}\label{code:var2out}
+\inputminted[linenos]{\prv}{examples/out/var2.out}
+\end{code}
+
+\textcolor{dartmouthgreen}{%
+Some discussion\dots}
 
 \pagebreak{}
 
