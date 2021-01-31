@@ -179,15 +179,14 @@ void parse_formula(void)
 	
 	if (token.type == TOK_SYM) {
 		set_symbol(pnode, token.id);	
+		DBG_PARSER(fprintf(stderr, "%s", *(pnode->symbol));)
 		next_token(&token);
 		if (token.type == TOK_RBRACK) {
 			/* token is an identifier */
-			DBG_PARSER(fprintf(stderr, "%s", *(pnode->symbol));)
 			return;
 		} else if (token.type == TOK_LBRACK /*|| token.type == TOK_NOT*/) {
 			/* token is a formulator */
 			/* check for conflicting flags and report ERROR */
-			DBG_PARSER(fprintf(stderr, "%s", *(pnode->symbol));)
 			SET_NFLAG_FMLA(pnode)
 			//parse_expr();
 		} else {
@@ -424,14 +423,15 @@ void parse_statement(void)
 				//}
 			}
 		} else if (!HAS_FFLAGS((*(pnode->child)))) {
+			/* FIXME */
 			/* verify children, if we have nested statements */
-			if (!HAS_NFLAG_ASMP(pnode)) {
+			/*if (!HAS_NFLAG_ASMP(pnode)) {
 				ptmp = *(pnode->child);
 				do {
 					trigger_verify(ptmp);	
 				} while (ptmp->right != NULL &&
 						((ptmp = *(ptmp->right)) != NULL));
-			}
+			}*/
 		}
 
 		if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)
