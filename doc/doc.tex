@@ -35,6 +35,31 @@ urlcolor=blue]{hyperref}
 \newcommand\prv{bc}
 \newcommand\m[1]{\mintinline{\prv}{#1}}
 \newcommand\name{\texttt{\textsc{[prove]}}}
+\newcommand\example[1]{
+	\begin{code}
+	\captionof{listing}{Example}\label{code:#1}
+	\inputminted[linenos]{\prv}{examples/#1.prove}
+	\end{code}
+
+	\begin{figure}[!h]
+	\caption{Representation of source~code~\ref{code:#1}}\label{fig:#1}
+	\centering
+	\subfloat[\centering Legend]{%
+		\includegraphics[width=\textwidth, height=8cm,
+		keepaspectratio]{tikz/legend.pdf}
+	}
+	\subfloat[\centering Graph of source~code~\ref{code:#1}]{%
+		\includegraphics[width=\textwidth, height=8cm,
+		keepaspectratio]{tikz/#1.pdf}
+	}
+	\end{figure}
+
+	\begin{code}
+	\captionof{listing}{\name\ output for
+	Source~Code~\ref{code:#1}}\label{code:#1out}
+	\inputminted[linenos]{\prv}{examples/out/#1.out}
+	\end{code}
+}
 
 \providecommand{\tabularnewline}{\\}
 
@@ -613,33 +638,16 @@ to conclude an equality. The next pages show different approaches.}
 %sub-tree (i.e.\ statement) or (single!) formulator.
 
 \pagebreak{}
+\example{var2}
+\textcolor{dartmouthgreen}{Some discussion\dots}
 
-\begin{code}
-\captionof{listing}{Example}\label{code:var2}
-\inputminted[linenos]{\prv}{examples/var2.prove}
-\end{code}
+\pagebreak{}
+\example{var3}
+\textcolor{dartmouthgreen}{Some discussion\dots}
 
-\begin{figure}[!h]
-\caption{Representation of source~code~\ref{code:var2}}\label{fig:var2}
-\centering
-\subfloat[\centering Legend]{%
-	\includegraphics[width=\textwidth, height=8cm,
-	keepaspectratio]{tikz/legend.pdf}
-}
-\subfloat[\centering Graph of source~code~\ref{code:var2}]{%
-	\includegraphics[width=\textwidth, height=8cm,
-	keepaspectratio]{tikz/var2.pdf}
-}
-\end{figure}
-
-\begin{code}
-\captionof{listing}{\name\ output for
-Source~Code~\ref{code:var2}}\label{code:var2out}
-\inputminted[linenos]{\prv}{examples/out/var2.out}
-\end{code}
-
-\textcolor{dartmouthgreen}{%
-Some discussion\dots}
+\pagebreak{}
+\example{var4}
+\textcolor{dartmouthgreen}{Some discussion\dots}
 
 \pagebreak{}
 
