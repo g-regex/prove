@@ -418,15 +418,16 @@ bb.out.*
 *.blg
 *.bcf
 *.xml
-*.pdf
+*.out
 
 !*.tex
 \#*
 
 bin/
 testcases/out/
-#doc/
 txt/
 debug/
 *.sh
 *.vim
+
+*.pdf
