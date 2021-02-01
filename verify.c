@@ -107,13 +107,16 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 			 *
 			 * Instead of:*/
 
-			 /*if (*(p1->symbol) != *(p2->symbol)) {
-				return (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
+			 if (*(p1->symbol) != *(p2->symbol)) {
+				unsigned short int r = (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
+				DBG_VERIFY(fprintf(stderr, "+%d,%s,%s", r, *(p1->symbol), *(p2->symbol));)
+				//return (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
+				return r;
 			 } else {
 				return TRUE;
-			 }*/
+			 }
 			/******************************************************************/
-			equal = (*(p1->symbol) == *(p2->symbol));
+			/* equal = (*(p1->symbol) == *(p2->symbol)); */
 		} else {
 			return FALSE;
 		}

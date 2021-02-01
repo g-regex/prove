@@ -34,10 +34,11 @@ urlcolor=blue]{hyperref}
 
 \newcommand\prv{bc}
 \newcommand\m[1]{\mintinline{\prv}{#1}}
+\newcommand\discuss[1]{\textcolor{dartmouthgreen}{#1}}
 \newcommand\name{\texttt{\textsc{[prove]}}}
 \newcommand\example[1]{
 	\begin{code}
-	\captionof{listing}{Example}\label{code:#1}
+	\captionof{listing}{\texttt{examples/#1.prove}}\label{code:#1}
 	\inputminted[linenos]{\prv}{examples/#1.prove}
 	\end{code}
 
@@ -55,8 +56,8 @@ urlcolor=blue]{hyperref}
 	\end{figure}
 
 	\begin{code}
-	\captionof{listing}{\name\ output for
-	Source~Code~\ref{code:#1}}\label{code:#1out}
+	\captionof{listing}{\name\ output for \texttt{examples/#1.prove}}%
+	\label{code:#1out}
 	\inputminted[linenos]{\prv}{examples/out/#1.out}
 	\end{code}
 }
@@ -593,36 +594,14 @@ To illustrate the concept of variables and constants, let us slightly modify
 source~code~\ref{code:impl1} and put square brackets around the first two
 statements:
 
-\begin{code}
-\captionof{listing}{Example}\label{code:var1}
-\inputminted[linenos]{\prv}{examples/var1.prove}
-\end{code}
-
-\begin{figure}[!h]
-\caption{Representation of source~code~\ref{code:var1}}\label{fig:var1}
-\centering
-\subfloat[\centering Legend]{%
-	\includegraphics[width=\textwidth, height=8cm,
-	keepaspectratio]{tikz/legend.pdf}
-}
-\subfloat[\centering Graph of source~code~\ref{code:var1}]{%
-	\includegraphics[width=\textwidth, height=8cm,
-	keepaspectratio]{tikz/var1.pdf}
-}
-\end{figure}
-
-\begin{code}
-\captionof{listing}{\name\ output for
-Source~Code~\ref{code:var1}}\label{code:var1out}
-\inputminted[linenos]{\prv}{examples/out/var1.out}
-\end{code}
+\example{var1}
 
 Notice that statement~8 cannot be verified. It now carries the \texttt{NEWC}
 flag indicating that a new constant has been introduced -\ it would be
-verifyable when adding two additional assumptions: \m{[a]} and \m{[c=a]}.
+verifiable when adding two additional assumptions: \m{[a]} and \m{[c=a]}.
 \newline
 
-\textcolor{dartmouthgreen}{%
+\discuss{%
 We might want to change this behaviour and allow new identifiers to be
 introduced anywhere in the code (i.e.\ also after a \m{=>} formulator). Then
 however, wee will have to agree on rules, under which conditions we are allowed
@@ -638,16 +617,46 @@ to conclude an equality. The next pages show different approaches.}
 %sub-tree (i.e.\ statement) or (single!) formulator.
 
 \pagebreak{}
-\example{var2}
-\textcolor{dartmouthgreen}{Some discussion\dots}
+\example{var2v1}
+\discuss{%
+	Here \m{[[a]=[c]]} is part of the initial assumptions. The verification
+	fails again, since node~8 is treated as a variable, when trying to verify
+	node~14 (notice the \texttt{VAR} flag of node~7).
+}
 
 \pagebreak{}
-\example{var3}
-\textcolor{dartmouthgreen}{Some discussion\dots}
+\example{var2v2}
+\discuss{%
+	Here node~16 can be verified by node~10. At first it looks like the
+	verification was successful because of the used equality, but in fact
+	node~10 is only taken into account because of the earlier appearance of
+	node~7. In fact node~9 could be left out completely without changing the
+	result.
+}\newline
+
+\discuss{%
+	Note: The multiple comparisons with node~0 in the end correspond to various
+	possible substitutions of the variables represented by the nodes 1 and 3
+	respectively. In future, this will be subject to optimisation.
+}
+
+\pagebreak{}
+\example{var3v1}
+\discuss{%
+	Similar problems as in Source~Code~\ref{code:var2v1} arise here.
+}
+
+\pagebreak{}
+\example{var3v2}
+\discuss{%
+	Similar problems as in Source~Code~\ref{code:var2v2} arise here.
+}
 
 \pagebreak{}
 \example{var4}
-\textcolor{dartmouthgreen}{Some discussion\dots}
+\discuss{%
+	Here, nodes 8 and 10 cannot be verified.
+}
 
 \pagebreak{}
 
