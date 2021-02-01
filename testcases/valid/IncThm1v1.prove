@@ -40,13 +40,13 @@ Note: comments are prefaced with the ## symbols
 ]
 
 ##how to assign names to specific instantiations of these points, whilst keeping the previous properties?
-[ [pt1]=[p1] ]=>
-[ [pt2]=[p2] ]=>
-[ [pt3]=[p3] ]=>
+[[ [pt1]=[p1] ]
+[ [pt2]=[p2] ]
+[ [pt3]=[p3] ]]=>
 
 ##allowed by Axiom 2 b
-[[pt2]in[y]]=>
-[[pt3]in[y]]=>
+[ [[pt2]in[y]]
+[[pt3]in[y]] ]=>
 
 
 ##the assumption which contradicts that no line exists through all three of these specific points
