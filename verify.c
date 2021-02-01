@@ -30,7 +30,7 @@
 
 unsigned short int next_in_branch(Pnode* pnode);
 
-static Pnode* eqfirst;			/* temporarily holds the first node of an equality */
+static Pnode* eqfirst; /* temporarily holds the first node of an equality */
 static Pnode* reachable;
 
 /* stack for substitution */
@@ -84,11 +84,24 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 	Variable* firsteq;
 	Variable* eq_iter;
 
+
+	//DBG_PARSER(fprintf(stderr, "%%");)
+
 	/* start with checking linked list of equal nodes */
-	firsteq = &(p1->equalto);
+	firsteq = &(p2->equalto);
 	for (eq_iter = firsteq->next; eq_iter != firsteq; eq_iter = eq_iter->next) {
-		if (eq_iter == &(p2->equalto)) {
+		//DBG_PARSER(fprintf(stderr, "+");)
+		/*DBG_PARSER(fprintf(stderr, "(eqiter: %d)(p1: %d)",
+				eq_iter->pnode->num,
+				p1->equalto.pnode->num
+				);)*/
+		if (eq_iter == &(p1->equalto)) {
 			return TRUE;
+		} else if (IS_ID(eq_iter->pnode) && IS_ID(p2->equalto.pnode)) {
+			if (strcmp(*(eq_iter->pnode->symbol), *(p2->equalto.pnode->symbol))
+					== 0) {
+				return TRUE;
+			}
 		}
 	}
 
@@ -108,10 +121,10 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 			 * Instead of:*/
 
 			 if (*(p1->symbol) != *(p2->symbol)) {
-				unsigned short int r = (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
-				DBG_VERIFY(fprintf(stderr, "+%d,%s,%s", r, *(p1->symbol), *(p2->symbol));)
-				//return (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
-				return r;
+				//unsigned short int r = (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
+				//DBG_VERIFY(fprintf(stderr, "+%d,%s,%s", r, *(p1->symbol), *(p2->symbol));)
+				return (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
+				//return r;
 			 } else {
 				return TRUE;
 			 }
@@ -140,6 +153,10 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 	if (equal) {
 		/* equate(p1, p2); This is not working due to the possible occurrence
 		 * of variables. TODO: make this work to improve performance */
+		/*if (HAS_NFLAG_NEWC(p1)) {
+			equate(p1, p2);
+		}*/
+
 		return TRUE;
 	} else {
 		return FALSE;

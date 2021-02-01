@@ -298,11 +298,13 @@ void parse_statement(void)
 		/*if (neg) {
 			TOGGLE_NFLAG_TRUE(pnode)
 		}*/
+		create_child(pnode);
 		if (HAS_NFLAG_EQTY(pnode)) {
-			equate(prev_node, pnode);
+			/*DBG_PARSER(fprintf(stderr, "(%d == %d)",
+						(*(prev_node->child))->num, (*(pnode->child))->num);)*/
+			equate(*(prev_node->child), *(pnode->child));
 			prev_node = pnode;
 		}
-		create_child(pnode);
 		move_down(&pnode);
 
 #if 0

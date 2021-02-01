@@ -293,6 +293,12 @@ void equate(Pnode* p1, Pnode* p2)
 {
 	p2->equalto.next = p1->equalto.next;
 	p1->equalto.next = &(p2->equalto);
+	/* DBG_PARSER(fprintf(stderr, "(p1: %d, %d)(p2: %d, %d)",
+				p1->equalto.next->pnode->num,
+				p1->equalto.next->next->pnode->num,
+				p2->equalto.next->pnode->num,
+				p2->equalto.next->next->pnode->num
+				);) */
 }
 
 
