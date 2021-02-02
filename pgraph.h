@@ -110,7 +110,7 @@ typedef struct Pnode {
 	Variable* var; /* link to the first variable in
 					  sub-tree (for substitution) */
 
-	Variable equalto;
+	Variable* equalto;
 } Pnode;
 
 #define CONTAINS_ID(pnode) \

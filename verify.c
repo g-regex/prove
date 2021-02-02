@@ -88,17 +88,17 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 	//DBG_PARSER(fprintf(stderr, "%%");)
 
 	/* start with checking linked list of equal nodes */
-	firsteq = &(p2->equalto);
+	firsteq = p2->equalto;
 	for (eq_iter = firsteq->next; eq_iter != firsteq; eq_iter = eq_iter->next) {
 		//DBG_PARSER(fprintf(stderr, "+");)
 		/*DBG_PARSER(fprintf(stderr, "(eqiter: %d)(p1: %d)",
 				eq_iter->pnode->num,
 				p1->equalto.pnode->num
 				);)*/
-		if (eq_iter == &(p1->equalto)) {
+		if (eq_iter == p1->equalto) {
 			return TRUE;
-		} else if (IS_ID(eq_iter->pnode) && IS_ID(p2->equalto.pnode)) {
-			if (strcmp(*(eq_iter->pnode->symbol), *(p2->equalto.pnode->symbol))
+		} else if (IS_ID(eq_iter->pnode) && IS_ID(p2->equalto->pnode)) {
+			if (strcmp(*(eq_iter->pnode->symbol), *(p2->equalto->pnode->symbol))
 					== 0) {
 				return TRUE;
 			}

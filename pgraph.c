@@ -96,8 +96,9 @@ void init_pgraph(Pnode** root)
 	(*root)->flags = NFLAG_FRST | NFLAG_TRUE;
 	(*root)->var = NULL;
 
-	(*root)->equalto.pnode = *root;
-	(*root)->equalto.next = &((*root)->equalto);
+	(*root)->equalto = (Variable*) malloc(sizeof(Variable));
+	(*root)->equalto->pnode = *root;
+	(*root)->equalto->next = (*root)->equalto;
 
 	TIKZ(fprintf(tikz, TIKZ_STARTNODE);
 	rightmost_child = 0;
@@ -124,8 +125,9 @@ void create_child(Pnode* pnode)
 	child->var = NULL;
 	child->symbol = NULL;
 
-	child->equalto.pnode = child;
-	child->equalto.next = &(child->equalto);
+	child->equalto = (Variable*) malloc(sizeof(Variable));
+	child->equalto->pnode = child;
+	child->equalto->next = child->equalto;
 
 	/* a newly created child will always be the first (i.e. left-most)
 	 * in the current subtree */
@@ -165,8 +167,9 @@ void create_right(Pnode* pnode)
 	right->symbol = NULL;
 	right->var = NULL;
 
-	right->equalto.pnode = right;
-	right->equalto.next = &(right->equalto);
+	right->equalto = (Variable*) malloc(sizeof(Variable));
+	right->equalto->pnode = right;
+	right->equalto->next = right->equalto;
 
 	/* flags are carried over to the right hand side */
 	right->flags = pnode->flags | NFLAG_TRUE;
@@ -291,8 +294,8 @@ void set_symbol(Pnode* pnode, char* symbol)
 
 void equate(Pnode* p1, Pnode* p2)
 {
-	p2->equalto.next = p1->equalto.next;
-	p1->equalto.next = &(p2->equalto);
+	p2->equalto->next = p1->equalto->next;
+	p1->equalto->next = p2->equalto;
 	/* DBG_PARSER(fprintf(stderr, "(p1: %d, %d)(p2: %d, %d)",
 				p1->equalto.next->pnode->num,
 				p1->equalto.next->next->pnode->num,
@@ -390,6 +393,7 @@ void free_graph(Pnode* pnode)
 		//TODO: test for mem leaks
 		if (pnode->var != NULL) {
 			free(pnode->var);
+			free(pnode->equalto);
 		}
 
 		if (pnode->left != NULL) {
@@ -408,6 +412,7 @@ void free_graph(Pnode* pnode)
 	TIKZ(print_flags(pnode);)
 	if (pnode->var != NULL) {
 		free(pnode->var);
+		free(pnode->equalto);
 	}
 
 	free(pnode);
