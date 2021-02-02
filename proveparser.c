@@ -299,6 +299,7 @@ void parse_statement(void)
 			TOGGLE_NFLAG_TRUE(pnode)
 		}*/
 		create_child(pnode);
+#if 0
 		if (HAS_NFLAG_EQTY(pnode)) {
 			/*DBG_PARSER(fprintf(stderr, "(%d == %d)",
 						(*(prev_node->child))->num, (*(pnode->child))->num);)*/
@@ -306,6 +307,7 @@ void parse_statement(void)
 			equate(prev_node, pnode);
 			prev_node = pnode;
 		}
+#endif
 		move_down(&pnode);
 
 #if 0
@@ -360,6 +362,12 @@ void parse_statement(void)
 		lvl--;
 
 		move_and_sum_up(&pnode);
+
+		if (HAS_NFLAG_EQTY(pnode)) {
+			/* TODO: add FATAL ERROR, if inexistent */
+			prev_node = pnode->left->left; 
+		}
+
 		/*if (!move_and_sum_up(&pnode)) {
 			fprintf(stderr, "semantic error on line %d, "
 					"column %d: identifier introduced in non-implication "\
@@ -381,13 +389,13 @@ void parse_statement(void)
 								*((*(pnode->child))->symbol)) == 0) {
 						found = TRUE;
 
-						//equate(*(pnode->child), *(ptmp->child));
-						//equate(*(ptmp->child), *(pnode->child));
 						equate(ptmp, pnode);
 
 						free(*((*(pnode->child))->symbol));
 						free((*(pnode->child))->symbol);
 
+						/*(*(pnode->child))->equalto =
+							(*(ptmp->child))->equalto;*/
 						(*(pnode->child))->symbol =
 							(*(ptmp->child))->symbol;
 						(*(pnode->child))->child =
@@ -439,6 +447,14 @@ void parse_statement(void)
 				} while (ptmp->right != NULL &&
 						((ptmp = *(ptmp->right)) != NULL));
 			}*/
+		}
+
+		if (HAS_NFLAG_EQTY(pnode)) {
+			/*DBG_PARSER(fprintf(stderr, "(%d == %d)",
+						(*(prev_node->child))->num, (*(pnode->child))->num);)*/
+			//equate(*(prev_node->child), *(pnode->child));
+			equate(prev_node, pnode);
+			prev_node = pnode;
 		}
 
 		if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)
