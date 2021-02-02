@@ -596,16 +596,18 @@ statements:
 
 \example{var1}
 
-Notice that statement~8 cannot be verified. It now carries the \texttt{NEWC}
-flag indicating that a new constant has been introduced -\ it would be
-verifiable when adding two additional assumptions: \m{[a]} and \m{[c=a]}.
+Notice that statement~8 cannot be verified. It now has the \texttt{NEWC}
+flag set, indicating that a new constant has been introduced -\ it would be
+verifiable when adding one additional assumption: \m{[c=a]}.
 \newline
 
 \discuss{%
-We might want to change this behaviour and allow new identifiers to be
-introduced anywhere in the code (i.e.\ also after a \m{=>} formulator). Then
-however, wee will have to agree on rules, under which conditions we are allowed
-to conclude an equality. The next pages show different approaches.}
+	We might want to change this behaviour and allow new identifiers to be
+	introduced anywhere in the code (i.e.\ also after a \m{=>} formulator).
+	Then, Source~Code~\ref{code:var1} could successfully be verified - but for a
+	different reason as if we would have used the suggested additional
+	assumption.
+}
 
 %Node~0 on now carries the \texttt{VAR} flag telling us that its sub-tree
 %contains at least one variable.  This is, because the constants, declared in
@@ -620,42 +622,50 @@ to conclude an equality. The next pages show different approaches.}
 \example{var2v1}
 \discuss{%
 	Here \m{[[a]=[c]]} is part of the initial assumptions. The verification
-	fails again, since node~8 is treated as a variable, when trying to verify
-	node~14 (notice the \texttt{VAR} flag of node~7).
+	is successful as node~14 (\m{[a]}) is found to be similar both nodes 11 and
+	8, which are equal by the statement of node~7.
 }
 
 \pagebreak{}
-\example{var2v2}
-\discuss{%
-	Here node~16 can be verified by node~10. At first it looks like the
-	verification was successful because of the used equality, but in fact
-	node~10 is only taken into account because of the earlier appearance of
-	node~7. In fact node~9 could be left out completely without changing the
-	result.
-}\newline
-
-\discuss{%
-	Note: The multiple comparisons with node~0 in the end correspond to various
-	possible substitutions of the variables represented by the nodes 1 and 3
-	respectively. In future, this will be subject to optimisation.
-}
+%\example{var2v2}
+%\discuss{%
+%	Here node~16 can be verified by node~10. At first it looks like the
+%	verification was successful because of the used equality, but in fact
+%	node~10 is only taken into account because of the earlier appearance of
+%	node~7. In fact node~9 could be left out completely without changing the
+%	result.
+%}\newline
+%
+%\discuss{%
+%	Note: The multiple comparisons with node~0 in the end correspond to various
+%	possible substitutions of the variables represented by the nodes 1 and 3
+%	respectively. In future, this will be subject to optimisation.
+%}
 
 \pagebreak{}
 \example{var3v1}
 \discuss{%
-	Similar problems as in Source~Code~\ref{code:var2v1} arise here.
+	This is a variation of Source~Code~\ref{code:var2v1}, where \m{[c=a]} is an
+	assumption in an implication at a deeper level.
+}
+
+%\pagebreak{}
+%\example{var3v2}
+%\discuss{%
+%	Similar problems as in Source~Code~\ref{code:var2v2} arise here.
+%}
+
+\pagebreak{}
+\example{var4v1}
+\discuss{%
+	Here, nodes 8 and 10 cannot be verified, since there are no nodes in
+	eligible positions which they are similar to.
 }
 
 \pagebreak{}
-\example{var3v2}
+\example{var4v2}
 \discuss{%
-	Similar problems as in Source~Code~\ref{code:var2v2} arise here.
-}
-
-\pagebreak{}
-\example{var4}
-\discuss{%
-	Here, nodes 8 and 10 cannot be verified.
+	Here, same problems as in Source~Code~\ref{code:var4v1} arise.
 }
 
 \pagebreak{}
