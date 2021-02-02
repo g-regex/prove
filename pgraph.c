@@ -255,7 +255,8 @@ void move_and_sum_up(Pnode** pnode)
 				!HAS_NFLAG_EQTY((*pnode))) {
 			UNSET_NFLAG_ASMP((*pnode))
 		}
-		if (HAS_NFLAG_NEWC((*pnode))) {
+										/* ignore NEWC in equalities */
+		if (HAS_NFLAG_NEWC((*pnode)) && !HAS_NFLAG_EQTY((*pnode))) {
 			/*if (!HAS_NFLAG_ASMP((*pnode))) success = FALSE; REMOVED:semERROR*/ 
 			var = (Variable*) malloc(sizeof(Variable));
 			var->pnode = *((*pnode)->child);
@@ -294,14 +295,30 @@ void set_symbol(Pnode* pnode, char* symbol)
 
 void equate(Pnode* p1, Pnode* p2)
 {
-	p2->equalto->next = p1->equalto->next;
-	p1->equalto->next = p2->equalto;
-	/* DBG_PARSER(fprintf(stderr, "(p1: %d, %d)(p2: %d, %d)",
-				p1->equalto.next->pnode->num,
-				p1->equalto.next->next->pnode->num,
-				p2->equalto.next->pnode->num,
-				p2->equalto.next->next->pnode->num
-				);) */
+	Variable* firsteq1;
+	Variable* eq_iter1;
+	Variable* firsteq2;
+	Variable* eq_iter2;
+
+	/* move to last equalto in circle */
+	firsteq1 = p1->equalto;
+	for (eq_iter1 = firsteq1; eq_iter1->next != firsteq1; eq_iter1 = eq_iter1->next);
+	firsteq2 = p2->equalto;
+	for (eq_iter2 = firsteq2; eq_iter2->next != firsteq2; eq_iter2 = eq_iter2->next);
+
+	eq_iter1->next = p2->equalto;
+	eq_iter2->next = p1->equalto;
+
+	/*p2->equalto->next = p1->equalto->next;
+	p1->equalto->next = p2->equalto;*/
+	/*DBG_PARSER(fprintf(stderr, "(p1: %d, %d, %d)(p2: %d, %d, %d)",
+				p1->equalto->next->pnode->num,
+				p1->equalto->next->next->pnode->num,
+				p1->equalto->next->next->next->pnode->num,
+				p2->equalto->next->pnode->num,
+				p2->equalto->next->next->pnode->num,
+				p2->equalto->next->next->next->pnode->num
+				);)*/
 }
 
 

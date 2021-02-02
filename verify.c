@@ -76,33 +76,46 @@ unsigned short int wrap_right()
 
 /* --- verification --------------------------------------------------------- */
 
-/* compares two constant sub-trees;
- * must be given the top left node of the subtrees to compare */
-unsigned short int const_equal(Pnode* p1, Pnode* p2)
+unsigned short int are_equal(Pnode* p1, Pnode* p2)
 {
-	unsigned short int equal;
 	Variable* firsteq;
 	Variable* eq_iter;
 
-
-	//DBG_PARSER(fprintf(stderr, "%%");)
+	//DBG_PARSER(fprintf(stderr, "(%d==%d?)", p1->num, p2->num);)
 
 	/* start with checking linked list of equal nodes */
 	firsteq = p2->equalto;
 	for (eq_iter = firsteq->next; eq_iter != firsteq; eq_iter = eq_iter->next) {
 		//DBG_PARSER(fprintf(stderr, "+");)
-		/*DBG_PARSER(fprintf(stderr, "(eqiter: %d)(p1: %d)",
+		/*DBG_PARSER(fprintf(stderr, "(eqiter: %d)(p1/%d: %d)",
 				eq_iter->pnode->num,
-				p1->equalto.pnode->num
+				p1->num,
+				p1->equalto->pnode->num
 				);)*/
 		if (eq_iter == p1->equalto) {
+			//DBG_PARSER(fprintf(stderr, "!");)
 			return TRUE;
-		} else if (IS_ID(eq_iter->pnode) && IS_ID(p2->equalto->pnode)) {
-			if (strcmp(*(eq_iter->pnode->symbol), *(p2->equalto->pnode->symbol))
-					== 0) {
+		} else if (CONTAINS_ID(eq_iter->pnode) && CONTAINS_ID(p1->equalto->pnode)) {
+			//DBG_PARSER(fprintf(stderr, "Z");)
+			if (strcmp(*((*(eq_iter->pnode->child))->symbol),
+						*((*(p1->equalto->pnode->child))->symbol)) == 0) {
+			//DBG_PARSER(fprintf(stderr, "&");)
 				return TRUE;
 			}
 		}
+	}
+
+	return FALSE;
+}
+
+/* compares two constant sub-trees;
+ * must be given the top left node of the subtrees to compare */
+unsigned short int const_equal(Pnode* p1, Pnode* p2)
+{
+	unsigned short int equal;
+
+	if (are_equal(p1, p2)) {
+		return TRUE;
 	}
 
 	/*if (HAS_NFLAG_TRUE(p1) != HAS_NFLAG_TRUE(p2)) {
@@ -170,6 +183,9 @@ unsigned short int verify(Pnode* pnode)
 	if (!HAS_CHILD(pnode) && !HAS_CHILD(reachable)) {
 		/* FATAL ERROR: function should not have been called, if this is true */
 		return FALSE;
+	}
+	if (are_equal(pnode, reachable)) {
+		return TRUE;
 	}
 	return const_equal(*(pnode->child), *(reachable->child));
 }

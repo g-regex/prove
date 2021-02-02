@@ -302,7 +302,8 @@ void parse_statement(void)
 		if (HAS_NFLAG_EQTY(pnode)) {
 			/*DBG_PARSER(fprintf(stderr, "(%d == %d)",
 						(*(prev_node->child))->num, (*(pnode->child))->num);)*/
-			equate(*(prev_node->child), *(pnode->child));
+			//equate(*(prev_node->child), *(pnode->child));
+			equate(prev_node, pnode);
 			prev_node = pnode;
 		}
 		move_down(&pnode);
@@ -379,6 +380,10 @@ void parse_statement(void)
 					if (strcmp(*((*(ptmp->child))->symbol),
 								*((*(pnode->child))->symbol)) == 0) {
 						found = TRUE;
+
+						//equate(*(pnode->child), *(ptmp->child));
+						//equate(*(ptmp->child), *(pnode->child));
+						equate(ptmp, pnode);
 
 						free(*((*(pnode->child))->symbol));
 						free((*(pnode->child))->symbol);
