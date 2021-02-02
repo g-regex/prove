@@ -410,6 +410,8 @@ void free_graph(Pnode* pnode)
 		//TODO: test for mem leaks
 		if (pnode->var != NULL) {
 			free(pnode->var);
+		}
+		if (pnode->equalto->pnode->num == pnode->num) {
 			free(pnode->equalto);
 		}
 
@@ -429,6 +431,8 @@ void free_graph(Pnode* pnode)
 	TIKZ(print_flags(pnode);)
 	if (pnode->var != NULL) {
 		free(pnode->var);
+	}
+	if (pnode->equalto->pnode->num == pnode->num) {
 		free(pnode->equalto);
 	}
 

@@ -393,9 +393,10 @@ void parse_statement(void)
 
 						free(*((*(pnode->child))->symbol));
 						free((*(pnode->child))->symbol);
+						free((*(pnode->child))->equalto);
 
-						/*(*(pnode->child))->equalto =
-							(*(ptmp->child))->equalto;*/
+						(*(pnode->child))->equalto =
+							(*(ptmp->child))->equalto;
 						(*(pnode->child))->symbol =
 							(*(ptmp->child))->symbol;
 						(*(pnode->child))->child =
