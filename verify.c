@@ -195,15 +195,22 @@ unsigned short int check_asmp(Pnode* pnode)
 {
 	Pnode* pconst;
 
-	DBG_VERIFY(fprintf(stderr, ":");)
+	//DBG_VERIFY(fprintf(stderr, ":");)
 
 	for (pconst = pnode->prev_const; pconst != NULL;
 			pconst = pconst->prev_const) {
 		if (verify(pconst)) {
-			DBG_VERIFY(fprintf(stderr, "(%d)", pconst->num);)
+			//DBG_VERIFY(fprintf(stderr, "(%d)", pconst->num);)
+			if (HAS_GFLAG_BRCH) {
+				DBG_VERIFY(fprintf(stderr, "!");)
+				if (HAS_GFLAG_SUBD) {
+					DBG_VERIFY(fprintf(stderr, "%%");)
+				}
+			}
+			//
 			return TRUE;
 		} else {
-			DBG_VERIFY(fprintf(stderr, "%d,", pconst->num);)
+			//DBG_VERIFY(fprintf(stderr, "%d,", pconst->num);)
 		}
 	}
 	return FALSE;
@@ -284,16 +291,16 @@ unsigned short int next_known_const(Pnode* pnode, SUB* s)
 					init_known_const(pnode, s);
 					sub_var(s);
 
-					DBG_VERIFY(fprintf(stderr,
-						"\\%s=%d/", s->sym, s->known_const->num);)
+					/*DBG_VERIFY(fprintf(stderr,
+						"\\%s=%d/", s->sym, s->known_const->num);)*/
 					return TRUE;
 				} else {
 					return FALSE;
 				}
 			} else {
 				sub_var(s);
-				DBG_VERIFY(fprintf(stderr,
-					"\\%s=%d/", s->sym, s->known_const->num);)
+				/*DBG_VERIFY(fprintf(stderr,
+					"\\%s=%d/", s->sym, s->known_const->num);)*/
 				return TRUE;
 			}
 		} else {
@@ -414,7 +421,7 @@ unsigned short int attempt_explore(Pnode* pnode)
 {
 	if (explore_branch()) {
 		SET_GFLAG_BRCH
-		DBG_VERIFY(fprintf(stderr, "~");)
+		//DBG_VERIFY(fprintf(stderr, "~");)
 		if (!next_in_branch(pnode)) {
 			exit_branch();
 			return next_reachable_const(pnode);
@@ -428,6 +435,7 @@ unsigned short int attempt_explore(Pnode* pnode)
 /* move up in branch in proceed with exploration to the right, if possible */
 unsigned short int branch_proceed(Pnode* pnode)
 {
+#if 0
 	do {
 		if (bc->above == NULL) {
 			return FALSE; /* last pop is done by exit_branch */
@@ -440,6 +448,20 @@ unsigned short int branch_proceed(Pnode* pnode)
 			}
 		}
 	} while (!wrap_right());
+#endif
+
+	while (!wrap_right()) {
+		if (bc->above == NULL) {
+			return FALSE; /* last pop is done by exit_branch */
+		} else {
+			bc_pop(&reachable);
+			if (HAS_GFLAG_WRAP) {
+				SET_GFLAG_WRAP
+				wrap_right();
+				break;
+			}
+		}
+	}
 
 	return HAS_SYMBOL(reachable) ? next_in_branch(pnode) : TRUE;
 }
@@ -457,23 +479,24 @@ unsigned short int next_in_branch(Pnode* pnode)
 
 	if (HAS_NFLAG_IMPL(reachable)) {
 		if (HAS_NFLAG_FRST(reachable)) {
-			DBG_VERIFY(fprintf(stderr, "(%d", reachable->num);)
+			//DBG_VERIFY(fprintf(stderr, "(%d", reachable->num);)
 			if (!check_asmp(pnode)) {
-				DBG_VERIFY(fprintf(stderr, ":F)");)
+				//DBG_VERIFY(fprintf(stderr, ":F)");)
 				return FALSE;	
 			} else if (!move_right(&reachable)) {
-				DBG_VERIFY(fprintf(stderr, ":X)");)
+				//DBG_VERIFY(fprintf(stderr, ":X)");)
 				/* FATAL ERROR, must not happen
 				 * (node with FRST flag cannot be the last one) */
 				return FALSE;
 			} else {
-				DBG_VERIFY(fprintf(stderr, ":>)");)
+				//DBG_VERIFY(fprintf(stderr, ":>)");)
 				return next_in_branch(pnode);
 			}
 		} else {
 			if (explore_branch()) {
 				return next_in_branch(pnode);
 			} else {
+				DBG_VERIFY(fprintf(stderr, ".");)
 				return branch_proceed(pnode);	
 			}
 		}
@@ -496,12 +519,12 @@ unsigned short int next_in_branch(Pnode* pnode)
 
 			do {
 
-				DBG_VERIFY(fprintf(stderr, "(%d", reachable->num);)
+				//DBG_VERIFY(fprintf(stderr, "(%d", reachable->num);)
 				if (HAS_SYMBOL(reachable)){
-					DBG_VERIFY(fprintf(stderr, ":S)");)
+					//DBG_VERIFY(fprintf(stderr, ":S)");)
 					continue;
 				} else if (check_asmp(pnode)) {
-					DBG_VERIFY(fprintf(stderr, ":>>)");)
+					//DBG_VERIFY(fprintf(stderr, ":>>)");)
 					SET_GFLAG_WRAP
 					eqendwrap = reachable;
 
@@ -511,7 +534,7 @@ unsigned short int next_in_branch(Pnode* pnode)
 
 					return TRUE;
 				} else {
-					DBG_VERIFY(fprintf(stderr, ":E)");)
+					//DBG_VERIFY(fprintf(stderr, ":E)");)
 				}
 
 			} while (move_right(&reachable));
