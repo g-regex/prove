@@ -60,7 +60,13 @@ void next_token(Token *token)
 
 	/* get the next token */
 	if (ch != EOF) {
-		if (isalpha(ch) || isdigit(ch) || isspecial(ch)) {
+		if (ch == '#') {
+			/* skip comments */
+			while (ch != '\n') {
+				next_char();
+			}
+			next_token(token);
+		} else if (isalpha(ch) || isdigit(ch) || isspecial(ch)) {
 			/* process a <string> */
 			token->type = TOK_SYM;
 			process_string(token);

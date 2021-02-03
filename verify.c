@@ -263,8 +263,13 @@ unsigned short int sub_var(SUB* s)
 		*(s->var->pnode->right) = NULL;
 	} else {
 		*(s->var->pnode->symbol) = NULL;
-		*(s->var->pnode->child) = *((*(s->known_const->child))->child);
-		*(s->var->pnode->right) = *((*(s->known_const->child))->right);
+		/* FIXME: rethink the next 6 lines */
+		if ((*(s->known_const->child))->child != NULL) {
+			*(s->var->pnode->child) = *((*(s->known_const->child))->child);
+		}
+		if ((*(s->known_const->child))->right != NULL) {
+			*(s->var->pnode->right) = *((*(s->known_const->child))->right);
+		}
 	}
 }
 
