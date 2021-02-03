@@ -147,9 +147,10 @@ int main(int argc, char *argv[])
 
 	/* <expr>
 	 * (loop probably not needed) */
-	while (token.type != TOK_EOF) {
+	//while (token.type != TOK_EOF) {
 		parse_expr();
-	}
+	//}
+	expect(TOK_EOF);
 
 	TIKZ(fprintf(tikz, TIKZ_ENDSCOPE);)
 
@@ -175,6 +176,56 @@ void parse_expr(void)
 void parse_formula(void)
 {
 	int proceed;
+	
+	if (token.type == TOK_SYM) {
+		set_symbol(pnode, token.id);	
+		DBG_PARSER(fprintf(stderr, "%s", *(pnode->symbol));)
+		next_token(&token);
+		if (token.type == TOK_RBRACK) {
+			/* token is an identifier */
+			return;
+		} else if (token.type == TOK_LBRACK /*|| token.type == TOK_NOT*/) {
+			/* token is a formulator */
+			/* check for conflicting flags and report ERROR */
+			SET_NFLAG_FMLA(pnode)
+			/* continue */
+		} else {
+			/* formulators must not be mixed/identifiers must not contain = */
+			/* ERROR */
+			return;
+		}
+	} else if (token.type == TOK_IMPLY) {
+		DBG_PARSER(fprintf(stderr, "%s", token.id);)
+		/* token is an implication symbol */
+		next_token(&token);
+		if (token.type == TOK_RBRACK) {
+			/* statements must not contain only an implication symbol */
+			/* ERROR */
+			return;
+		} else if (token.type == TOK_LBRACK /*|| token.type == TOK_NOT*/) {
+			/* only valid option */
+			SET_NFLAG_IMPL(pnode)
+			/* continue */
+		} else {
+			/* formulators must not be mixed/identifiers must not contain = */
+			/* ERROR */
+			return;
+		}
+	} else if (token.type == TOK_EQ) {
+		DBG_PARSER(fprintf(stderr, "%s", token.id);)
+		/* statements must not begin with an equality token */
+		/* ERROR */
+		return;
+	} else if (token.type == TOK_LBRACK /*|| token.type == TOK_NOT*/) {
+		/* continue */
+	} else if (token.type == TOK_RBRACK) {
+		/* empty statement */
+		return;
+	} else {
+		/* cannot go here, undefined behaviour */
+		/* ERROR */
+		return;
+	}
 
 	proceed = TRUE;
 
@@ -218,7 +269,7 @@ void parse_statement(void)
 	Pnode* ptmp;
 	int proceed;
 	unsigned short int found;
-	/*unsigned short int neg;*/		/* set, if current pair of brackets is negated*/
+	/*unsigned short int neg;*/		/* set, if current pair of brackets is negated */
 	unsigned short int vstatus;		/* verification status */
 
 	proceed = TRUE;
@@ -235,7 +286,8 @@ void parse_statement(void)
 			DBG_PARSER(fprintf(stderr, "%s", token.id);)
 		}*/
 
-		expect(TOK_LBRACK); if (HAS_GFLAG_VRFD) {
+		expect(TOK_LBRACK);
+		if (HAS_GFLAG_VRFD) {
 			UNSET_GFLAG_VRFD
 		}
 
@@ -246,72 +298,21 @@ void parse_statement(void)
 		/*if (neg) {
 			TOGGLE_NFLAG_TRUE(pnode)
 		}*/
-		if (HAS_NFLAG_EQTY(pnode)) {
-			equate(prev_node, pnode);
-			prev_node = pnode;
-		}
 		create_child(pnode);
 		move_down(&pnode);
 
-		if (token.type == TOK_SYM) {
-			set_symbol(pnode, token.id);	
-			next_token(&token);
-			if (token.type == TOK_RBRACK) {
-				/* token is an identifier */
-				DBG_PARSER(fprintf(stderr, "%s", *(pnode->symbol));)
-			} else if (token.type == TOK_LBRACK /*|| token.type == TOK_NOT*/) {
-				/* token is a formulator */
-				/* check for conflicting flags and report ERROR */
-				DBG_PARSER(fprintf(stderr, "%s", *(pnode->symbol));)
-				SET_NFLAG_FMLA(pnode)
-				parse_expr();
-			} else {
-				/* formulators must not be mixed/identifiers must not contain = */
-				/* ERROR */
-			}
-		} else if (token.type == TOK_IMPLY) {
-			DBG_PARSER(fprintf(stderr, "%s", token.id);)
-			/* token is an implication symbol */
-			next_token(&token);
-			if (token.type == TOK_RBRACK) {
-				/* statements must not contain only an implication symbol */
-				/* ERROR */
-			} else if (token.type == TOK_LBRACK /*|| token.type == TOK_NOT*/) {
-				/* only valid option */
-				SET_NFLAG_IMPL(pnode)
-				parse_expr();
-			} else {
-				/* formulators must not be mixed/identifiers must not contain = */
-				/* ERROR */
-			}
-		} else if (token.type == TOK_EQ) {
-			DBG_PARSER(fprintf(stderr, "%s", token.id);)
-			/* statements must not begin with an equality token */
-			/* ERROR */
-		} else if (token.type == TOK_LBRACK /*|| token.type == TOK_NOT*/) {
-			parse_expr();
-		} else if (token.type == TOK_RBRACK) {
-			/* empty statement */
-		} else {
-			/* cannot go here, undefined behaviour */
-			/* ERROR */
-		}
+		parse_expr();
 
 		DBG_PARSER(fprintf(stderr, "%s", token.id);)
 		expect(TOK_RBRACK);
 		lvl--;
 
 		move_and_sum_up(&pnode);
-		/*if (!move_and_sum_up(&pnode)) {
-			fprintf(stderr, "semantic error on line %d, "
-					"column %d: identifier introduced in non-implication "\
-					"formula\n", cursor.line, cursor.col);
-			if (!DBG_FINISH_IS_SET) {
-				exit(EXIT_FAILURE);
-			} else {
-				success = EXIT_FAILURE;
-			}
-		}*/
+
+		if (HAS_NFLAG_EQTY(pnode)) {
+			/* TODO: add FATAL ERROR, if inexistent */
+			prev_node = pnode->left->left; 
+		}
 
 		/* check whether a new identifier was introduced */
 		if (CONTAINS_ID(pnode)) {
@@ -323,9 +324,14 @@ void parse_statement(void)
 								*((*(pnode->child))->symbol)) == 0) {
 						found = TRUE;
 
+						equate(ptmp, pnode);
+
 						free(*((*(pnode->child))->symbol));
 						free((*(pnode->child))->symbol);
+						free((*(pnode->child))->equalto);
 
+						(*(pnode->child))->equalto =
+							(*(ptmp->child))->equalto;
 						(*(pnode->child))->symbol =
 							(*(ptmp->child))->symbol;
 						(*(pnode->child))->child =
@@ -339,43 +345,32 @@ void parse_statement(void)
 				ptmp = ptmp->prev_const;
 			}
 			if (found == FALSE) {
-#if 0
-				if (HAS_FFLAGS(pnode)) {
-					/* TODO: REVIEW the check above */
-					/* ERROR new ids must only occur, in assumptions;
-					 * this is also handled in move_and_sum_up() */
-					fprintf(stderr, "semantic error on line %d, "
-							"column %d: statement contains a new identifier at "
-							"an invalid position\n", cursor.line, cursor.col);
-					if (!DBG_FINISH_IS_SET) {
-						exit(EXIT_FAILURE);
-					} else {
-						success = EXIT_FAILURE;
-					}
-				} else {
-#endif
-					SET_NFLAG_NEWC(pnode)
+				SET_NFLAG_NEWC(pnode)
 
-					/* TODO: check constraints on introducing new identifiers */
-
-					/* for sub-tree substitution */
-					(*(pnode->child))->child =
-						(Pnode**) malloc(sizeof(struct Pnode*));
-					*((*(pnode->child))->child) = NULL;
-					(*(pnode->child))->right =
-						(Pnode**) malloc(sizeof(struct Pnode*));
-					*((*(pnode->child))->right) = NULL;
-				//}
+				/* TODO: check constraints on introducing new identifiers */
+				/* for sub-tree substitution */
+				(*(pnode->child))->child =
+					(Pnode**) malloc(sizeof(struct Pnode*));
+				*((*(pnode->child))->child) = NULL;
+				(*(pnode->child))->right =
+					(Pnode**) malloc(sizeof(struct Pnode*));
+				*((*(pnode->child))->right) = NULL;
 			}
 		} else if (!HAS_FFLAGS((*(pnode->child)))) {
+			/* FIXME */
 			/* verify children, if we have nested statements */
-			if (!HAS_NFLAG_ASMP(pnode)) {
+			/*if (!HAS_NFLAG_ASMP(pnode)) {
 				ptmp = *(pnode->child);
 				do {
 					trigger_verify(ptmp);	
 				} while (ptmp->right != NULL &&
 						((ptmp = *(ptmp->right)) != NULL));
-			}
+			}*/
+		}
+
+		if (HAS_NFLAG_EQTY(pnode)) {
+			equate(prev_node, pnode);
+			prev_node = pnode;
 		}
 
 		if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)

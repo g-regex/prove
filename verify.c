@@ -30,7 +30,7 @@
 
 unsigned short int next_in_branch(Pnode* pnode);
 
-static Pnode* eqfirst;			/* temporarily holds the first node of an equality */
+static Pnode* eqfirst; /* temporarily holds the first node of an equality */
 static Pnode* reachable;
 
 /* stack for substitution */
@@ -76,20 +76,46 @@ unsigned short int wrap_right()
 
 /* --- verification --------------------------------------------------------- */
 
+unsigned short int are_equal(Pnode* p1, Pnode* p2)
+{
+	Variable* firsteq;
+	Variable* eq_iter;
+
+	//DBG_PARSER(fprintf(stderr, "(%d==%d?)", p1->num, p2->num);)
+
+	/* start with checking linked list of equal nodes */
+	firsteq = p2->equalto;
+	for (eq_iter = firsteq->next; eq_iter != firsteq; eq_iter = eq_iter->next) {
+		//DBG_PARSER(fprintf(stderr, "+");)
+		/*DBG_PARSER(fprintf(stderr, "(eqiter: %d)(p1/%d: %d)",
+				eq_iter->pnode->num,
+				p1->num,
+				p1->equalto->pnode->num
+				);)*/
+		if (eq_iter == p1->equalto) {
+			//DBG_PARSER(fprintf(stderr, "!");)
+			return TRUE;
+		} else if (CONTAINS_ID(eq_iter->pnode) && CONTAINS_ID(p1->equalto->pnode)) {
+			//DBG_PARSER(fprintf(stderr, "Z");)
+			if (strcmp(*((*(eq_iter->pnode->child))->symbol),
+						*((*(p1->equalto->pnode->child))->symbol)) == 0) {
+			//DBG_PARSER(fprintf(stderr, "&");)
+				return TRUE;
+			}
+		}
+	}
+
+	return FALSE;
+}
+
 /* compares two constant sub-trees;
  * must be given the top left node of the subtrees to compare */
 unsigned short int const_equal(Pnode* p1, Pnode* p2)
 {
 	unsigned short int equal;
-	Variable* firsteq;
-	Variable* eq_iter;
 
-	/* start with checking linked list of equal nodes */
-	firsteq = &(p1->equalto);
-	for (eq_iter = firsteq->next; eq_iter != firsteq; eq_iter = eq_iter->next) {
-		if (eq_iter == &(p2->equalto)) {
-			return TRUE;
-		}
+	if (are_equal(p1, p2)) {
+		return TRUE;
 	}
 
 	/*if (HAS_NFLAG_TRUE(p1) != HAS_NFLAG_TRUE(p2)) {
@@ -107,13 +133,16 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 			 *
 			 * Instead of:*/
 
-			 /*if (*(p1->symbol) != *(p2->symbol)) {
+			 if (*(p1->symbol) != *(p2->symbol)) {
+				//unsigned short int r = (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
+				//DBG_VERIFY(fprintf(stderr, "+%d,%s,%s", r, *(p1->symbol), *(p2->symbol));)
 				return (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
+				//return r;
 			 } else {
 				return TRUE;
-			 }*/
+			 }
 			/******************************************************************/
-			equal = (*(p1->symbol) == *(p2->symbol));
+			/* equal = (*(p1->symbol) == *(p2->symbol)); */
 		} else {
 			return FALSE;
 		}
@@ -137,6 +166,10 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 	if (equal) {
 		/* equate(p1, p2); This is not working due to the possible occurrence
 		 * of variables. TODO: make this work to improve performance */
+		/*if (HAS_NFLAG_NEWC(p1)) {
+			equate(p1, p2);
+		}*/
+
 		return TRUE;
 	} else {
 		return FALSE;
@@ -150,6 +183,9 @@ unsigned short int verify(Pnode* pnode)
 	if (!HAS_CHILD(pnode) && !HAS_CHILD(reachable)) {
 		/* FATAL ERROR: function should not have been called, if this is true */
 		return FALSE;
+	}
+	if (are_equal(pnode, reachable)) {
+		return TRUE;
 	}
 	return const_equal(*(pnode->child), *(reachable->child));
 }
@@ -176,7 +212,6 @@ unsigned short int check_asmp(Pnode* pnode)
 unsigned short int trigger_verify(Pnode* pn)
 {
 	/*if (IS_EMPTY(pn) || (HAS_CHILD(pn) && IS_EMPTY((*(pn->child))))) {
-		//DBG_PARSER(fprintf(stderr, "T");)
 		return HAS_NFLAG_TRUE(pn);
 	}*/
 	init_backtrack(pn);

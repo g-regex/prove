@@ -96,8 +96,9 @@ void init_pgraph(Pnode** root)
 	(*root)->flags = NFLAG_FRST | NFLAG_TRUE;
 	(*root)->var = NULL;
 
-	(*root)->equalto.pnode = *root;
-	(*root)->equalto.next = &((*root)->equalto);
+	(*root)->equalto = (Variable*) malloc(sizeof(Variable));
+	(*root)->equalto->pnode = *root;
+	(*root)->equalto->next = (*root)->equalto;
 
 	TIKZ(fprintf(tikz, TIKZ_STARTNODE);
 	rightmost_child = 0;
@@ -124,8 +125,9 @@ void create_child(Pnode* pnode)
 	child->var = NULL;
 	child->symbol = NULL;
 
-	child->equalto.pnode = child;
-	child->equalto.next = &(child->equalto);
+	child->equalto = (Variable*) malloc(sizeof(Variable));
+	child->equalto->pnode = child;
+	child->equalto->next = child->equalto;
 
 	/* a newly created child will always be the first (i.e. left-most)
 	 * in the current subtree */
@@ -165,8 +167,9 @@ void create_right(Pnode* pnode)
 	right->symbol = NULL;
 	right->var = NULL;
 
-	right->equalto.pnode = right;
-	right->equalto.next = &(right->equalto);
+	right->equalto = (Variable*) malloc(sizeof(Variable));
+	right->equalto->pnode = right;
+	right->equalto->next = right->equalto;
 
 	/* flags are carried over to the right hand side */
 	right->flags = pnode->flags | NFLAG_TRUE;
@@ -252,7 +255,8 @@ void move_and_sum_up(Pnode** pnode)
 				!HAS_NFLAG_EQTY((*pnode))) {
 			UNSET_NFLAG_ASMP((*pnode))
 		}
-		if (HAS_NFLAG_NEWC((*pnode))) {
+										/* ignore NEWC in equalities */
+		if (HAS_NFLAG_NEWC((*pnode)) && !HAS_NFLAG_EQTY((*pnode))) {
 			/*if (!HAS_NFLAG_ASMP((*pnode))) success = FALSE; REMOVED:semERROR*/ 
 			var = (Variable*) malloc(sizeof(Variable));
 			var->pnode = *((*pnode)->child);
@@ -291,8 +295,19 @@ void set_symbol(Pnode* pnode, char* symbol)
 
 void equate(Pnode* p1, Pnode* p2)
 {
-	p2->equalto.next = p1->equalto.next;
-	p1->equalto.next = &(p2->equalto);
+	Variable* firsteq1;
+	Variable* eq_iter1;
+	Variable* firsteq2;
+	Variable* eq_iter2;
+
+	/* move to last equalto in circle */
+	firsteq1 = p1->equalto;
+	for (eq_iter1 = firsteq1; eq_iter1->next != firsteq1; eq_iter1 = eq_iter1->next);
+	firsteq2 = p2->equalto;
+	for (eq_iter2 = firsteq2; eq_iter2->next != firsteq2; eq_iter2 = eq_iter2->next);
+
+	eq_iter1->next = p2->equalto;
+	eq_iter2->next = p1->equalto;
 }
 
 
@@ -385,6 +400,9 @@ void free_graph(Pnode* pnode)
 		if (pnode->var != NULL) {
 			free(pnode->var);
 		}
+		if (pnode->equalto->pnode->num == pnode->num) {
+			free(pnode->equalto);
+		}
 
 		if (pnode->left != NULL) {
 			move_left(&pnode);
@@ -402,6 +420,9 @@ void free_graph(Pnode* pnode)
 	TIKZ(print_flags(pnode);)
 	if (pnode->var != NULL) {
 		free(pnode->var);
+	}
+	if (pnode->equalto->pnode->num == pnode->num) {
+		free(pnode->equalto);
 	}
 
 	free(pnode);
