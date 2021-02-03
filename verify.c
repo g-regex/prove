@@ -212,7 +212,6 @@ unsigned short int check_asmp(Pnode* pnode)
 unsigned short int trigger_verify(Pnode* pn)
 {
 	/*if (IS_EMPTY(pn) || (HAS_CHILD(pn) && IS_EMPTY((*(pn->child))))) {
-		//DBG_PARSER(fprintf(stderr, "T");)
 		return HAS_NFLAG_TRUE(pn);
 	}*/
 	init_backtrack(pn);

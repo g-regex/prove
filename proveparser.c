@@ -188,7 +188,7 @@ void parse_formula(void)
 			/* token is a formulator */
 			/* check for conflicting flags and report ERROR */
 			SET_NFLAG_FMLA(pnode)
-			//parse_expr();
+			/* continue */
 		} else {
 			/* formulators must not be mixed/identifiers must not contain = */
 			/* ERROR */
@@ -205,7 +205,7 @@ void parse_formula(void)
 		} else if (token.type == TOK_LBRACK /*|| token.type == TOK_NOT*/) {
 			/* only valid option */
 			SET_NFLAG_IMPL(pnode)
-			//parse_expr();
+			/* continue */
 		} else {
 			/* formulators must not be mixed/identifiers must not contain = */
 			/* ERROR */
@@ -217,7 +217,7 @@ void parse_formula(void)
 		/* ERROR */
 		return;
 	} else if (token.type == TOK_LBRACK /*|| token.type == TOK_NOT*/) {
-		//parse_expr();
+		/* continue */
 	} else if (token.type == TOK_RBRACK) {
 		/* empty statement */
 		return;
@@ -269,7 +269,7 @@ void parse_statement(void)
 	Pnode* ptmp;
 	int proceed;
 	unsigned short int found;
-	/*unsigned short int neg;*/		/* set, if current pair of brackets is negated*/
+	/*unsigned short int neg;*/		/* set, if current pair of brackets is negated */
 	unsigned short int vstatus;		/* verification status */
 
 	proceed = TRUE;
@@ -299,62 +299,8 @@ void parse_statement(void)
 			TOGGLE_NFLAG_TRUE(pnode)
 		}*/
 		create_child(pnode);
-#if 0
-		if (HAS_NFLAG_EQTY(pnode)) {
-			/*DBG_PARSER(fprintf(stderr, "(%d == %d)",
-						(*(prev_node->child))->num, (*(pnode->child))->num);)*/
-			//equate(*(prev_node->child), *(pnode->child));
-			equate(prev_node, pnode);
-			prev_node = pnode;
-		}
-#endif
 		move_down(&pnode);
 
-#if 0
-		if (token.type == TOK_SYM) {
-			set_symbol(pnode, token.id);	
-			next_token(&token);
-			if (token.type == TOK_RBRACK) {
-				/* token is an identifier */
-				DBG_PARSER(fprintf(stderr, "%s", *(pnode->symbol));)
-			} else if (token.type == TOK_LBRACK /*|| token.type == TOK_NOT*/) {
-				/* token is a formulator */
-				/* check for conflicting flags and report ERROR */
-				DBG_PARSER(fprintf(stderr, "%s", *(pnode->symbol));)
-				SET_NFLAG_FMLA(pnode)
-				parse_expr();
-			} else {
-				/* formulators must not be mixed/identifiers must not contain = */
-				/* ERROR */
-			}
-		} else if (token.type == TOK_IMPLY) {
-			DBG_PARSER(fprintf(stderr, "%s", token.id);)
-			/* token is an implication symbol */
-			next_token(&token);
-			if (token.type == TOK_RBRACK) {
-				/* statements must not contain only an implication symbol */
-				/* ERROR */
-			} else if (token.type == TOK_LBRACK /*|| token.type == TOK_NOT*/) {
-				/* only valid option */
-				SET_NFLAG_IMPL(pnode)
-				parse_expr();
-			} else {
-				/* formulators must not be mixed/identifiers must not contain = */
-				/* ERROR */
-			}
-		} else if (token.type == TOK_EQ) {
-			DBG_PARSER(fprintf(stderr, "%s", token.id);)
-			/* statements must not begin with an equality token */
-			/* ERROR */
-		} else if (token.type == TOK_LBRACK /*|| token.type == TOK_NOT*/) {
-			parse_expr();
-		} else if (token.type == TOK_RBRACK) {
-			/* empty statement */
-		} else {
-			/* cannot go here, undefined behaviour */
-			/* ERROR */
-		}
-#endif
 		parse_expr();
 
 		DBG_PARSER(fprintf(stderr, "%s", token.id);)
@@ -367,17 +313,6 @@ void parse_statement(void)
 			/* TODO: add FATAL ERROR, if inexistent */
 			prev_node = pnode->left->left; 
 		}
-
-		/*if (!move_and_sum_up(&pnode)) {
-			fprintf(stderr, "semantic error on line %d, "
-					"column %d: identifier introduced in non-implication "\
-					"formula\n", cursor.line, cursor.col);
-			if (!DBG_FINISH_IS_SET) {
-				exit(EXIT_FAILURE);
-			} else {
-				success = EXIT_FAILURE;
-			}
-		}*/
 
 		/* check whether a new identifier was introduced */
 		if (CONTAINS_ID(pnode)) {
@@ -410,33 +345,16 @@ void parse_statement(void)
 				ptmp = ptmp->prev_const;
 			}
 			if (found == FALSE) {
-#if 0
-				if (HAS_FFLAGS(pnode)) {
-					/* TODO: REVIEW the check above */
-					/* ERROR new ids must only occur, in assumptions;
-					 * this is also handled in move_and_sum_up() */
-					fprintf(stderr, "semantic error on line %d, "
-							"column %d: statement contains a new identifier at "
-							"an invalid position\n", cursor.line, cursor.col);
-					if (!DBG_FINISH_IS_SET) {
-						exit(EXIT_FAILURE);
-					} else {
-						success = EXIT_FAILURE;
-					}
-				} else {
-#endif
-					SET_NFLAG_NEWC(pnode)
+				SET_NFLAG_NEWC(pnode)
 
-					/* TODO: check constraints on introducing new identifiers */
-
-					/* for sub-tree substitution */
-					(*(pnode->child))->child =
-						(Pnode**) malloc(sizeof(struct Pnode*));
-					*((*(pnode->child))->child) = NULL;
-					(*(pnode->child))->right =
-						(Pnode**) malloc(sizeof(struct Pnode*));
-					*((*(pnode->child))->right) = NULL;
-				//}
+				/* TODO: check constraints on introducing new identifiers */
+				/* for sub-tree substitution */
+				(*(pnode->child))->child =
+					(Pnode**) malloc(sizeof(struct Pnode*));
+				*((*(pnode->child))->child) = NULL;
+				(*(pnode->child))->right =
+					(Pnode**) malloc(sizeof(struct Pnode*));
+				*((*(pnode->child))->right) = NULL;
 			}
 		} else if (!HAS_FFLAGS((*(pnode->child)))) {
 			/* FIXME */
@@ -451,9 +369,6 @@ void parse_statement(void)
 		}
 
 		if (HAS_NFLAG_EQTY(pnode)) {
-			/*DBG_PARSER(fprintf(stderr, "(%d == %d)",
-						(*(prev_node->child))->num, (*(pnode->child))->num);)*/
-			//equate(*(prev_node->child), *(pnode->child));
 			equate(prev_node, pnode);
 			prev_node = pnode;
 		}
