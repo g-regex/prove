@@ -256,7 +256,10 @@ void move_and_sum_up(Pnode** pnode)
 			UNSET_NFLAG_ASMP((*pnode))
 		}
 										/* ignore NEWC in equalities */
-		if (HAS_NFLAG_NEWC((*pnode)) && !HAS_NFLAG_EQTY((*pnode))) {
+		if (HAS_NFLAG_NEWC((*pnode)) && !HAS_NFLAG_EQTY((*pnode))
+				/* consider variables after first implication formulator as
+				 * newly declared */
+				&& !(!HAS_NFLAG_FRST((*pnode)) && HAS_NFLAG_IMPL((*pnode)))) {
 			/*if (!HAS_NFLAG_ASMP((*pnode))) success = FALSE; REMOVED:semERROR*/ 
 			var = (Variable*) malloc(sizeof(Variable));
 			var->pnode = *((*pnode)->child);

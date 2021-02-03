@@ -18,11 +18,11 @@
 # same line.
 
 [
-	[p1] [p2] [p3] =>
+	[p1] [[p1]:point] [p2] [[p2]:point] [p3] [[p3]:point] [pln] [[pln]:plane] =>
 	[Axiom2b:[p1][p2][p3][pln]]
 ] [
-	[Axiom2b:[p1][p2][p3][pln]] =>
-	[p1] [[p1]:point] [p2] [[p2]:point] [p3] [[p3]:point] [
+	[pln] [Axiom2b:[p1][p2][p3][pln]] =>
+	[p1] [p2] [p3] [
 		[[p1]=[p2]] =>
 		[[]False]
 	] [
@@ -43,8 +43,9 @@
 [l1] [[l1]:line] [pln] [[pln]:plane] [[l1]in[pln]] =>
 #-------------------------------- BEGIN PROOF ---------------------------------#
 [
-	[p1] [p2] [p3] =>
-	[Axiom2b:[p1][p2][p3][pln]] [
+	[p1] [[p1]:point] [p2] [[p2]:point] [p3] [[p3]:point]
+	[Axiom2b:[p1][p2][p3][pln]] =>
+	[
 		[[p2]in[l1]] [[p3]in[l1]] [[p1]in[l1]] =>
 		[[]False]
 	] [
