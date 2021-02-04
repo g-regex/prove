@@ -1,0 +1,77 @@
+##Thm2: Prove that for any line or plane there always exists a point not lying on it.
+
+## I2: 
+## Fact 1: There exist at least four distinct points not lying on the same plane.
+
+
+##Frameworks
+
+##1:Plane
+[pln][[pln]:plane]=>
+[p][[p]:point][ [[p]in[pln]]=>[[]False] ]
+
+##2:Line
+[l][[l]:line]=>
+[p][[p]:point][ [[p]in[l]]=>[[]False] ]
+
+##Proofs
+##1:Plane
+[pln][[pln]:plane]=>
+
+#-------------------------------- BEGIN PROOF ---------------------------------#
+
+	[p1][p2][p3][p4] [[p1]:point][[p2]:point][[p3]:point][[p4]:point]
+	[ [[p1]=[p2]]=> [[]False] ]
+	[ [[p1]=[p3]]=> [[]False] ]
+	[ [[p1]=[p4]]=> [[]False] ]
+	[ [[p2]=[p3]]=> [[]False] ]
+	[ [[p2]=[p4]]=> [[]False] ]
+	[ [[p3]=[p4]]=> [[]False] ]
+	=>
+	[ 
+	[
+	[pln]
+	[[p1]in[pln]]
+	[[p2]in[pln]]
+	[[p3]in[pln]]
+	[[p4]in[pln]]
+	]
+	=>[[]False]
+	]
+
+	[ [[[p1]in[pln]]=>[[]False]]=>[p][[p]:point][ [[p]in[pln]]=>[[]False] ]
+	[ [[[p2]in[pln]]=>[[]False]]=>[p][[p]:point][ [[p]in[pln]]=>[[]False] ]
+	[ [[[p3]in[pln]]=>[[]False]]=>[p][[p]:point][ [[p]in[pln]]=>[[]False] ]
+	[ [[[p4]in[pln]]=>[[]False]]=>[p][[p]:point][ [[p]in[pln]]=>[[]False] ]
+##by the axiom in prove meeting on Feb 2, extended for four cases
+#--------------------------------- END PROOF ----------------------------------#
+[p][[p]:point][ [[p]in[pln]]=>[[]False] ]
+
+
+##2:Line
+[l][[l]:line]=>
+
+#-------------------------------- BEGIN PROOF ---------------------------------#
+
+[x][[x]:plane]
+
+[p1][[p1]:point]
+[p2][[p2]:point]
+[p3][[p3]:point]
+
+[ [[p1]=[p2]]=> [[]False] ]
+[ [[p1]=[p3]]=> [[]False] ]
+[ [[p2]=[p3]]=> [[]False] ]
+
+[not[
+=>[y][[y]:line]
+[[p1]in[y]]
+[[p2]in[y]]
+[[p3]in[y]]
+]]
+
+[ [[[p1]in[l]]=>[[]False]]=> [p][[p]:point] [[[p]in[l]]=>[[]False]] ]
+[ [[[p2]in[l]]=>[[]False]]=> [p][[p]:point] [[[p]in[l]]=>[[]False]] ]
+[ [[[p3]in[l]]=>[[]False]]=> [p][[p]:point] [[[p]in[l]]=>[[]False]] ]
+#--------------------------------- END PROOF ----------------------------------#
+[p][[p]:point][ [[p]in[l]]=>[[]False] ]
