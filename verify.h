@@ -23,6 +23,8 @@ unsigned short int trigger_verify(Pnode* pn);
 
 Pnode* reachable;
 
+unsigned short int are_equal(Pnode* p1, Pnode* p2);
+
 /* for verification */
 void finish_verify();
 unsigned short int verify(Pnode* pnode);

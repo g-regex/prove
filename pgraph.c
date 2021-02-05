@@ -30,9 +30,9 @@
 #define DO(x) ((x) || TRUE)
 
 /* DEBUG */
-#ifdef DNUM
+//#ifdef DNUM
 static short int n = 0;		/* node counter */
-#endif
+//#endif
 
 /* --- navigation through graph --------------------------------------------- */
 
@@ -105,10 +105,10 @@ void init_pgraph(Pnode** root)
 	cur_depth = 1;
 	max_depth = 1;)
 
-#ifdef DNUM
+//#ifdef DNUM
 	(*root)->num = n; /* DEBUG */
 	n++;
-#endif
+//#endif
 }
 
 void create_child(Pnode* pnode)
@@ -147,10 +147,10 @@ void create_child(Pnode* pnode)
 		max_depth = cur_depth;
 	})
 
-#ifdef DNUM
+//#ifdef DNUM
 	child->num = n; /* DEBUG: pre-order numbering of the nodes */
 	n++;
-#endif
+//#endif
 }
 
 void create_right(Pnode* pnode)
@@ -219,10 +219,10 @@ void create_right(Pnode* pnode)
 	}
 	fprintf(tikz, TIKZ_RIGHTARROW(pnode->num, n));)
 
-#ifdef DNUM
+//#ifdef DNUM
 	right->num = n; /* DEBUG */
 	n++;
-#endif
+//#endif
 }
 
 /* move leftwards through the subtree and create a linked list of all

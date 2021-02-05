@@ -73,6 +73,8 @@ unsigned short int are_equal(Pnode* p1, Pnode* p2)
 	Variable* firsteq;
 	Variable* eq_iter;
 
+	/* TODO: explicitly compare sub-trees */
+
 	//DBG_PARSER(fprintf(stderr, "(%d==%d?)", p1->num, p2->num);)
 
 	/* start with checking linked list of equal nodes */
@@ -84,10 +86,14 @@ unsigned short int are_equal(Pnode* p1, Pnode* p2)
 				p1->num,
 				p1->equalto->pnode->num
 				);)*/
-		if (eq_iter == p1->equalto) {
-			//DBG_PARSER(fprintf(stderr, "!");)
+		if (eq_iter == p1->equalto) { /* FIXME: might be part of a tree */
+			//DBG_PARSER(fprintf(stderr, "!%d,%d", eq_iter->pnode->num, p1->equalto->pnode->num);)
 			return TRUE;
-		} else if (CONTAINS_ID(eq_iter->pnode) && CONTAINS_ID(p1->equalto->pnode)) {
+		} else if (CONTAINS_ID(eq_iter->pnode) &&
+				CONTAINS_ID(p1->equalto->pnode) /* FIXME:checks not sufficient*/
+				/*&& eq_iter->pnode->right == NULL
+				&& p1->equalto->pnode->right == NULL*/
+				) {
 			//DBG_PARSER(fprintf(stderr, "Z");)
 			if (strcmp(*((*(eq_iter->pnode->child))->symbol),
 						*((*(p1->equalto->pnode->child))->symbol)) == 0) {
@@ -106,8 +112,15 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 {
 	unsigned short int equal;
 
-	if (are_equal(p1, p2)) {
-		return TRUE;
+	/* TODO: maybe generalise this for sub-trees */
+	if (CONTAINS_ID(p1)
+			&& CONTAINS_ID(p2)
+			&& p1->right == NULL
+			&& p2->right == NULL) {
+		if (are_equal(p1, p2)) {
+			DBG_VERIFY(fprintf(stderr, "EQ");)
+			return TRUE;
+		}
 	}
 
 	/*if (HAS_NFLAG_TRUE(p1) != HAS_NFLAG_TRUE(p2)) {
@@ -193,7 +206,7 @@ unsigned short int check_asmp(Pnode* pnode)
 	for (pconst = pnode->prev_const; pconst != NULL;
 			pconst = pconst->prev_const) {
 		if (verify(pconst)) {
-			//DBG_VERIFY(fprintf(stderr, "(%d)", pconst->num);)
+			DBG_VERIFY(fprintf(stderr, "(%dr%d)", rn(),  pconst->num);)
 			if (HAS_GFLAG_BRCH) {
 				//DBG_VERIFY(fprintf(stderr, "!");)
 				if (HAS_GFLAG_SUBD) {
@@ -271,8 +284,8 @@ unsigned short int sub_var(SUB* s)
 			*(s->var->pnode->right) = *((*(s->known_const->child))->right);
 		}
 	}
-	DBG_VERIFY(fprintf(stderr,
-		"\\%s=%d/", s->sym, s->known_const->num);)
+	//DBG_VERIFY(fprintf(stderr,
+	//	"\\%s=%d/", s->sym, s->known_const->num);)
 }
 
 /* substitutes variable(s) by the next known constant/sub-tree */
@@ -310,8 +323,8 @@ void init_sub(Pnode* pnode)
 	var = reachable->var;
 	oldsub = sub;
 
-	DBG_VERIFY(fprintf(stderr,
-		"|%d|", pnode->num);)
+	//DBG_VERIFY(fprintf(stderr,
+	//	"|%d|", pnode->num);)
 
 	/* only substitute, if there is something to substitute in */
 	if (pnode->prev_const != NULL) {
@@ -342,6 +355,14 @@ void finish_sub()
 
 	do {
 		prev_sub = sub->prev;
+
+		/* TODO: function print_sub for debugging with DFLAG DCOMPLETE */
+		DBG_VERIFY(
+				if (HAS_GFLAG_VRFD && !DBG_COMPLETE_IS_SET) {
+					fprintf(stderr,
+						"(sub:%s=%d)", sub->sym, sub->known_const->num);
+				}
+		)
 
 		*(sub->var->pnode->symbol) = sub->sym;
 		*(sub->var->pnode->child) = NULL;
@@ -446,68 +467,95 @@ unsigned short int branch_proceed(Pnode* pnode)
 	} while (!wrap_right());
 #endif
 
+	DBG_VERIFY(fprintf(stderr, "(bp*%d)", reachable->num);)
 	while (!wrap_right()) {
 		if (bc->above == NULL) {
 			return FALSE; /* last pop is done by exit_branch */
 		} else {
 			bc_pop(&reachable);
+			DBG_VERIFY(fprintf(stderr, "(pop*%d)", reachable->num);)
 			if (HAS_GFLAG_WRAP) {
 				SET_GFLAG_WRAP
-				wrap_right();
+				//wrap_right();
+				//break;
+			}
+			if (wrap_right()) {
 				break;
 			}
 		}
 	}
 
+	DBG_VERIFY(fprintf(stderr, "(n*%d)", reachable->num);)
 	return HAS_SYMBOL(reachable) ? next_in_branch(pnode) : TRUE;
 }
 
 /* set "reachable" to the next valid value or return FALSE */
 unsigned short int next_in_branch(Pnode* pnode)
 {
+	/* skip formulators */
 	if (HAS_SYMBOL(reachable)) {
-		return wrap_right(&reachable);
+		DBG_VERIFY(fprintf(stderr, "(skip*)", reachable->num);)
+		//return wrap_right(&reachable);
+		return branch_proceed(pnode);	
 	}
 
-	if (explore_branch()) {
+	/* explore sub-tree recursively */
+	/* FIXME: are conditions on branches to be checked like this?
+	 * i.e. must they be given explicitly? */
+	if (!(HAS_NFLAG_IMPL(reachable) && HAS_NFLAG_FRST(reachable))
+			&& explore_branch()) {
+		DBG_VERIFY(fprintf(stderr, "(expl%d)", reachable->num);)
 		return next_in_branch(pnode);
 	}
 
 	if (HAS_NFLAG_IMPL(reachable)) {
+		DBG_VERIFY(fprintf(stderr, "(%d", reachable->num);)
 		if (HAS_NFLAG_FRST(reachable)) {
-			//DBG_VERIFY(fprintf(stderr, "(%d", reachable->num);)
 			if (!check_asmp(pnode)) {
-				//DBG_VERIFY(fprintf(stderr, ":F)");)
+				DBG_VERIFY(fprintf(stderr, ":F)");)
 				return FALSE;	
 			} else if (!move_right(&reachable)) {
-				//DBG_VERIFY(fprintf(stderr, ":X)");)
+				DBG_VERIFY(fprintf(stderr, ":R)");)
 				/* FATAL ERROR, must not happen
 				 * (node with FRST flag cannot be the last one) */
 				return FALSE;
 			} else {
-				//DBG_VERIFY(fprintf(stderr, ":>)");)
+				DBG_VERIFY(fprintf(stderr, ":>)");)
 				return next_in_branch(pnode);
 			}
 		} else {
+			DBG_VERIFY(fprintf(stderr, ":X)");)
 			if (explore_branch()) {
 				return next_in_branch(pnode);
 			} else {
-				//DBG_VERIFY(fprintf(stderr, ".");)
+				//DBG_PARSER(fprintf(stderr, ".");)
 				return branch_proceed(pnode);	
 			}
 		}
 	} else if (HAS_NFLAG_EQTY(reachable)) {
+		DBG_VERIFY(fprintf(stderr, "(eq%d)", reachable->num);)
 		if (HAS_GFLAG_WRAP) {
 			if (eqendwrap == reachable) {
 				UNSET_GFLAG_WRAP
 				return branch_proceed(pnode);
 			}
 
-			do {
+			/*do {
 				wrap_right();
-			} while (HAS_SYMBOL(reachable));
+			} while (HAS_SYMBOL(reachable));*/
 
-			return TRUE;
+			/* --- */
+			if (are_equal(reachable, eqendwrap)) {
+				DBG_VERIFY(fprintf(stderr, "T", reachable->num);)
+				do {
+					wrap_right();
+				} while (HAS_SYMBOL(reachable));
+				return TRUE;
+			} else {
+				return FALSE;
+			}
+			/* --- */
+			//return TRUE;
 		} else {
 			if (HAS_NFLAG_FRST(reachable)) {
 				eqfirst = reachable;
@@ -515,27 +563,47 @@ unsigned short int next_in_branch(Pnode* pnode)
 
 			do {
 
-				//DBG_VERIFY(fprintf(stderr, "(%d", reachable->num);)
+				DBG_VERIFY(fprintf(stderr, "(%d", reachable->num);)
 				if (HAS_SYMBOL(reachable)){
-					//DBG_VERIFY(fprintf(stderr, ":S)");)
+					DBG_VERIFY(fprintf(stderr, ":S)");)
 					continue;
 				} else if (check_asmp(pnode)) {
-					//DBG_VERIFY(fprintf(stderr, ":>>)");)
+					DBG_VERIFY(fprintf(stderr, ":>>)");)
 					SET_GFLAG_WRAP
 					eqendwrap = reachable;
 
 					do {
 						wrap_right();
 					} while (HAS_SYMBOL(reachable));
-
 					return TRUE;
+					/*if (are_equal(reachable, eqendwrap)) {
+						DBG_VERIFY(fprintf(stderr, "T*", reachable->num);)
+						return TRUE;
+					} else {
+						return FALSE;
+					}*/
 				} else {
-					//DBG_VERIFY(fprintf(stderr, ":E)");)
+					DBG_VERIFY(fprintf(stderr, ":E)");)
 				}
 
 			} while (move_right(&reachable));
 
-			return FALSE;
+			//DBG_PARSER(fprintf(stderr, "%%");)
+			/* FIXME: branch exploration is aborted here, when the end of an
+			 * equality is reached; should pop back */
+			/* c/p from branch proceed -> optimise */
+			if (bc->above == NULL) {
+				return FALSE; /* last pop is done by exit_branch */
+			} else {
+				bc_pop(&reachable);
+				if (HAS_GFLAG_WRAP) {
+					SET_GFLAG_WRAP
+					wrap_right();
+				}
+			}
+			return branch_proceed(pnode);
+			/* --- */
+			//return FALSE;
 		}
 	}
 
@@ -566,6 +634,7 @@ unsigned short int next_reachable_const(Pnode* pnode)
 	if (HAS_GFLAG_BRCH) {
 		if (!next_in_branch(pnode)) {
 			exit_branch();
+			//DBG_PARSER(fprintf(stderr, "$");)
 		}
 		return TRUE;
 	} 
@@ -573,6 +642,7 @@ unsigned short int next_reachable_const(Pnode* pnode)
 	/* substitution */
 	if (HAS_GFLAG_SUBD) {
 		if (next_known_const(pnode, sub)) {
+			//DBG_PARSER(fprintf(stderr, "?");)
 			return attempt_explore(pnode);
 		} else {
 			finish_sub();
@@ -583,7 +653,15 @@ unsigned short int next_reachable_const(Pnode* pnode)
 	/* backtracking */
 	if (move_left(&reachable) || 
 			(move_up(&reachable) && (move_left(&reachable) || TRUE))) {
-		if (HAS_SYMBOL(reachable) ?  move_left(&reachable) :  TRUE) {
+		/*if (HAS_SYMBOL(reachable) ?  move_left(&reachable) :  TRUE) {
+			if (reachable->var != NULL) {
+				init_sub(pnode);
+			}
+			return attempt_explore(pnode);
+		}*/
+		if (HAS_SYMBOL(reachable)) {
+			return next_reachable_const(pnode);
+		} else {
 			if (reachable->var != NULL) {
 				init_sub(pnode);
 			}
@@ -595,9 +673,9 @@ unsigned short int next_reachable_const(Pnode* pnode)
 
 /* --- debugging ------------------------------------------------------------ */
 
-#ifdef DNUM
+//#ifdef DNUM
 unsigned short int rn()
 {
 	return reachable->num;
 }
-#endif
+//#endif

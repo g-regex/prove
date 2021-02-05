@@ -39,7 +39,7 @@ DBGops dbgops;
  */
 
 #ifdef DTIKZ
-#define DNUM
+//#define DNUM
 #define DEBUG
 #define DBG_TIKZ_IS_SET (dbgops & DBG_TIKZ)
 #define SET_DBG_TIKZ dbgops |= DBG_TIKZ;
@@ -51,7 +51,7 @@ DBGops dbgops;
 #endif
 
 #ifdef DVERIFY /* implies DPARSER */
-#define DNUM
+//#define DNUM
 #define DEBUG
 #ifndef DPARSER
 #define DPARSER
@@ -66,7 +66,7 @@ DBGops dbgops;
 #endif
 
 #ifdef DGRAPH /* implies DPARSER */
-#define DNUM
+//#define DNUM
 #define DEBUG
 #ifndef DPARSER
 #define DPARSER
@@ -81,7 +81,7 @@ DBGops dbgops;
 #endif
 
 #ifdef DPARSER
-#define DNUM
+//#define DNUM
 #define DEBUG
 #define DBG_PARSER_IS_SET (dbgops & DBG_PARSER)
 #define SET_DBG_PARSER dbgops |= DBG_PARSER;

@@ -347,12 +347,15 @@ void parse_statement(void)
 			}*/
 
 			/* --- */
+
+			//DBG_VERIFY(fprintf(stderr, ".");)
 			init_backtrack(pnode);
 			while (next_reachable_const(pnode)) {
+				//DBG_VERIFY(fprintf(stderr, ",");)
 				if(verify(pnode)) {
 					found = TRUE;
 
-					DBG_VERIFY(fprintf(stderr, "(%d=%d)", pnode->num, rn());)
+					//DBG_VERIFY(fprintf(stderr, "(vrfd:%d=%d)", pnode->num, rn());)
 					equate(reachable, pnode);
 
 					free(*((*(pnode->child))->symbol));
@@ -407,6 +410,18 @@ void parse_statement(void)
 				&& !HAS_GFLAG_VRFD) {
 			/* verification is triggered here */
 			if (!trigger_verify(pnode)) {
+				fprintf(stderr,
+						"verification failed on line %d, column %d\n",
+						 cursor.line, cursor.col);
+				if (!DBG_FINISH_IS_SET) {
+					exit(EXIT_FAILURE);
+				} else {
+					success = EXIT_FAILURE;
+				}
+			}
+		} else if (HAS_NFLAG_EQTY(pnode) && !HAS_NFLAG_ASMP(pnode)) {
+			/* TODO: this is just c/p from above */
+			if (!are_equal(prev_node, pnode)) {
 				fprintf(stderr,
 						"verification failed on line %d, column %d\n",
 						 cursor.line, cursor.col);
