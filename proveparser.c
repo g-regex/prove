@@ -316,8 +316,9 @@ void parse_statement(void)
 
 		/* check whether a new identifier was introduced */
 		if (CONTAINS_ID(pnode)) {
-			ptmp = pnode->prev_const;
 			found = FALSE;
+
+			/*ptmp = pnode->prev_const;
 			while (ptmp != NULL) {
 				if (CONTAINS_ID(ptmp)) {
 					if (strcmp(*((*(ptmp->child))->symbol),
@@ -343,7 +344,36 @@ void parse_statement(void)
 					}
 				}
 				ptmp = ptmp->prev_const;
+			}*/
+
+			/* --- */
+			init_backtrack(pnode);
+			while (next_reachable_const(pnode)) {
+				if(verify(pnode)) {
+					found = TRUE;
+
+					DBG_VERIFY(fprintf(stderr, "(%d=%d)", pnode->num, rn());)
+					equate(reachable, pnode);
+
+					free(*((*(pnode->child))->symbol));
+					free((*(pnode->child))->symbol);
+					free((*(pnode->child))->equalto);
+
+					(*(pnode->child))->equalto =
+						(*(reachable->child))->equalto;
+					(*(pnode->child))->symbol =
+						(*(reachable->child))->symbol;
+					(*(pnode->child))->child =
+						(*(reachable->child))->child;
+					(*(pnode->child))->right =
+						(*(reachable->child))->right;
+
+					finish_verify();
+					break;
+				}
 			}
+			/* --- */
+
 			if (found == FALSE) {
 				SET_NFLAG_NEWC(pnode)
 
@@ -368,7 +398,7 @@ void parse_statement(void)
 			}*/
 		}
 
-		if (HAS_NFLAG_EQTY(pnode)) {
+		if (HAS_NFLAG_EQTY(pnode) && HAS_NFLAG_NEWC(prev_node)) {
 			equate(prev_node, pnode);
 			prev_node = pnode;
 		}

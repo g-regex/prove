@@ -21,6 +21,16 @@
 
 unsigned short int trigger_verify(Pnode* pn);
 
+Pnode* reachable;
+
+/* for verification */
+void finish_verify();
+unsigned short int verify(Pnode* pnode);
+
+/* for backtracking */
+unsigned short int next_reachable_const(Pnode* pnode);
+void init_backtrack(Pnode* pnode);
+
 /* DEBUG */
 unsigned short int rn();
 

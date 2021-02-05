@@ -31,7 +31,6 @@
 unsigned short int next_in_branch(Pnode* pnode);
 
 static Pnode* eqfirst; /* temporarily holds the first node of an equality */
-static Pnode* reachable;
 
 /* stack for substitution */
 typedef struct substitution_status {
@@ -52,13 +51,6 @@ typedef struct branch_checkpoint { /* stack for jumping back to parent levels */
 } BC;
 static BC* bc = NULL;
 static Pnode* eqendwrap; /*temporarily holds node at which to stop wrapping*/
-
-/* for verification */
-void finish_verify();
-
-/* for backtracking */
-void init_backtrack(Pnode* pnode);
-unsigned short int next_reachable_const(Pnode* pnode);
 
 /* --- verification specific movement functions ----------------------------- */
 /* move right; if already at the right-most node, move to the left-most node */ 
@@ -182,6 +174,7 @@ unsigned short int verify(Pnode* pnode)
 {
 	if (!HAS_CHILD(pnode) && !HAS_CHILD(reachable)) {
 		/* FATAL ERROR: function should not have been called, if this is true */
+		DBG_VERIFY(fprintf(stderr, "X");)
 		return FALSE;
 	}
 	if (are_equal(pnode, reachable)) {
@@ -244,8 +237,8 @@ unsigned short int trigger_verify(Pnode* pn)
 	}
 
 	if (!HAS_GFLAG_VRFD) {	
-		TOGGLE_NFLAG_TRUE(pn)
-		/*if (!HAS_NFLAG_TRUE(pn)) {*/
+		/*TOGGLE_NFLAG_TRUE(pn)
+		if (!HAS_NFLAG_TRUE(pn)) {*/
 			return FALSE;
 		/*} else {
 			SET_GFLAG_VRFD
@@ -278,6 +271,8 @@ unsigned short int sub_var(SUB* s)
 			*(s->var->pnode->right) = *((*(s->known_const->child))->right);
 		}
 	}
+	DBG_VERIFY(fprintf(stderr,
+		"\\%s=%d/", s->sym, s->known_const->num);)
 }
 
 /* substitutes variable(s) by the next known constant/sub-tree */
@@ -290,17 +285,12 @@ unsigned short int next_known_const(Pnode* pnode, SUB* s)
 				if (next_known_const(pnode, s->prev)) {
 					init_known_const(pnode, s);
 					sub_var(s);
-
-					DBG_VERIFY(fprintf(stderr,
-						"\\%s=%d/", s->sym, s->known_const->num);)
 					return TRUE;
 				} else {
 					return FALSE;
 				}
 			} else {
 				sub_var(s);
-				DBG_VERIFY(fprintf(stderr,
-					"\\%s=%d/", s->sym, s->known_const->num);)
 				return TRUE;
 			}
 		} else {
@@ -320,23 +310,29 @@ void init_sub(Pnode* pnode)
 	var = reachable->var;
 	oldsub = sub;
 
-	do {
-		sub = (SUB*) malloc(sizeof(SUB));
-		sub->prev = oldsub;
-		oldsub = sub;
+	DBG_VERIFY(fprintf(stderr,
+		"|%d|", pnode->num);)
 
-		init_known_const(pnode, sub);
+	/* only substitute, if there is something to substitute in */
+	if (pnode->prev_const != NULL) {
+		do {
+			sub = (SUB*) malloc(sizeof(SUB));
+			sub->prev = oldsub;
+			oldsub = sub;
 
-		sub->sym = *(var->pnode->symbol);
-		sub->var = var;
+			init_known_const(pnode, sub);
 
-		/* FIXME: added this. correct? */
-		sub_var(sub);
+			sub->sym = *(var->pnode->symbol);
+			sub->var = var;
 
-		var = var->next;
-	} while (var != NULL);
+			/* FIXME: added this. correct? */
+			sub_var(sub);
 
-	SET_GFLAG_SUBD
+			var = var->next;
+		} while (var != NULL);
+
+		SET_GFLAG_SUBD
+	}
 }
 
 /* substitute original variable symbols back in */
@@ -586,7 +582,7 @@ unsigned short int next_reachable_const(Pnode* pnode)
 
 	/* backtracking */
 	if (move_left(&reachable) || 
-			(move_up(&reachable) && move_left(&reachable))) {
+			(move_up(&reachable) && (move_left(&reachable) || TRUE))) {
 		if (HAS_SYMBOL(reachable) ?  move_left(&reachable) :  TRUE) {
 			if (reachable->var != NULL) {
 				init_sub(pnode);
