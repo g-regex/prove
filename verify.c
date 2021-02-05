@@ -202,9 +202,9 @@ unsigned short int check_asmp(Pnode* pnode)
 		if (verify(pconst)) {
 			//DBG_VERIFY(fprintf(stderr, "(%d)", pconst->num);)
 			if (HAS_GFLAG_BRCH) {
-				DBG_VERIFY(fprintf(stderr, "!");)
+				//DBG_VERIFY(fprintf(stderr, "!");)
 				if (HAS_GFLAG_SUBD) {
-					DBG_VERIFY(fprintf(stderr, "%%");)
+					//DBG_VERIFY(fprintf(stderr, "%%");)
 				}
 			}
 			//
@@ -291,16 +291,16 @@ unsigned short int next_known_const(Pnode* pnode, SUB* s)
 					init_known_const(pnode, s);
 					sub_var(s);
 
-					/*DBG_VERIFY(fprintf(stderr,
-						"\\%s=%d/", s->sym, s->known_const->num);)*/
+					DBG_VERIFY(fprintf(stderr,
+						"\\%s=%d/", s->sym, s->known_const->num);)
 					return TRUE;
 				} else {
 					return FALSE;
 				}
 			} else {
 				sub_var(s);
-				/*DBG_VERIFY(fprintf(stderr,
-					"\\%s=%d/", s->sym, s->known_const->num);)*/
+				DBG_VERIFY(fprintf(stderr,
+					"\\%s=%d/", s->sym, s->known_const->num);)
 				return TRUE;
 			}
 		} else {
@@ -496,7 +496,7 @@ unsigned short int next_in_branch(Pnode* pnode)
 			if (explore_branch()) {
 				return next_in_branch(pnode);
 			} else {
-				DBG_VERIFY(fprintf(stderr, ".");)
+				//DBG_VERIFY(fprintf(stderr, ".");)
 				return branch_proceed(pnode);	
 			}
 		}
