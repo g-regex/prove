@@ -186,7 +186,7 @@ void parse_formula(void)
 			return;
 		} else if (token.type == TOK_LBRACK /*|| token.type == TOK_NOT*/) {
 			/* token is a formulator */
-			/* check for conflicting flags and report ERROR */
+			/* ?check for conflicting flags and report ERROR */
 			SET_NFLAG_FMLA(pnode)
 			/* continue */
 		} else {
@@ -195,6 +195,7 @@ void parse_formula(void)
 			return;
 		}
 	} else if (token.type == TOK_IMPLY) {
+		set_symbol(pnode, token.id);	
 		DBG_PARSER(fprintf(stderr, "%s", token.id);)
 		/* token is an implication symbol */
 		next_token(&token);
@@ -204,7 +205,9 @@ void parse_formula(void)
 			return;
 		} else if (token.type == TOK_LBRACK /*|| token.type == TOK_NOT*/) {
 			/* only valid option */
+			//FIXME:
 			SET_NFLAG_IMPL(pnode)
+			UNSET_NFLAG_FRST(pnode)
 			/* continue */
 		} else {
 			/* formulators must not be mixed/identifiers must not contain = */
@@ -351,12 +354,15 @@ void parse_statement(void)
 			//DBG_VERIFY(fprintf(stderr, ".");)
 			init_backtrack(pnode);
 			while (next_reachable_const(pnode)) {
-				//DBG_VERIFY(fprintf(stderr, ",");)
+				//DBG_VERIFY(fprintf(stderr, ",%d", rn());)
 				if(verify(pnode)) {
 					found = TRUE;
 
-					//DBG_VERIFY(fprintf(stderr, "(vrfd:%d=%d)", pnode->num, rn());)
-					equate(reachable, pnode);
+					DBG_VERIFY(fprintf(stderr, "(vrfd:%d=%d)", pnode->num, rn());)
+					//equate(reachable, pnode);
+					// TODO: maybe implement equality rather as a stack
+					// to respect scope
+					// equate(pnode, reachable);
 
 					free(*((*(pnode->child))->symbol));
 					free((*(pnode->child))->symbol);
@@ -378,6 +384,9 @@ void parse_statement(void)
 			/* --- */
 
 			if (found == FALSE) {
+				// FIXME: added this, correct?
+				//finish_verify();
+
 				SET_NFLAG_NEWC(pnode)
 
 				/* TODO: check constraints on introducing new identifiers */
@@ -401,9 +410,13 @@ void parse_statement(void)
 			}*/
 		}
 
-		if (HAS_NFLAG_EQTY(pnode) && HAS_NFLAG_NEWC(prev_node)) {
-			equate(prev_node, pnode);
-			prev_node = pnode;
+		if (HAS_NFLAG_EQTY(pnode) /*&& HAS_NFLAG_NEWC(prev_node)*/) {
+			DBG_VERIFY(fprintf(stderr, "(eqt:%d=%d)", prev_node->num, pnode->num);)
+			/* FIXME: maybe generalise this for sub-trees */
+			if (CONTAINS_ID(prev_node)) {
+				equate(prev_node, pnode);
+				prev_node = pnode;
+			}
 		}
 
 		if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)

@@ -18,8 +18,8 @@
 # same line.
 
 [
-	[pln] [Axiom2b:[pln]] =>
-	[p1] [p2] [p3] [
+	[pln] [y] [Axiom2b:[y][pln]] =>
+	[p1] [[p1]:point] [p2] [[p2]:point] [p3] [[p3]:point] [
 		[[p1]=[p2]] =>
 		[[]False]
 	] [
@@ -40,7 +40,7 @@
 [l1] [[l1]:line] [pln] [[pln]:plane] [[l1]in[pln]] =>
 #-------------------------------- BEGIN PROOF ---------------------------------#
 [
-	[Axiom2b:[pln]] => 
+	[Axiom2b:[l1][pln]] => 
 	[p1] [p2] [p3] [
 		[[p2]in[l1]] [[p3]in[l1]] [[p1]in[l1]] =>
 		[[]False]
@@ -50,7 +50,7 @@
 			[[]False]
 		] =>
 		[
-			[p] [[p]:point] [[p]in[pln]] [[p]in[l1]] =>
+			[p] [[p]=[p1]] [[p]:point] [[p]in[pln]] [[p]in[l1]] =>
 			[[]False]
 		] 
 	] [
@@ -59,7 +59,7 @@
 			[[]False]
 		] =>
 		[
-			[p] [[p]:point] [[p]in[pln]] [[p]in[l1]] =>
+			[p] [[p]=[p2]] [[p]:point] [[p]in[pln]] [[p]in[l1]] =>
 			[[]False]
 		] 
 	] [
@@ -68,7 +68,7 @@
 			[[]False]
 		] =>
 		[
-			[p] [[p]:point] [[p]in[pln]] [[p]in[l1]] =>
+			[p] [[p]=[p3]] [[p]:point] [[p]in[pln]] [[p]in[l1]] =>
 			[[]False]
 		] 
 	]

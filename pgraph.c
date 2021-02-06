@@ -172,7 +172,7 @@ void create_right(Pnode* pnode)
 	right->equalto->next = right->equalto;
 
 	/* flags are carried over to the right hand side */
-	right->flags = pnode->flags | NFLAG_TRUE;
+	right->flags = pnode->flags; /* | NFLAG_TRUE; */
 	UNSET_NFLAG_NEWC(right)
 	UNSET_NFLAG_FRST(right) /* TODO this can be done better */
 	if (!HAS_FFLAGS(pnode)) {
@@ -298,8 +298,10 @@ void set_symbol(Pnode* pnode, char* symbol)
 	strcpy(*(pnode->symbol), symbol);
 }
 
+/* first local, second global */
 void equate(Pnode* p1, Pnode* p2)
 {
+#if 0
 	Variable* firsteq1;
 	Variable* eq_iter1;
 	Variable* firsteq2;
@@ -313,6 +315,8 @@ void equate(Pnode* p1, Pnode* p2)
 
 	eq_iter1->next = p2->equalto;
 	eq_iter2->next = p1->equalto;
+#endif
+	p2->equalto->next = p1->equalto;
 }
 
 

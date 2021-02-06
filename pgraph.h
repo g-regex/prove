@@ -67,7 +67,8 @@ typedef enum {
 	GFLAG_VRFD = 1,
 	GFLAG_SUBD = 2,
 	GFLAG_BRCH = 4,
-	GFLAG_WRAP = 8
+	GFLAG_WRAP = 8,
+	GFLAG_FRST = 16
 } GFlags;
 
 GFlags gflags;  /* accessed by verify.c and proveparser.c */
@@ -76,6 +77,7 @@ GFlags gflags;  /* accessed by verify.c and proveparser.c */
 #define HAS_GFLAG_SUBD (gflags & GFLAG_SUBD)
 #define HAS_GFLAG_BRCH (gflags & GFLAG_BRCH)
 #define HAS_GFLAG_WRAP (gflags & GFLAG_WRAP)
+#define HAS_GFLAG_FRST (gflags & GFLAG_FRST)
 
 #define HAS_CHILD(pnode) (pnode->child != NULL && *(pnode->child) != NULL)
 #define HAS_RIGHT(pnode) (pnode->right != NULL && *(pnode->right) != NULL)
@@ -85,11 +87,13 @@ GFlags gflags;  /* accessed by verify.c and proveparser.c */
 #define SET_GFLAG_SUBD gflags |= GFLAG_SUBD;
 #define SET_GFLAG_BRCH gflags |= GFLAG_BRCH;
 #define SET_GFLAG_WRAP gflags |= GFLAG_WRAP;
+#define SET_GFLAG_FRST gflags |= GFLAG_FRST;
 
 #define UNSET_GFLAG_VRFD gflags &= ~GFLAG_VRFD;
 #define UNSET_GFLAG_SUBD gflags &= ~GFLAG_SUBD;
 #define UNSET_GFLAG_BRCH gflags &= ~GFLAG_BRCH;
 #define UNSET_GFLAG_WRAP gflags &= ~GFLAG_WRAP;
+#define UNSET_GFLAG_FRST gflags &= ~GFLAG_FRST;
 
 /* TODO: change name "Variable" */
 typedef struct Variable {
