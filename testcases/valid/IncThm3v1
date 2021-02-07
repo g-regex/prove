@@ -1,0 +1,54 @@
+##3. Prove that for any two distinct points P and Q lying on a line a, and for any point R not lying on a, there does not exist a line which passes through the points P, Q and R.
+
+##Theorem formulation
+[p][[p]:point]
+[q][[q]:point]
+[ [[p]=[q]]=> [[]False] ]
+
+[a][[a]:line]
+[[p]in[a]]
+[[q]in[a]]
+
+[r][[r]:point]
+[ [[r]in[a]]=> [[]False] ]
+
+=>
+[ [
+[y][[y]:line]
+[[p]in[[y]]
+[[q]in[[y]]
+[[r]in[[y]]
+] =>[[]False] ]
+
+
+##Theorem proof
+
+[p][[p]:point]
+[q][[q]:point]
+[ [[p]=[q]]=> [[]False] ]
+
+[a][[a]:line]
+[[p]in[a]]
+[[q]in[a]]
+
+[r][[r]:point]
+[ [[r]in[a]]=> [[]False] ]
+=>
+
+##assume such a line exists. By Axiom 3 formulation 2, the line must equal a, and so r cannot be in it. The existence of a line through all three points therefore implies false
+[
+[l][[l]:line]
+[[r]in[l]]
+[[p]in[l]]
+[[q]in[l]]=>
+[ [[l]=[a]]
+[ [[r]in[l]]=> [[]False] ]
+=>[[]False] ]
+
+
+[ [
+[y][[y]:line]
+[[p]in[[y]]
+[[q]in[[y]]
+[[r]in[[y]]
+] =>[[]False] ]

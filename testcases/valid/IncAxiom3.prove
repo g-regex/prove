@@ -1,0 +1,97 @@
+##I3: For any two distinct points there exists exactly one line which passes through both of them. Moreover, for any three distinct points not lying on the same line there exists exactly one plane which passes through all three points.
+
+
+##Part a:For any two distinct points there exists exactly one line which passes through both of them.
+
+##Formulation 1: there is a line passing through two points and there does not exist a second line distinct from the first, passing through those two points
+[p1][[p1]:point]
+[p2][[p2]:point]
+[ [[p1]=[p2]]=> [[]False] ]=>
+
+[l][[l]:line]
+[[p1]in[l]]
+[[p2]in[l]]
+
+[ [
+[l2][[l2]:line]
+[ [[l2]=[l]]=> [[]False] ]
+[[p1]in[l2]]
+[[p2]in[l2]]
+]=>[[]False] ]
+
+##Formulation 2: there is a line passing through two points and any line passing through those same points is equal to that first line
+[p1][[p1]:point]
+[p2][[p2]:point]
+[ [[p1]=[p2]]=> [[]False] ]=>
+[l][[l]:line]
+[[p1]in[l]]
+[[p2]in[l]]
+
+[ [l2][[l2]:line]
+[[p1]in[l2]]
+[[p2]in[l2]]
+=>[[l2]=[l]] ]
+
+
+##Part b: Moreover, for any three distinct points not lying on the same line there exists exactly one plane which passes through all three points.
+
+##Formulation 1: Similar to line formulation 1
+[p1][[p1]:point]
+[p2][[p2]:point]
+[p3][[p3]:point]
+
+[ [[p1]=[p2]]=> [[]False] ]
+[ [[p1]=[p3]]=> [[]False] ]
+[ [[p2]=[p3]]=> [[]False] ]
+
+[not[
+=>[y][[y]:line]
+[[p1]in[y]]
+[[p2]in[y]]
+[[p3]in[y]]
+]]
+
+=>
+
+[pln][[pln]:plane]
+[[p1]in[pln]]
+[[p2]in[pln]]
+[[p3]in[pln]]
+
+[ [
+[pln2][[pln2]:plane]
+[ [[pln2]=[pln]]=> [[]False] ]
+[[p1]in[pln2]]
+[[p2]in[pln2]]
+[[p3]in[pln2]]
+]=>[[]False] ]
+
+##Formulation 2: Similar to line formulation 2
+[p1][[p1]:point]
+[p2][[p2]:point]
+[p3][[p3]:point]
+
+[ [[p1]=[p2]]=> [[]False] ]
+[ [[p1]=[p3]]=> [[]False] ]
+[ [[p2]=[p3]]=> [[]False] ]
+
+[not[
+=>[y][[y]:line]
+[[p1]in[y]]
+[[p2]in[y]]
+[[p3]in[y]]
+]]
+
+=>
+
+[pln][[pln]:plane]
+[[p1]in[pln]]
+[[p2]in[pln]]
+[[p3]in[pln]]
+
+[ [
+[pln2][[pln2]:plane]
+[[p1]in[pln2]]
+[[p2]in[pln2]]
+[[p3]in[pln2]]
+]=>[[pln2]=[pln]] ]
