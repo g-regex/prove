@@ -358,18 +358,19 @@ void parse_statement(void)
 				if(verify(pnode)) {
 					found = TRUE;
 
-					DBG_VERIFY(fprintf(stderr, "(vrfd:%d=%d)", pnode->num, rn());)
+					DBG_VERIFY(fprintf(stderr, "(vrfd:%d=%d)", (*(pnode->child))->num,
+								(*(reachable->child))->num);)
 					//equate(reachable, pnode);
 					// TODO: maybe implement equality rather as a stack
 					// to respect scope
-					// equate(pnode, reachable);
+					equate(*(pnode->child), *(reachable->child));
 
 					free(*((*(pnode->child))->symbol));
 					free((*(pnode->child))->symbol);
-					free((*(pnode->child))->equalto);
+					//free((*(pnode->child))->equalto);
 
-					(*(pnode->child))->equalto =
-						(*(reachable->child))->equalto;
+					//(*(pnode->child))->equalto =
+					//	(*(reachable->child))->equalto;
 					(*(pnode->child))->symbol =
 						(*(reachable->child))->symbol;
 					(*(pnode->child))->child =
@@ -411,10 +412,13 @@ void parse_statement(void)
 		}
 
 		if (HAS_NFLAG_EQTY(pnode) /*&& HAS_NFLAG_NEWC(prev_node)*/) {
-			DBG_VERIFY(fprintf(stderr, "(eqt:%d=%d)", prev_node->num, pnode->num);)
 			/* FIXME: maybe generalise this for sub-trees */
 			if (CONTAINS_ID(prev_node)) {
-				equate(prev_node, pnode);
+				DBG_VERIFY(fprintf(stderr, "(eqt:%d=%d,", (*(prev_node->child))->num,
+							(*(pnode->child))->num);)
+				equate(*(prev_node->child), *(pnode->child));
+				DBG_VERIFY(fprintf(stderr, "%d=%d)", (*(prev_node->child))->equalto->next->pnode->num,
+							(*(pnode->child))->equalto->next->pnode->num);)
 				prev_node = pnode;
 			}
 		}

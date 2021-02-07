@@ -301,7 +301,7 @@ void set_symbol(Pnode* pnode, char* symbol)
 /* first local, second global */
 void equate(Pnode* p1, Pnode* p2)
 {
-#if 0
+//#if 0
 	Variable* firsteq1;
 	Variable* eq_iter1;
 	Variable* firsteq2;
@@ -315,8 +315,8 @@ void equate(Pnode* p1, Pnode* p2)
 
 	eq_iter1->next = p2->equalto;
 	eq_iter2->next = p1->equalto;
-#endif
-	p2->equalto->next = p1->equalto;
+//#endif
+//	p2->equalto->next = p1->equalto;
 }
 
 
@@ -409,9 +409,9 @@ void free_graph(Pnode* pnode)
 		if (pnode->var != NULL) {
 			free(pnode->var);
 		}
-		if (pnode->equalto->pnode->num == pnode->num) {
+		//if (pnode->equalto->pnode->num == pnode->num) {
 			free(pnode->equalto);
-		}
+		//}
 
 		if (pnode->left != NULL) {
 			move_left(&pnode);
@@ -430,9 +430,9 @@ void free_graph(Pnode* pnode)
 	if (pnode->var != NULL) {
 		free(pnode->var);
 	}
-	if (pnode->equalto->pnode->num == pnode->num) {
+	//if (pnode->equalto->pnode->num == pnode->num) {
 		free(pnode->equalto);
-	}
+	//}
 
 	free(pnode);
 

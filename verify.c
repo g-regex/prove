@@ -77,7 +77,7 @@ unsigned short int wrap_right()
 /* first local, second global */
 unsigned short int are_equal(Pnode* p1, Pnode* p2)
 {
-#if 0
+//#if 0
 	Variable* firsteq;
 	Variable* eq_iter;
 
@@ -95,28 +95,30 @@ unsigned short int are_equal(Pnode* p1, Pnode* p2)
 				p1->equalto->pnode->num
 				);)*/
 		if (eq_iter == p1->equalto) { /* FIXME: might be part of a tree */
-			//DBG_PARSER(fprintf(stderr, "!%d,%d", eq_iter->pnode->num, p1->equalto->pnode->num);)
+			//DBG_VERIFY(fprintf(stderr, "*(%d,%d)", eq_iter->pnode->num, p1->equalto->pnode->num);)
 			return TRUE;
-		} else if (CONTAINS_ID(eq_iter->pnode) &&
-				CONTAINS_ID(p1->equalto->pnode) /* FIXME:checks not sufficient*/
-				/*&& eq_iter->pnode->right == NULL
-				&& p1->equalto->pnode->right == NULL*/
-				) {
-			//DBG_PARSER(fprintf(stderr, "Z");)
-			if (strcmp(*((*(eq_iter->pnode->child))->symbol),
-						*((*(p1->equalto->pnode->child))->symbol)) == 0) {
-			//DBG_PARSER(fprintf(stderr, "&");)
-				return TRUE;
-			}
+		//} else if (CONTAINS_ID(eq_iter->pnode) &&
+		//		CONTAINS_ID(p1->equalto->pnode) /* FIXME:checks not sufficient*/
+		//		/*&& eq_iter->pnode->right == NULL
+		//		&& p1->equalto->pnode->right == NULL*/
+		//		) {
+		//	//DBG_PARSER(fprintf(stderr, "Z");)
+		//	if (strcmp(*((*(eq_iter->pnode->child))->symbol),
+		//				*((*(p1->equalto->pnode->child))->symbol)) == 0) {
+		//	//DBG_PARSER(fprintf(stderr, "&");)
+		//		return TRUE;
+		//	}
+		} else {
+			//DBG_VERIFY(fprintf(stderr, "!(%d,%d)", eq_iter->pnode->num, p1->equalto->pnode->num);)
 		}
 	}
-#endif
+	return FALSE;
+//#endif
 
 	//FIXME
 	//return (p1->equalto->next == p2->equalto);
-	return ((p1->equalto->next == p2->equalto)
-			|| (p2->equalto->next == p1->equalto));
-	//return FALSE;
+	//return ((p1->equalto->next == p2->equalto)
+	//		|| (p2->equalto->next == p1->equalto));
 }
 
 /* compares two constant sub-trees;
@@ -151,7 +153,7 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 			 *
 			 * Instead of:*/
 
-			 if (are_equal(p1->parent, p2->parent)) {
+			 if (are_equal(p1, p2)) {
 				return TRUE;
 			 } else if (*(p1->symbol) != *(p2->symbol)) {
 				//unsigned short int r = (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
@@ -521,9 +523,9 @@ unsigned short int branch_proceed(Pnode* pnode)
 	}
 
 	//DBG_VERIFY(fprintf(stderr, "(n*%d)", reachable->num);)
-	//if (HAS_GFLAG_FRST) {
-	//	DBG_VERIFY(fprintf(stderr, "*(%d)", rn());)
-	//}
+	if (HAS_GFLAG_FRST) {
+		DBG_VERIFY(fprintf(stderr, "*(%d)", rn());)
+	}
 	return HAS_SYMBOL(reachable) ? next_in_branch(pnode) : TRUE;
 }
 
