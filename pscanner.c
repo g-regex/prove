@@ -26,9 +26,14 @@
 #define TRUE 1
 #define FALSE 0
 
-static FILE *file; /* [prove] source file                */
-static int   col;  /* column number of current character */
-static int   ch;   /* current character                  */
+#define SKIP_BUFFER 4096
+
+static FILE *file;  /* [prove] source file                */
+static int   col;   /* column number of current character */
+static int   ch;    /* current character                  */
+
+char skipped[SKIP_BUFFER]; /* skipped characters                 */
+static int sc_i = 0;
 
 static void next_char(void); /* advances the "cursor" to the next character */
 
@@ -44,6 +49,20 @@ void init_scanner(FILE *f)
 	next_char();
 }
 
+void skip_char(){
+	if (sc_i < SKIP_BUFFER) {
+		skipped[sc_i] = ch;
+		sc_i++;
+	}
+	next_char();
+}
+
+char* recall_chars() {
+	skipped[sc_i] = '\0';
+	sc_i = 0;
+	return skipped;
+}
+
 /*
  * advances the "cursor" to the next token and stores the token information
  * in the provided struct
@@ -52,7 +71,7 @@ void next_token(Token *token)
 {
 	/* skip all whitespace */
 	while (isspace(ch)) {
-		next_char();
+		skip_char();
 	}
 
 	/* remember token start column (to report the correct error position) */
@@ -63,7 +82,7 @@ void next_token(Token *token)
 		if (ch == '#') {
 			/* skip comments */
 			while (ch != '\n') {
-				next_char();
+				skip_char();
 			}
 			next_token(token);
 		} else if (isalpha(ch) || isdigit(ch) || isspecial(ch)) {
@@ -120,6 +139,8 @@ void next_char(void)
 	if ((ch = fgetc(file)) == EOF) {
 		return;
 	}
+
+	/* DBG_PARSER(fprintf(stderr, "%c", ch);) */
 
 	if (last_read == '\n') {
 		cursor.line++;

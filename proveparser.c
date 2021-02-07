@@ -196,9 +196,11 @@ void parse_formula(void)
 		}
 	} else if (token.type == TOK_IMPLY) {
 		set_symbol(pnode, token.id);	
+		DBG_PARSER(fprintf(stderr, "\033[0;36m%s\033[0;0m", recall_chars());)
 		DBG_PARSER(fprintf(stderr, "%s", token.id);)
 		/* token is an implication symbol */
 		next_token(&token);
+		DBG_PARSER(fprintf(stderr, "\033[0;36m%s\033[0;0m", recall_chars());)
 		if (token.type == TOK_RBRACK) {
 			/* statements must not contain only an implication symbol */
 			/* ERROR */
@@ -280,6 +282,7 @@ void parse_statement(void)
 
 	while (proceed) {
 		lvl++;
+		DBG_PARSER(fprintf(stderr, "\033[0;36m%s\033[0;0m", recall_chars());)
 		DBG_PARSER(fprintf(stderr, "%s", token.id);)
 
 		/*neg = FALSE;
@@ -290,6 +293,7 @@ void parse_statement(void)
 		}*/
 
 		expect(TOK_LBRACK);
+		DBG_PARSER(fprintf(stderr, "\033[0;36m%s\033[0;0m", recall_chars());)
 		if (HAS_GFLAG_VRFD) {
 			UNSET_GFLAG_VRFD
 		}
@@ -306,6 +310,8 @@ void parse_statement(void)
 
 		parse_expr();
 
+		//DBG_PARSER(fprintf(stderr, "%s", token.id);)
+		DBG_PARSER(fprintf(stderr, "\033[0;36m%s\033[0;0m", recall_chars());)
 		DBG_PARSER(fprintf(stderr, "%s", token.id);)
 		expect(TOK_RBRACK);
 		lvl--;
@@ -321,6 +327,10 @@ void parse_statement(void)
 		if (CONTAINS_ID(pnode)) {
 			found = FALSE;
 
+			/* OLD implementation, where only backtracking was used to
+			 * distinguish new identifiers from old ones.
+			 *
+			 * */
 			/*ptmp = pnode->prev_const;
 			while (ptmp != NULL) {
 				if (CONTAINS_ID(ptmp)) {
@@ -349,28 +359,21 @@ void parse_statement(void)
 				ptmp = ptmp->prev_const;
 			}*/
 
-			/* --- */
-
-			//DBG_VERIFY(fprintf(stderr, ".");)
+			/* NEW implementation */
 			init_backtrack(pnode);
 			while (next_reachable_const(pnode)) {
-				//DBG_VERIFY(fprintf(stderr, ",%d", rn());)
 				if(verify(pnode)) {
 					found = TRUE;
 
-					DBG_VERIFY(fprintf(stderr, "(vrfd:%d=%d)", (*(pnode->child))->num,
-								(*(reachable->child))->num);)
-					//equate(reachable, pnode);
-					// TODO: maybe implement equality rather as a stack
-					// to respect scope
+					/* DEBUGGING output for showing how nodes verified nodes are
+					 * circularly linked */
+					/*DBG_VERIFY(fprintf(stderr, "(vrfd:%d=%d)", (*(pnode->child))->num,
+								(*(reachable->child))->num);)*/
 					equate(*(pnode->child), *(reachable->child));
 
 					free(*((*(pnode->child))->symbol));
 					free((*(pnode->child))->symbol);
-					//free((*(pnode->child))->equalto);
 
-					//(*(pnode->child))->equalto =
-					//	(*(reachable->child))->equalto;
 					(*(pnode->child))->symbol =
 						(*(reachable->child))->symbol;
 					(*(pnode->child))->child =
@@ -385,13 +388,8 @@ void parse_statement(void)
 			/* --- */
 
 			if (found == FALSE) {
-				// FIXME: added this, correct?
-				//finish_verify();
-
 				SET_NFLAG_NEWC(pnode)
 
-				/* TODO: check constraints on introducing new identifiers */
-				/* for sub-tree substitution */
 				(*(pnode->child))->child =
 					(Pnode**) malloc(sizeof(struct Pnode*));
 				*((*(pnode->child))->child) = NULL;
@@ -401,6 +399,7 @@ void parse_statement(void)
 			}
 		} else if (!HAS_FFLAGS((*(pnode->child)))) {
 			/* FIXME */
+			/* OLD relic from NFLAG_TRUE */
 			/* verify children, if we have nested statements */
 			/*if (!HAS_NFLAG_ASMP(pnode)) {
 				ptmp = *(pnode->child);
@@ -412,15 +411,8 @@ void parse_statement(void)
 		}
 
 		if (HAS_NFLAG_EQTY(pnode) /*&& HAS_NFLAG_NEWC(prev_node)*/) {
-			/* FIXME: maybe generalise this for sub-trees */
-			if (CONTAINS_ID(prev_node)) {
-				DBG_VERIFY(fprintf(stderr, "(eqt:%d=%d,", (*(prev_node->child))->num,
-							(*(pnode->child))->num);)
-				equate(*(prev_node->child), *(pnode->child));
-				DBG_VERIFY(fprintf(stderr, "%d=%d)", (*(prev_node->child))->equalto->next->pnode->num,
-							(*(pnode->child))->equalto->next->pnode->num);)
-				prev_node = pnode;
-			}
+			equate(*(prev_node->child), *(pnode->child));
+			prev_node = pnode;
 		}
 
 		if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)
@@ -428,7 +420,9 @@ void parse_statement(void)
 			/* verification is triggered here */
 			if (!trigger_verify(pnode)) {
 				fprintf(stderr,
-						"verification failed on line %d, column %d\n",
+						"\033[0;31m"
+						"verification failed on line %d, column %d"
+						"\033[0;0m\n",
 						 cursor.line, cursor.col);
 				if (!DBG_FINISH_IS_SET) {
 					exit(EXIT_FAILURE);
@@ -440,7 +434,9 @@ void parse_statement(void)
 			/* TODO: this is just c/p from above */
 			if (!are_equal(prev_node, pnode)) {
 				fprintf(stderr,
-						"verification failed on line %d, column %d\n",
+						"\033[0;31m"
+						"verification failed on line %d, column %d"
+						"\033[0;0m\n",
 						 cursor.line, cursor.col);
 				if (!DBG_FINISH_IS_SET) {
 					exit(EXIT_FAILURE);
@@ -453,6 +449,7 @@ void parse_statement(void)
 		if (token.type != TOK_LBRACK /*&& token.type != TOK_NOT*/) {
 			proceed = FALSE;
 		}
+		DBG_PARSER(fprintf(stderr, "\033[0;36m%s\033[0;0m", recall_chars());)
 	}
 }
 
@@ -482,12 +479,12 @@ void check_conflict(Pnode* pnode, TType ttype)
 {
 	if (ttype == TOK_IMPLY) {
 		/* indent assumptions in debugging output to improve readability */
-		DBG_PARSER(if (!HAS_NFLAG_ASMP(pnode)) {
+		/* OUTPUT DBG_PARSER(if (!HAS_NFLAG_ASMP(pnode)) {
 			fprintf(stderr, "\n");
 			for (int i = 0; i < lvl; i++ ) {
 				fprintf(stderr, "\t");
 			}
-		})
+		}) */
 
 		if (!HAS_FFLAGS(pnode)) {
 			SET_NFLAG_IMPL(pnode)

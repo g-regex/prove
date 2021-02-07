@@ -32,4 +32,6 @@ Cursor cursor;
 void init_scanner(FILE *f);
 void next_token(Token *token);
 
+char* recall_chars();
+
 #endif /* SCANNER_H */

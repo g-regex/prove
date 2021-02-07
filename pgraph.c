@@ -29,7 +29,6 @@
 
 #define DO(x) ((x) || TRUE)
 
-/* DEBUG */
 //#ifdef DNUM
 static short int n = 0;		/* node counter */
 //#endif
@@ -220,7 +219,7 @@ void create_right(Pnode* pnode)
 	fprintf(tikz, TIKZ_RIGHTARROW(pnode->num, n));)
 
 //#ifdef DNUM
-	right->num = n; /* DEBUG */
+	right->num = n; /* DEBUG: pre-order numbering of the nodes */
 	n++;
 //#endif
 }
@@ -233,10 +232,6 @@ void move_and_sum_up(Pnode** pnode)
 	Variable* var;
 	Variable* oldvar;
 	
-	/*unsigned short int success;
-
-	success = TRUE;*/
-
 	/* only update rightmost child, if a new right node was created before */
 	TIKZ(if (rightmost_child == 0) {
 		rightmost_child = (*pnode)->num;
@@ -255,14 +250,12 @@ void move_and_sum_up(Pnode** pnode)
 				!HAS_NFLAG_EQTY((*pnode))) {
 			UNSET_NFLAG_ASMP((*pnode))
 		}
-										/* ignore NEWC in equalities */
+
+		/* ignore NEWC in equalities: assignment 
+		 * ignore NEWC after first "=>": existence */
 		if (HAS_NFLAG_NEWC((*pnode)) && !HAS_NFLAG_EQTY((*pnode))
-				/* consider variables after first implication formulator as
-				 * newly declared */
-				/*&& !(!HAS_NFLAG_FRST((*pnode)) && HAS_NFLAG_IMPL((*pnode)))*/
 				&& HAS_NFLAG_FRST((*pnode))
 				) {
-			/*if (!HAS_NFLAG_ASMP((*pnode))) success = FALSE; REMOVED:semERROR*/ 
 			var = (Variable*) malloc(sizeof(Variable));
 			var->pnode = *((*pnode)->child);
 			var->next = oldvar;
@@ -298,10 +291,9 @@ void set_symbol(Pnode* pnode, char* symbol)
 	strcpy(*(pnode->symbol), symbol);
 }
 
-/* first local, second global */
+/* integrate pnodes in each others equality circle */
 void equate(Pnode* p1, Pnode* p2)
 {
-//#if 0
 	Variable* firsteq1;
 	Variable* eq_iter1;
 	Variable* firsteq2;
@@ -315,8 +307,6 @@ void equate(Pnode* p1, Pnode* p2)
 
 	eq_iter1->next = p2->equalto;
 	eq_iter2->next = p1->equalto;
-//#endif
-//	p2->equalto->next = p1->equalto;
 }
 
 
@@ -334,23 +324,13 @@ void print_flags(Pnode* pnode) {
 		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR3 TIKZ_FLAG_B(pnode->num, 2));
 	}
 	if (HAS_NFLAG_ASMP(pnode)) {
-		/*if (HAS_SYMBOL(pnode)) {
-			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR_INACT
-					TIKZ_FLAG_B(pnode->num, 3));
-		} else {*/
-			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR4 TIKZ_FLAG_B(pnode->num, 3));
-		/*}*/
+		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR4 TIKZ_FLAG_B(pnode->num, 3));
 	}
 	if (HAS_NFLAG_NEWC(pnode)) {
 		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR5 TIKZ_FLAG_B(pnode->num, 4));
 	}
 	if (HAS_NFLAG_LOCK(pnode)) {
-		/*if (HAS_SYMBOL(pnode)) {
-			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR_INACT
-					TIKZ_FLAG_B(pnode->num, 5));
-		} else {*/
-			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR6 TIKZ_FLAG_B(pnode->num, 5));
-		/*}*/
+		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR6 TIKZ_FLAG_B(pnode->num, 5));
 	}
 	if (HAS_NFLAG_FRST(pnode)) {
 		if (!HAS_NFLAG_IMPL(pnode)) {
@@ -360,14 +340,6 @@ void print_flags(Pnode* pnode) {
 			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR7 TIKZ_FLAG_B(pnode->num, 6));
 		}
 	}
-	/*if (HAS_NFLAG_TRUE(pnode)) {
-		if (HAS_SYMBOL(pnode)) {
-			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR_INACT
-					TIKZ_FLAG_B(pnode->num, 7));
-		} else {
-			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR8 TIKZ_FLAG_B(pnode->num, 7));
-		}
-	}*/
 	if (pnode->var != NULL) {
 		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR9 TIKZ_FLAG_B(pnode->num, 8));
 	}
@@ -409,9 +381,7 @@ void free_graph(Pnode* pnode)
 		if (pnode->var != NULL) {
 			free(pnode->var);
 		}
-		//if (pnode->equalto->pnode->num == pnode->num) {
-			free(pnode->equalto);
-		//}
+		free(pnode->equalto);
 
 		if (pnode->left != NULL) {
 			move_left(&pnode);
@@ -430,9 +400,7 @@ void free_graph(Pnode* pnode)
 	if (pnode->var != NULL) {
 		free(pnode->var);
 	}
-	//if (pnode->equalto->pnode->num == pnode->num) {
-		free(pnode->equalto);
-	//}
+	free(pnode->equalto);
 
 	free(pnode);
 
