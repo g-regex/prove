@@ -75,6 +75,11 @@ int main(int argc, char *argv[])
 				NOSUPPORT
 #endif
 				SET_DBG_PARSER
+			} else if (strcmp(argv[i], "--dequal") == 0) {
+#ifndef DPARSER
+				NOSUPPORT
+#endif
+				SET_DBG_EQUAL
 			} else if (strcmp(argv[i], "--dtikz") == 0) {
 #ifndef DTIKZ
 				NOSUPPORT
@@ -370,6 +375,9 @@ void parse_statement(void)
 					/*DBG_VERIFY(fprintf(stderr, "(vrfd:%d=%d)", (*(pnode->child))->num,
 								(*(reachable->child))->num);)*/
 					equate(*(pnode->child), *(reachable->child));
+					DBG_EQUAL(fprintf(stderr, "\033[0;35m(%d=%d)\033[0;0m",
+								(*(pnode->child))->num,
+								(*(reachable->child))->num);)
 
 					free(*((*(pnode->child))->symbol));
 					free((*(pnode->child))->symbol);
@@ -412,6 +420,9 @@ void parse_statement(void)
 
 		if (HAS_NFLAG_EQTY(pnode) /*&& HAS_NFLAG_NEWC(prev_node)*/) {
 			equate(*(prev_node->child), *(pnode->child));
+			DBG_EQUAL(fprintf(stderr, "\033[0;33m(%d=%d)\033[0;0m",
+						(*(prev_node->child))->num,
+						(*(pnode->child))->num);)
 			prev_node = pnode;
 		}
 

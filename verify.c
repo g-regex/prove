@@ -201,7 +201,7 @@ unsigned short int trigger_verify(Pnode* pn)
 					DBG_PARSER(fprintf(stderr, ">\033[0;0m");) 
 					break;
 				}
-				DBG_PARSER(fprintf(stderr, "\033[0;0m>");) 
+				DBG_PARSER(fprintf(stderr, ">\033[0;0m");) 
 			}
 			/* DBG_PARSER(fprintf(stderr, "<%d>", rn());) */
 		}

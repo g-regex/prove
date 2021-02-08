@@ -29,6 +29,7 @@ typedef enum {
 						   verification */
 	DBG_FINISH = 16,	/* finish execution, even if verification failed */
 	DBG_GRAPH = 32,
+	DBG_EQUAL = 64,
 } DBGops;
 
 DBGops dbgops;
@@ -80,9 +81,10 @@ DBGops dbgops;
 #define SET_DBG_GRAPH
 #endif
 
-#ifdef DPARSER
+#ifdef DPARSER /* implies DEQUAL */
 //#define DNUM
 #define DEBUG
+#define DEQUAL
 #define DBG_PARSER_IS_SET (dbgops & DBG_PARSER)
 #define SET_DBG_PARSER dbgops |= DBG_PARSER;
 #define DBG_PARSER(cmd) \
@@ -90,6 +92,17 @@ DBGops dbgops;
 #else
 #define DBG_PARSER(cmd)
 #define SET_DBG_PARSER
+#endif
+
+#ifdef DEQUAL
+#define DEBUG
+#define DBG_EQUAL_IS_SET (dbgops & DBG_EQUAL)
+#define SET_DBG_EQUAL dbgops |= DBG_EQUAL;
+#define DBG_EQUAL(cmd) \
+	if (DBG_EQUAL_IS_SET) { cmd }
+#else
+#define DBG_EQUAL(cmd)
+#define SET_DBG_EQUAL
 #endif
 
 #ifdef DEBUG

@@ -35,6 +35,7 @@
 	MDC "--help" MDC "\tdisplay this message\n" MDN\
 	"\n" MDS "DEBUGGING options:" MDS "\n\n" MDN\
 	MDC "--dparser" MDC "  \tactivate debugging output for parser\n" MDN\
+	MDC "--dequal" MDC "  \tactivate debugging output for circular linked list for equalities\n" MDN\
 	MDC "--dgraph" MDC "   \tactivate debugging output for graph creation "\
 	 			"(implies " MDC "--dparser" MDC ")\n" MDN\
 	MDC "--dverify" MDC "  \tactivate debugging output for verification "\
