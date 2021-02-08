@@ -201,11 +201,13 @@ void parse_formula(void)
 		}
 	} else if (token.type == TOK_IMPLY) {
 		set_symbol(pnode, token.id);	
-		DBG_PARSER(fprintf(stderr, "\033[0;36m%s\033[0;0m", recall_chars());)
+		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1, recall_chars());)
+		//DBG_PARSER(fprintf(stderr, "%s", recall_chars());)
 		DBG_PARSER(fprintf(stderr, "%s", token.id);)
 		/* token is an implication symbol */
 		next_token(&token);
-		DBG_PARSER(fprintf(stderr, "\033[0;36m%s\033[0;0m", recall_chars());)
+		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1, recall_chars());)
+		//DBG_PARSER(fprintf(stderr, "%s", recall_chars());)
 		if (token.type == TOK_RBRACK) {
 			/* statements must not contain only an implication symbol */
 			/* ERROR */
@@ -287,7 +289,8 @@ void parse_statement(void)
 
 	while (proceed) {
 		lvl++;
-		DBG_PARSER(fprintf(stderr, "\033[0;36m%s\033[0;0m", recall_chars());)
+		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1, recall_chars());)
+		//DBG_PARSER(fprintf(stderr, "%s", recall_chars());)
 		DBG_PARSER(fprintf(stderr, "%s", token.id);)
 
 		/*neg = FALSE;
@@ -298,7 +301,8 @@ void parse_statement(void)
 		}*/
 
 		expect(TOK_LBRACK);
-		DBG_PARSER(fprintf(stderr, "\033[0;36m%s\033[0;0m", recall_chars());)
+		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1, recall_chars());)
+		//DBG_PARSER(fprintf(stderr, "%s", recall_chars());)
 		if (HAS_GFLAG_VRFD) {
 			UNSET_GFLAG_VRFD
 		}
@@ -315,8 +319,8 @@ void parse_statement(void)
 
 		parse_expr();
 
-		//DBG_PARSER(fprintf(stderr, "%s", token.id);)
-		DBG_PARSER(fprintf(stderr, "\033[0;36m%s\033[0;0m", recall_chars());)
+		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1, recall_chars());)
+		//DBG_PARSER(fprintf(stderr, "%s", recall_chars());)
 		DBG_PARSER(fprintf(stderr, "%s", token.id);)
 		expect(TOK_RBRACK);
 		lvl--;
@@ -375,7 +379,8 @@ void parse_statement(void)
 					/*DBG_VERIFY(fprintf(stderr, "(vrfd:%d=%d)", (*(pnode->child))->num,
 								(*(reachable->child))->num);)*/
 					equate(*(pnode->child), *(reachable->child));
-					DBG_EQUAL(fprintf(stderr, "\033[0;35m(%d=%d)\033[0;0m",
+					DBG_EQUAL(fprintf(stderr, SHELL_MAGENTA "(%d=%d)" SHELL_RESET1,
+					//DBG_EQUAL(fprintf(stderr, "(%d=%d)",
 								(*(pnode->child))->num,
 								(*(reachable->child))->num);)
 
@@ -420,7 +425,8 @@ void parse_statement(void)
 
 		if (HAS_NFLAG_EQTY(pnode) /*&& HAS_NFLAG_NEWC(prev_node)*/) {
 			equate(*(prev_node->child), *(pnode->child));
-			DBG_EQUAL(fprintf(stderr, "\033[0;33m(%d=%d)\033[0;0m",
+			DBG_EQUAL(fprintf(stderr, SHELL_BROWN "(%d=%d)" SHELL_RESET1,
+			//DBG_EQUAL(fprintf(stderr, "(%d=%d)",
 						(*(prev_node->child))->num,
 						(*(pnode->child))->num);)
 			prev_node = pnode;
@@ -431,9 +437,10 @@ void parse_statement(void)
 			/* verification is triggered here */
 			if (!trigger_verify(pnode)) {
 				fprintf(stderr,
-						"\033[0;31m"
+						SHELL_RED
 						"verification failed on line %d, column %d"
-						"\033[0;0m\n",
+						SHELL_RESET1
+						"\n",
 						 cursor.line, cursor.col);
 				if (!DBG_FINISH_IS_SET) {
 					exit(EXIT_FAILURE);
@@ -445,9 +452,10 @@ void parse_statement(void)
 			/* TODO: this is just c/p from above */
 			if (!are_equal(prev_node, pnode)) {
 				fprintf(stderr,
-						"\033[0;31m"
+						SHELL_RED
 						"verification failed on line %d, column %d"
-						"\033[0;0m\n",
+						SHELL_RESET1
+						"\n",
 						 cursor.line, cursor.col);
 				if (!DBG_FINISH_IS_SET) {
 					exit(EXIT_FAILURE);
@@ -460,7 +468,7 @@ void parse_statement(void)
 		if (token.type != TOK_LBRACK /*&& token.type != TOK_NOT*/) {
 			proceed = FALSE;
 		}
-		DBG_PARSER(fprintf(stderr, "\033[0;36m%s\033[0;0m", recall_chars());)
+		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1, recall_chars());)
 	}
 }
 

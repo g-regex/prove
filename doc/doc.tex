@@ -90,7 +90,7 @@ anybody wants to join the project.
 
 Let us start with some basic definitions
 
-\textcolor{dartmouthgreen}{\begin{itemize}
+\begin{itemize}
 	\item
 		A \emph{statement} is a concatenation of one or more pair/s of square
 		brackets enclosing another statement, a formula or an identifier.
@@ -139,7 +139,7 @@ Let us start with some basic definitions
 	\item
 		The term \emph{real constant} refers to a formula, comprised of exactly
 		one formulator and exactly one empty statement.
-\end{itemize}}
+\end{itemize}
 
 \pagebreak{}
 
@@ -173,7 +173,7 @@ $\{\dots\}$ & indicates zero or more repetitions\tabularnewline\
 
 \begin{figure}[!ht]
 \centering
-\textcolor{dartmouthgreen}{\input{ebnf}}
+\input{ebnf}
 \caption{Extended Backus-Naur Form of the \name\ language}\label{fig:ebnf}
 \end{figure}
 
@@ -503,12 +503,16 @@ interpreted as follows:
 	\item
 		If a node requires verification, the number of the node is printed in
 		braces (e.g.\ \m{{7}}) after the corresponding statement.
+	%\item
+	%	The number of every node, the node to be verified is compared to, is
+	%	printed in angular brackets (e.g.\ \m{<4>}).
+	%\item
+	%	If the sub-trees \emph{below} the two compared nodes are similar to each
+	%	other, a hash is printed within the angular brackets (e.g.\ \m{<0#>}).
 	\item
-		The number of every node, the node to be verified is compared to, is
-		printed in angular brackets (e.g.\ \m{<4>}).
-	\item
-		If the sub-trees \emph{below} the two compared nodes are similar to each
-		other, a hash is printed within the angular brackets (e.g.\ \m{<0#>}).
+		If a node was verified successfully, the number of the node it is
+		similar to, preceded by a hash, is printed in angular brackets (e.g.\
+		\m{<#0>}).
 \end{itemize}}
 
 %Remark on figure~\ref{fig:impl1}: Nodes 0, 2 and 4 are part of an implication
@@ -616,14 +620,11 @@ statements:
 \example{var2v1}
 \discuss{%
 	Here \m{[[a]=[c]]} is part of the initial assumptions. The verification is
-	successful as node~14 (\m{[a]}) is found to be similar to both nodes 11 and
-	8 which are equal to each other by the statement of node~7. Due to that,
-	node~14 is further found to be equal to node~5. Notice that node~7 does not
-	have the \texttt{VAR} flag set, since node~8 is not a subject to
-	substitution but defined to be equal to something constant. The multiple
-	comparisions with node~0 at the end are a consequence of various
-	substitutions in that node -\ this can be optimised in future, but is
-	disregarded for now.
+	successful as node~14 (\m{[a]}) is found to be similar to node~5. To realise
+	this behaviour, we have to break with the previously introduced priciples of
+	constants and variables, since the identifier \m{a}, will be a constant for
+	every node to the left of node~7. This might become a problem in later
+	proofs.
 }
 
 \pagebreak{}

@@ -2,7 +2,8 @@
 # - If a statement (i.e. a chain like [..][..][..]) is preceded or followed
 #   by "=>", then insert a line break before the statement.
 # - If a "[" precedes an implication formula, increase the indentation level
-#   from the next line onwards.
+#   from the next line onwards (i.e. by adding a tabstop, which is equivalent to
+#   8 spaces).
 # - If a "]" follows an implication formula, insert a line break before the "]"
 #   and decrease the indentation level from the line containing the "]"
 #   onwards.

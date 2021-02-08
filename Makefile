@@ -60,7 +60,7 @@ cleandoc:
 
 clean: cleanbin cleandbg cleantex cleandoc
 
-debug: DFLAGS+=-DDPARSER -DDTIKZ -DDVERIFY -DDGRAPH
+debug: DFLAGS+=-DDPARSER -DDTIKZ -DDVERIFY -DDGRAPH -DDCOLOUR
 debug: proveparser
 
 check: CHECKARGS=--dparser --dtikz --dfinish
@@ -69,7 +69,8 @@ checkcmplt: CHECKARGS=--dparser --dtikz --dcomplete --dfinish
 checkcmplt: debug runchecks
 checknd: all runchecks
 
-doc: cleanbin cleantex debug docc docgen
+doc: DFLAGS+=-DDPARSER -DDTIKZ -DDVERIFY -DDGRAPH
+doc: cleanbin cleantex proveparser docc docgen
 
 pdf: cleanbin cleantex safecheck pdflatex
 

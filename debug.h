@@ -105,6 +105,27 @@ DBGops dbgops;
 #define SET_DBG_EQUAL
 #endif
 
+#ifdef DCOLOUR
+#define SHELL_RED "\033[0;31m"
+#define SHELL_GREEN "\033[0;32m"
+#define SHELL_BROWN "\033[0;33m"
+#define SHELL_MAGENTA "\033[0;35m"
+#define SHELL_CYAN "\033[0;36m"
+#define SHELL_RESET1 "\033[0;0m"
+#define SHELL_BOLD "\033[1m"
+#define SHELL_RESET2 "\033[0m"
+#else
+#define SHELL_RED
+#define SHELL_GREEN
+#define SHELL_BROWN
+#define SHELL_MAGENTA
+#define SHELL_CYAN
+#define SHELL_RESET1
+#define SHELL_BOLD
+#define SHELL_RESET2
+
+#endif
+
 #ifdef DEBUG
 #define DBG_NONE_IS_SET (dbgops == DBG_NONE)
 #else

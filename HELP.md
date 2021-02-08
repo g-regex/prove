@@ -12,6 +12,8 @@
 
 `--dparser`  	activate debugging output for parser
 
+`--dequal`  	activate debugging output for circular linked list for equalities
+
 `--dgraph`   	activate debugging output for graph creation (implies `--dparser`)
 
 `--dverify`  	activate debugging output for verification (implies `--dparser`)

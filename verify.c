@@ -85,6 +85,11 @@ unsigned short int are_equal(Pnode* p1, Pnode* p2)
 	for (eq_iter = firsteq->next; eq_iter != firsteq; eq_iter = eq_iter->next) {
 		if (eq_iter == p1->equalto) {
 			return TRUE;
+		} else if (IS_ID(eq_iter->pnode) && IS_ID(p1)) { /* FIXME: SCOPING */
+			if (strcmp(*(eq_iter->pnode->symbol),
+								*(p1->symbol)) == 0) {
+				return TRUE;
+			}
 		}
 	}
 	return FALSE;
@@ -108,6 +113,8 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 			 * Instead of:*/
 
 			 if (are_equal(p1, p2)) {
+				return TRUE;
+			 } else if (are_equal(p2, p1)) { /* FIXME: SCOPING */
 				return TRUE;
 			 } else if (*(p1->symbol) != *(p2->symbol)) {
 				return (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
@@ -186,22 +193,22 @@ unsigned short int trigger_verify(Pnode* pn)
 		return HAS_NFLAG_TRUE(pn);
 	}*/
 	init_backtrack(pn);
-	DBG_PARSER(fprintf(stderr, "\033[1m{%d}\033[0m", pn->num);)	
+	DBG_PARSER(fprintf(stderr, SHELL_BOLD "{%d}" SHELL_RESET2, pn->num);)	
 	DBG_PARSER(if(HAS_GFLAG_VRFD) fprintf(stderr, "*");)
 	if (!HAS_GFLAG_VRFD || DBG_COMPLETE_IS_SET) {
 		while (next_reachable_const(pn)) {
 			if(verify(pn)) {
-				DBG_PARSER(fprintf(stderr, "\033[0;32m<#%d", rn());)
+				DBG_PARSER(fprintf(stderr, SHELL_GREEN "<#%d", rn());)
 				SET_GFLAG_VRFD
 				
 				/* if no debugging options are selected and not
 				 * explicitly requested, skip unnecessary compares */
 				if (DBG_NONE_IS_SET || !DBG_COMPLETE_IS_SET) {
 					finish_verify();
-					DBG_PARSER(fprintf(stderr, ">\033[0;0m");) 
+					DBG_PARSER(fprintf(stderr, ">" SHELL_RESET1);) 
 					break;
 				}
-				DBG_PARSER(fprintf(stderr, ">\033[0;0m");) 
+				DBG_PARSER(fprintf(stderr, ">" SHELL_RESET1);) 
 			}
 			/* DBG_PARSER(fprintf(stderr, "<%d>", rn());) */
 		}
