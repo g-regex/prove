@@ -42,6 +42,7 @@ typedef struct substitution_status {
 	Pnode* known_const;	/* currently used constant sub-tree for substitution  */
 	char* sym;			/* symbol of substituted variable */
 	Variable* var;		/* substituted variable */
+	Variable* equalto;
 	struct substitution_status* prev;
 } SUB;
 static SUB* sub = NULL;
@@ -85,11 +86,11 @@ unsigned short int are_equal(Pnode* p1, Pnode* p2)
 	for (eq_iter = firsteq->next; eq_iter != firsteq; eq_iter = eq_iter->next) {
 		if (eq_iter == p1->equalto) {
 			return TRUE;
-		} else if (IS_ID(eq_iter->pnode) && IS_ID(p1)) { /* FIXME: SCOPING */
+		/* } else if (IS_ID(eq_iter->pnode) && IS_ID(p1)) { FIXME: SCOPING
 			if (strcmp(*(eq_iter->pnode->symbol),
 								*(p1->symbol)) == 0) {
 				return TRUE;
-			}
+			} */
 		}
 	}
 	return FALSE;
@@ -99,6 +100,8 @@ unsigned short int are_equal(Pnode* p1, Pnode* p2)
  * must be given the top left node of the subtrees to compare */
 unsigned short int const_equal(Pnode* p1, Pnode* p2)
 {
+	/* FIXME: segfaulting because of call stack overflow;
+	 * use less recursion  */
 	unsigned short int equal;
 
 	equal = TRUE;
@@ -114,8 +117,8 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 
 			 if (are_equal(p1, p2)) {
 				return TRUE;
-			 } else if (are_equal(p2, p1)) { /* FIXME: SCOPING */
-				return TRUE;
+			 /* } else if (are_equal(p2, p1)) { FIXME: SCOPING
+				return TRUE; */
 			 } else if (*(p1->symbol) != *(p2->symbol)) {
 				return (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
 			 } else {
@@ -135,8 +138,6 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 	}
 
 	if (equal && HAS_CHILD(p1)) {
-		/* FIXME: segfaulting because of call stack overflow;
-		 * use less recursion  */
 		equal = HAS_CHILD(p2) ? const_equal(*(p1->child), *(p2->child)) : FALSE;
 	}
 	if (equal && HAS_RIGHT(p1)) {
@@ -144,18 +145,8 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 	}
 
 	equal &= (IS_EMPTY(p1) == IS_EMPTY(p2));
-
-	if (equal) {
-		/* equate(p1, p2); This is not working due to the possible occurrence
-		 * of variables. TODO: make this work to improve performance */
-		/*if (HAS_NFLAG_NEWC(p1)) {
-			equate(p1, p2);
-		}*/
-
-		return TRUE;
-	} else {
-		return FALSE;
-	}
+	
+	return equal;
 }
 
 /* checks pnode against reachable node; this function is basically a safety net,
@@ -187,6 +178,22 @@ unsigned short int check_asmp(Pnode* pnode)
 	return FALSE;
 }
 
+#ifdef DVERIFY
+void print_sub()
+{
+	SUB* sub_iter;
+
+	sub_iter = sub;
+
+	while (sub_iter != NULL) {
+		fprintf(stderr,
+			"(%s=%d)", sub_iter->sym, sub_iter->known_const->num);
+
+		sub_iter = sub_iter->prev;
+	}
+}
+#endif
+
 unsigned short int trigger_verify(Pnode* pn)
 {
 	/*if (IS_EMPTY(pn) || (HAS_CHILD(pn) && IS_EMPTY((*(pn->child))))) {
@@ -200,6 +207,8 @@ unsigned short int trigger_verify(Pnode* pn)
 			if(verify(pn)) {
 				DBG_PARSER(fprintf(stderr, SHELL_GREEN "<#%d", rn());)
 				SET_GFLAG_VRFD
+
+				DBG_VERIFY(print_sub();)
 				
 				/* if no debugging options are selected and not
 				 * explicitly requested, skip unnecessary compares */
@@ -227,9 +236,9 @@ unsigned short int trigger_verify(Pnode* pn)
 
 /* --- substitution --------------------------------------------------------- */
 
-void init_known_const(Pnode* pnode, SUB* s)
+void init_known_const(Pnode* perspective, SUB* s)
 {
-	s->known_const = pnode->prev_const;
+	s->known_const = perspective->prev_const;
 }
 
 /* substitute variable */
@@ -249,19 +258,20 @@ unsigned short int sub_var(SUB* s)
 			*(s->var->pnode->right) = *((*(s->known_const->child))->right);
 		}
 	}
+	s->var->pnode->equalto = (*(s->known_const->child))->equalto;
 	//DBG_VERIFY(fprintf(stderr,
 	//	"\\%s=%d/", s->sym, s->known_const->num);)
 }
 
 /* substitutes variable(s) by the next known constant/sub-tree */
-unsigned short int next_known_const(Pnode* pnode, SUB* s)
+unsigned short int next_known_const(Pnode* perspective, SUB* s)
 {
 	if (s != NULL) {
 		if (s->known_const != NULL) {
 			s->known_const = s->known_const->prev_const;
 			if (s->known_const == NULL) {
-				if (next_known_const(pnode, s->prev)) {
-					init_known_const(pnode, s);
+				if (next_known_const(perspective, s->prev)) {
+					init_known_const(perspective, s);
 					sub_var(s);
 					return TRUE;
 				} else {
@@ -280,7 +290,7 @@ unsigned short int next_known_const(Pnode* pnode, SUB* s)
 }
 
 /* initialise substitution */
-void init_sub(Pnode* pnode)
+void init_sub(Pnode* perspective)
 {
 	Variable* var;
 	SUB* oldsub;
@@ -289,15 +299,16 @@ void init_sub(Pnode* pnode)
 	oldsub = sub;
 
 	/* only substitute, if there is something to substitute in */
-	if (pnode->prev_const != NULL) {
+	if (perspective->prev_const != NULL) {
 		do {
 			sub = (SUB*) malloc(sizeof(SUB));
 			sub->prev = oldsub;
 			oldsub = sub;
 
-			init_known_const(pnode, sub);
+			init_known_const(perspective, sub);
 
 			sub->sym = *(var->pnode->symbol);
+			sub->equalto = var->pnode->equalto;
 			sub->var = var;
 
 			/* FIXME: added this. correct? */
@@ -319,14 +330,15 @@ void finish_sub()
 		prev_sub = sub->prev;
 
 		/* TODO: function print_sub for debugging with DFLAG DCOMPLETE */
-		DBG_VERIFY(
+		/*DBG_VERIFY(
 				if (HAS_GFLAG_VRFD && !DBG_COMPLETE_IS_SET) {
 					fprintf(stderr,
 						"(%s=%d)", sub->sym, sub->known_const->num);
 				}
-		)
+		)*/
 
 		*(sub->var->pnode->symbol) = sub->sym;
+		sub->var->pnode->equalto = sub->equalto;
 		*(sub->var->pnode->child) = NULL;
 		*(sub->var->pnode->right) = NULL;
 
@@ -596,68 +608,49 @@ void finish_verify()
 
 unsigned short int next_reachable_const(Pnode* pnode)
 {
-	/* branch exploration */
-	if (HAS_GFLAG_BRCH) {
-		if (!next_in_branch(pnode)) {
-			exit_branch();
-		}
-		return TRUE;
-	} 
+	unsigned short int proceed;
 
-	/* substitution */
-	if (HAS_GFLAG_SUBD) {
-		if (next_known_const(pnode, sub)) {
-			return attempt_explore(pnode);
-		} else {
-			finish_sub();
-			return next_reachable_const(pnode);
-		}
-	}
-
-	/* backtracking */
-#if 0
-	OLD: backtracking was struggling when first statements
-	in a formula were nested
-
-	if (move_left(&reachable) || 
-			(move_up(&reachable) && (move_left(&reachable) || TRUE))) {
-		/*if (HAS_SYMBOL(reachable) ?  move_left(&reachable) :  TRUE) {
-			if (reachable->var != NULL) {
-				init_sub(pnode);
-			}
-			return attempt_explore(pnode);
-		}*/
-		DBG_PARSER(fprintf(stderr, ";%d", reachable->num);)
-		if (HAS_SYMBOL(reachable)) {
-			return next_reachable_const(pnode);
-		} else {
-			if (reachable->var != NULL) {
-				init_sub(pnode);
-			}
-			return attempt_explore(pnode);
-		}
-	}
-	return FALSE;
-#endif
-
-	/* NEW */
 	do {
-		if (move_left(&reachable)) {
-			break;
-		} else if (!move_up(&reachable)) {
-			return FALSE;
-		}
-	} while (TRUE);
+		proceed = FALSE;
 
-	if (HAS_SYMBOL(reachable)) {
-		return next_reachable_const(pnode);
-	} else {
-		if (reachable->var != NULL) {
-			init_sub(pnode);
+		/* branch exploration */
+		if (HAS_GFLAG_BRCH) {
+			if (!next_in_branch(pnode)) {
+				exit_branch();
+			}
+			return TRUE;
+		} 
+
+		/* substitution */
+		if (HAS_GFLAG_SUBD) {
+			if (next_known_const(pnode, sub)) {
+				return attempt_explore(pnode);
+			} else {
+				finish_sub();
+				//return next_reachable_const(pnode);
+				proceed = TRUE;
+			}
 		}
-		return attempt_explore(pnode);
-	}
-	/* --- */
+
+		/* backtracking */
+		do {
+			if (move_left(&reachable)) {
+				break;
+			} else if (!move_up(&reachable)) {
+				return FALSE;
+			}
+		} while (TRUE);
+
+		if (HAS_SYMBOL(reachable)) {
+			//return next_reachable_const(pnode);
+			proceed = TRUE;
+		} else {
+			if (reachable->var != NULL) {
+				init_sub(pnode);
+			}
+			return attempt_explore(pnode);
+		}
+	} while (proceed);
 }
 
 /* --- debugging ------------------------------------------------------------ */

@@ -378,11 +378,10 @@ void parse_statement(void)
 					 * circularly linked */
 					/*DBG_VERIFY(fprintf(stderr, "(vrfd:%d=%d)", (*(pnode->child))->num,
 								(*(reachable->child))->num);)*/
-					equate(*(pnode->child), *(reachable->child));
+					/*equate(*(pnode->child), *(reachable->child));
 					DBG_EQUAL(fprintf(stderr, SHELL_MAGENTA "(%d=%d)" SHELL_RESET1,
-					//DBG_EQUAL(fprintf(stderr, "(%d=%d)",
 								(*(pnode->child))->num,
-								(*(reachable->child))->num);)
+								(*(reachable->child))->num);)*/
 
 					free(*((*(pnode->child))->symbol));
 					free((*(pnode->child))->symbol);
@@ -401,6 +400,8 @@ void parse_statement(void)
 			/* --- */
 
 			if (found == FALSE) {
+				fprintf(stderr, SHELL_MAGENTA "*" SHELL_RESET1);
+
 				SET_NFLAG_NEWC(pnode)
 
 				(*(pnode->child))->child =
@@ -425,10 +426,8 @@ void parse_statement(void)
 
 		if (HAS_NFLAG_EQTY(pnode) /*&& HAS_NFLAG_NEWC(prev_node)*/) {
 			equate(*(prev_node->child), *(pnode->child));
-			DBG_EQUAL(fprintf(stderr, SHELL_BROWN "(%d=%d)" SHELL_RESET1,
-			//DBG_EQUAL(fprintf(stderr, "(%d=%d)",
-						(*(prev_node->child))->num,
-						(*(pnode->child))->num);)
+			equate(*(prev_node->child), pnode->above);
+			equate(*(pnode->child), pnode->above);
 			prev_node = pnode;
 		}
 

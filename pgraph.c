@@ -88,7 +88,7 @@ void init_pgraph(Pnode** root)
 	gflags = GFLAG_NONE;
 	*root = (Pnode*) malloc(sizeof(struct Pnode));
 
-	(*root)->parent = 
+	(*root)->parent = (*root)->above =
 		(*root)->left = (*root)->prev_const = NULL;
 	(*root)->child = (*root)->right = NULL;
 	(*root)->symbol = NULL;
@@ -121,6 +121,7 @@ void create_child(Pnode* pnode)
 	child->left = NULL;
 	child->child = child->right = NULL;
 	child->parent = pnode;
+	child->above = pnode;
 	child->var = NULL;
 	child->symbol = NULL;
 
@@ -160,6 +161,7 @@ void create_right(Pnode* pnode)
 	*(pnode->right) = (Pnode*) malloc(sizeof(struct Pnode));
 
 	right = *(pnode->right);
+	right->above = pnode->above;
 	right->parent = NULL;
 	right->child = right->right = NULL;
 	right->left = pnode;
@@ -251,11 +253,7 @@ void move_and_sum_up(Pnode** pnode)
 			UNSET_NFLAG_ASMP((*pnode))
 		}
 
-		/* ignore NEWC in equalities: assignment 
-		 * ignore NEWC after first "=>": existence */
-		if (HAS_NFLAG_NEWC((*pnode)) && !HAS_NFLAG_EQTY((*pnode))
-				&& HAS_NFLAG_FRST((*pnode))
-				) {
+		if (HAS_NFLAG_NEWC((*pnode))) {
 			var = (Variable*) malloc(sizeof(Variable));
 			var->pnode = *((*pnode)->child);
 			var->next = oldvar;
@@ -307,6 +305,11 @@ void equate(Pnode* p1, Pnode* p2)
 
 	eq_iter1->next = p2->equalto;
 	eq_iter2->next = p1->equalto;
+
+
+	DBG_EQUAL(fprintf(stderr, SHELL_BROWN "(%d=%d)" SHELL_RESET1,
+				p1->num,
+				p2->num);)
 }
 
 
