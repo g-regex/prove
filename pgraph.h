@@ -101,6 +101,11 @@ typedef struct Variable {
 	struct Variable* next;
 } Variable;
 
+typedef struct Equalities {
+	Variable* eqcircle;
+	struct Equalities* next;
+} Equalities;
+
 typedef struct Pnode {
 	struct Pnode* parent;
 	struct Pnode* above; /* pointing to the parent of the leftmost node in the
@@ -116,7 +121,8 @@ typedef struct Pnode {
 	Variable* var; /* link to the first variable in
 					  sub-tree (for substitution) */
 
-	Variable* equalto;
+	//Variable** equalto;
+	Equalities* prev_eq;
 } Pnode;
 
 #define CONTAINS_ID(pnode) \

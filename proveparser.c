@@ -336,52 +336,34 @@ void parse_statement(void)
 		if (CONTAINS_ID(pnode)) {
 			found = FALSE;
 
-			/* OLD implementation, where only backtracking was used to
-			 * distinguish new identifiers from old ones.
-			 *
-			 * */
-			/*ptmp = pnode->prev_const;
+			ptmp = pnode->prev_const;
 			while (ptmp != NULL) {
 				if (CONTAINS_ID(ptmp)) {
 					if (strcmp(*((*(ptmp->child))->symbol),
 								*((*(pnode->child))->symbol)) == 0) {
 						found = TRUE;
-
 						equate(ptmp, pnode);
-
 						free(*((*(pnode->child))->symbol));
 						free((*(pnode->child))->symbol);
-						free((*(pnode->child))->equalto);
-
+						/*free((*(pnode->child))->equalto);
 						(*(pnode->child))->equalto =
-							(*(ptmp->child))->equalto;
+							(*(ptmp->child))->equalto;*/
 						(*(pnode->child))->symbol =
 							(*(ptmp->child))->symbol;
 						(*(pnode->child))->child =
 							(*(ptmp->child))->child;
 						(*(pnode->child))->right =
 							(*(ptmp->child))->right;
-
 						break;
 					}
 				}
 				ptmp = ptmp->prev_const;
-			}*/
+			}
 
-			/* NEW implementation */
-			init_backtrack(pnode);
+			/*init_backtrack(pnode);
 			while (next_reachable_const(pnode)) {
 				if(verify(pnode)) {
 					found = TRUE;
-
-					/* DEBUGGING output for showing how nodes verified nodes are
-					 * circularly linked */
-					/*DBG_VERIFY(fprintf(stderr, "(vrfd:%d=%d)", (*(pnode->child))->num,
-								(*(reachable->child))->num);)*/
-					/*equate(*(pnode->child), *(reachable->child));
-					DBG_EQUAL(fprintf(stderr, SHELL_MAGENTA "(%d=%d)" SHELL_RESET1,
-								(*(pnode->child))->num,
-								(*(reachable->child))->num);)*/
 
 					free(*((*(pnode->child))->symbol));
 					free((*(pnode->child))->symbol);
@@ -396,8 +378,7 @@ void parse_statement(void)
 					finish_verify();
 					break;
 				}
-			}
-			/* --- */
+			}*/
 
 			if (found == FALSE) {
 				fprintf(stderr, SHELL_MAGENTA "*" SHELL_RESET1);
@@ -411,23 +392,22 @@ void parse_statement(void)
 					(Pnode**) malloc(sizeof(struct Pnode*));
 				*((*(pnode->child))->right) = NULL;
 			}
-		} else if (!HAS_FFLAGS((*(pnode->child)))) {
-			/* FIXME */
-			/* OLD relic from NFLAG_TRUE */
-			/* verify children, if we have nested statements */
-			/*if (!HAS_NFLAG_ASMP(pnode)) {
+		} /* else if (!HAS_FFLAGS((*(pnode->child)))) {
+			OLD relic from NFLAG_TRUE
+			verify children, if we have nested statements
+			if (!HAS_NFLAG_ASMP(pnode)) {
 				ptmp = *(pnode->child);
 				do {
 					trigger_verify(ptmp);	
 				} while (ptmp->right != NULL &&
 						((ptmp = *(ptmp->right)) != NULL));
-			}*/
-		}
+			}
+		}*/
 
 		if (HAS_NFLAG_EQTY(pnode) /*&& HAS_NFLAG_NEWC(prev_node)*/) {
-			equate(*(prev_node->child), *(pnode->child));
-			equate(*(prev_node->child), pnode->above);
-			equate(*(pnode->child), pnode->above);
+			equate(prev_node, pnode);
+			/*equate(prev_node, pnode->above);
+			equate(pnode, pnode->above);*/
 			prev_node = pnode;
 		}
 
@@ -449,6 +429,8 @@ void parse_statement(void)
 			}
 		} else if (HAS_NFLAG_EQTY(pnode) && !HAS_NFLAG_ASMP(pnode)) {
 			/* TODO: this is just c/p from above */
+			/* FIXME: currently just takes equalities of the form [...]=[...]
+			 * into account */
 			if (!are_equal(prev_node, pnode)) {
 				fprintf(stderr,
 						SHELL_RED

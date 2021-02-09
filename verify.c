@@ -42,7 +42,7 @@ typedef struct substitution_status {
 	Pnode* known_const;	/* currently used constant sub-tree for substitution  */
 	char* sym;			/* symbol of substituted variable */
 	Variable* var;		/* substituted variable */
-	Variable* equalto;
+	//Variable* equalto;
 	struct substitution_status* prev;
 } SUB;
 static SUB* sub = NULL;
@@ -79,20 +79,20 @@ unsigned short int wrap_right()
 /* checking circular linked list of equal nodes */
 unsigned short int are_equal(Pnode* p1, Pnode* p2)
 {
-	Variable* firsteq;
+	/*Variable* firsteq;
 	Variable* eq_iter;
 
-	firsteq = p2->equalto;
+	firsteq = *(p2->equalto);
 	for (eq_iter = firsteq->next; eq_iter != firsteq; eq_iter = eq_iter->next) {
-		if (eq_iter == p1->equalto) {
+		if (eq_iter == *(p1->equalto)) {
 			return TRUE;
-		/* } else if (IS_ID(eq_iter->pnode) && IS_ID(p1)) { FIXME: SCOPING
-			if (strcmp(*(eq_iter->pnode->symbol),
-								*(p1->symbol)) == 0) {
-				return TRUE;
-			} */
+		//} else if (IS_ID(eq_iter->pnode) && IS_ID(p1)) { FIXME: SCOPING
+		//	if (strcmp(*(eq_iter->pnode->symbol),
+		//						*(p1->symbol)) == 0) {
+		//		return TRUE;
+		//	}
 		}
-	}
+	}*/
 	return FALSE;
 }
 
@@ -115,7 +115,7 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 			 *
 			 * Instead of:*/
 
-			 if (are_equal(p1, p2)) {
+			 if (are_equal(p1->parent, p2->parent)) {
 				return TRUE;
 			 /* } else if (are_equal(p2, p1)) { FIXME: SCOPING
 				return TRUE; */
@@ -244,13 +244,34 @@ void init_known_const(Pnode* perspective, SUB* s)
 /* substitute variable */
 unsigned short int sub_var(SUB* s)
 {
+	/* ATTENTION: This approach to substitution relies on the fact that we only
+	 * move rightwards and downwards, while the substitution is in place. */
+	if ((*(s->known_const->child))->symbol != NULL) {
+		*(s->var->pnode->symbol) = *((*(s->known_const->child))->symbol);
+	} else {
+		*(s->var->pnode->symbol) = NULL;
+	}
+
+	if ((*(s->known_const->child))->child != NULL) {
+		*(s->var->pnode->child) = *((*(s->known_const->child))->child);
+	} else {
+		*(s->var->pnode->child) = NULL;
+	}
+
+	if ((*(s->known_const->child))->right != NULL) {
+		*(s->var->pnode->right) = *((*(s->known_const->child))->right);
+	} else {
+		*(s->var->pnode->right) = NULL;
+	}
+
+	/*
 	if (CONTAINS_ID(s->known_const)) {
 		*(s->var->pnode->symbol) = *((*(s->known_const->child))->symbol);
 		*(s->var->pnode->child) = NULL;
 		*(s->var->pnode->right) = NULL;
 	} else {
 		*(s->var->pnode->symbol) = NULL;
-		/* FIXME: check the next 6 lines; missing anything? */
+		// FIXME: check the next 6 lines; missing anything?
 		if ((*(s->known_const->child))->child != NULL) {
 			*(s->var->pnode->child) = *((*(s->known_const->child))->child);
 		}
@@ -258,7 +279,8 @@ unsigned short int sub_var(SUB* s)
 			*(s->var->pnode->right) = *((*(s->known_const->child))->right);
 		}
 	}
-	s->var->pnode->equalto = (*(s->known_const->child))->equalto;
+	*/
+	//*(s->var->pnode->equalto) = *((*(s->known_const->child))->equalto);
 	//DBG_VERIFY(fprintf(stderr,
 	//	"\\%s=%d/", s->sym, s->known_const->num);)
 }
@@ -308,7 +330,7 @@ void init_sub(Pnode* perspective)
 			init_known_const(perspective, sub);
 
 			sub->sym = *(var->pnode->symbol);
-			sub->equalto = var->pnode->equalto;
+			//sub->equalto = *(var->pnode->equalto);
 			sub->var = var;
 
 			/* FIXME: added this. correct? */
@@ -338,7 +360,7 @@ void finish_sub()
 		)*/
 
 		*(sub->var->pnode->symbol) = sub->sym;
-		sub->var->pnode->equalto = sub->equalto;
+		//*(sub->var->pnode->equalto) = sub->equalto;
 		*(sub->var->pnode->child) = NULL;
 		*(sub->var->pnode->right) = NULL;
 

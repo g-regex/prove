@@ -94,10 +94,13 @@ void init_pgraph(Pnode** root)
 	(*root)->symbol = NULL;
 	(*root)->flags = NFLAG_FRST | NFLAG_TRUE;
 	(*root)->var = NULL;
-
-	(*root)->equalto = (Variable*) malloc(sizeof(Variable));
-	(*root)->equalto->pnode = *root;
-	(*root)->equalto->next = (*root)->equalto;
+	
+	/*
+	(*root)->equalto = (Variable**) malloc(sizeof(Variable*));
+	*((*root)->equalto) = (Variable*) malloc(sizeof(Variable));
+	(*((*root)->equalto))->pnode = *root;
+	(*((*root)->equalto))->next = *((*root)->equalto);
+	*/
 
 	TIKZ(fprintf(tikz, TIKZ_STARTNODE);
 	rightmost_child = 0;
@@ -125,9 +128,12 @@ void create_child(Pnode* pnode)
 	child->var = NULL;
 	child->symbol = NULL;
 
-	child->equalto = (Variable*) malloc(sizeof(Variable));
-	child->equalto->pnode = child;
-	child->equalto->next = child->equalto;
+	/*
+	child->equalto = (Variable**) malloc(sizeof(Variable*));
+	*(child->equalto) = (Variable*) malloc(sizeof(Variable));
+	(*(child->equalto))->pnode = child;
+	(*(child->equalto))->next = *(child->equalto);
+	*/
 
 	/* a newly created child will always be the first (i.e. left-most)
 	 * in the current subtree */
@@ -168,9 +174,12 @@ void create_right(Pnode* pnode)
 	right->symbol = NULL;
 	right->var = NULL;
 
-	right->equalto = (Variable*) malloc(sizeof(Variable));
-	right->equalto->pnode = right;
-	right->equalto->next = right->equalto;
+	/*
+	right->equalto = (Variable**) malloc(sizeof(Variable*));
+	*(right->equalto) = (Variable*) malloc(sizeof(Variable));
+	(*(right->equalto))->pnode = right;
+	(*(right->equalto))->next = *(right->equalto);
+	*/
 
 	/* flags are carried over to the right hand side */
 	right->flags = pnode->flags; /* | NFLAG_TRUE; */
@@ -292,20 +301,19 @@ void set_symbol(Pnode* pnode, char* symbol)
 /* integrate pnodes in each others equality circle */
 void equate(Pnode* p1, Pnode* p2)
 {
-	Variable* firsteq1;
+	/*Variable* firsteq1;
 	Variable* eq_iter1;
 	Variable* firsteq2;
 	Variable* eq_iter2;
 
-	/* move to last equalto in circle */
-	firsteq1 = p1->equalto;
+	// move to last equalto in circle
+	firsteq1 = *(p1->equalto);
 	for (eq_iter1 = firsteq1; eq_iter1->next != firsteq1; eq_iter1 = eq_iter1->next);
-	firsteq2 = p2->equalto;
+	firsteq2 = *(p2->equalto);
 	for (eq_iter2 = firsteq2; eq_iter2->next != firsteq2; eq_iter2 = eq_iter2->next);
 
-	eq_iter1->next = p2->equalto;
-	eq_iter2->next = p1->equalto;
-
+	eq_iter1->next = *(p2->equalto);
+	eq_iter2->next = *(p1->equalto);*/
 
 	DBG_EQUAL(fprintf(stderr, SHELL_BROWN "(%d=%d)" SHELL_RESET1,
 				p1->num,
@@ -384,7 +392,10 @@ void free_graph(Pnode* pnode)
 		if (pnode->var != NULL) {
 			free(pnode->var);
 		}
-		free(pnode->equalto);
+		/*if (pnode->num == (*(pnode->equalto))->pnode->num) {
+			free(*(pnode->equalto));
+			free(pnode->equalto);
+		}*/
 
 		if (pnode->left != NULL) {
 			move_left(&pnode);
@@ -403,7 +414,10 @@ void free_graph(Pnode* pnode)
 	if (pnode->var != NULL) {
 		free(pnode->var);
 	}
-	free(pnode->equalto);
+	/*if (pnode->num == (*(pnode->equalto))->pnode->num) {
+		free(*(pnode->equalto));
+		free(pnode->equalto);
+	}*/
 
 	free(pnode);
 
