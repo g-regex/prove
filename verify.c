@@ -28,6 +28,9 @@
 #define TRUE 1
 #define FALSE 0
 
+/* explorable are branches, which contain either an implication or an equality,
+ * which is not an assumption
+ * TODO: verify equalities, which are assumptions - but not by exploration */
 #define EXPLORABLE \
 	(HAS_CHILD(reachable) && (HAS_NFLAG_IMPL((*(reachable->child)))\
 			|| (!HAS_NFLAG_FRST(reachable)\
@@ -115,11 +118,11 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 			 *
 			 * Instead of:*/
 
-			 if (are_equal(p1->parent, p2->parent)) {
+			 /*if (are_equal(p1->parent, p2->parent)) {
 				return TRUE;
-			 /* } else if (are_equal(p2, p1)) { FIXME: SCOPING
-				return TRUE; */
-			 } else if (*(p1->symbol) != *(p2->symbol)) {
+			  } else if (are_equal(p2, p1)) { FIXME: SCOPING
+				return TRUE;
+			 } else */if (*(p1->symbol) != *(p2->symbol)) {
 				return (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
 			 } else {
 				return TRUE;
@@ -158,10 +161,11 @@ unsigned short int verify(Pnode* pnode)
 		//DBG_VERIFY(fprintf(stderr, "X");)
 		return FALSE;
 	}
-	if (are_equal(reachable, pnode)) {
+	/*if (are_equal(reachable, pnode)) {
 		return TRUE;
-	}
+	}*/
 	return const_equal(*(reachable->child), *(pnode->child));
+	/* TODO: only when other verification fails, take equalities into account */
 }
 
 /* checks assumption in 'reachable' from the perspective of pnode */
@@ -351,14 +355,6 @@ void finish_sub()
 	do {
 		prev_sub = sub->prev;
 
-		/* TODO: function print_sub for debugging with DFLAG DCOMPLETE */
-		/*DBG_VERIFY(
-				if (HAS_GFLAG_VRFD && !DBG_COMPLETE_IS_SET) {
-					fprintf(stderr,
-						"(%s=%d)", sub->sym, sub->known_const->num);
-				}
-		)*/
-
 		*(sub->var->pnode->symbol) = sub->sym;
 		//*(sub->var->pnode->equalto) = sub->equalto;
 		*(sub->var->pnode->child) = NULL;
@@ -467,145 +463,128 @@ unsigned short int attempt_explore(Pnode* pnode)
 	return TRUE;
 }
 
+#define POP \
+	if (bc->above == NULL) {\
+		return FALSE; /* last pop is done by exit_branch */\
+	} else {\
+		bc_pop(&reachable);\
+	}
+
 /* move up in branch in proceed with exploration to the right, if possible */
 unsigned short int branch_proceed(Pnode* pnode)
 {
+	/* FIXME: check, whether GFLAG_FRST is set properly */
 	while (!wrap_right()) {
-		if (bc->above == NULL) {
-			return FALSE; /* last pop is done by exit_branch */
-		} else {
-			bc_pop(&reachable);
-			if (wrap_right()) {
-				break;
-			}
+		POP
+		if (wrap_right()) {
+			break;
 		}
 	}
-
-	/* FIXME: check, whether GFLAG_FRST is set properly
-	 * if (HAS_GFLAG_FRST) {
-	 *	DBG_VERIFY(fprintf(stderr, "*(%d)", rn());)
-	 *} */
-	return HAS_SYMBOL(reachable) ? next_in_branch(pnode) : TRUE;
+	return TRUE;
 }
+
+#define BRANCH_PROCEED \
+	if (!branch_proceed(pnode)) {\
+		return FALSE;\
+	} else if (!HAS_SYMBOL(reachable)) {\
+		return TRUE;\
+	} else {\
+		proceed = TRUE;\
+		continue;\
+	}
+
+#define PROCEED \
+	proceed = TRUE;\
+	continue;
+
+#define SKIP_FORMULATORS \
+	do {\
+		wrap_right();\
+	} while (HAS_SYMBOL(reachable));
 
 /* set "reachable" to the next valid value or return FALSE */
 unsigned short int next_in_branch(Pnode* pnode)
 {
 	/* FIXME: too much recursion */
+	unsigned short int proceed;
 
-	/* skip formulators */
-	if (HAS_SYMBOL(reachable)) {
-		return branch_proceed(pnode);	
-	}
+	do {
+		proceed = FALSE;
 
-	if (explore_branch()) {
-		return next_in_branch(pnode);
-	}
-
-	if (HAS_NFLAG_IMPL(reachable)) {
-		//DBG_VERIFY(fprintf(stderr, "(%d", reachable->num);)
-		if (HAS_NFLAG_FRST(reachable) || HAS_GFLAG_FRST) {
-			if (!check_asmp(pnode)) {
-				//DBG_VERIFY(fprintf(stderr, ":F)");)
-
-				/* c/p from branch proceed -> optimise */
-				do {
-					if (bc->above == NULL) {
-						return FALSE; /* last pop is done by exit_branch */
-					} else {
-						bc_pop(&reachable);
-					}
-				} while (HAS_NFLAG_IMPL(reachable)
-							&& HAS_NFLAG_FRST(reachable));
-				return branch_proceed(pnode);
-			} else if (!move_right(&reachable)) {
-				//DBG_VERIFY(fprintf(stderr, ":R)");)
-				/* OLD: FATAL ERROR, must not happen
-				 * (node with FRST flag cannot be the last one) */
-				// CORRECTION: can happen with GFLAG FRST
-				return branch_proceed(pnode);
-			} else {
-				//DBG_VERIFY(fprintf(stderr, ":>)");)
-				return next_in_branch(pnode);
-			}
-		} else {
-			//DBG_VERIFY(fprintf(stderr, ":X)");)
-			if (explore_branch()) {
-				return next_in_branch(pnode);
-			} else {
-				//DBG_PARSER(fprintf(stderr, ".");)
-				return branch_proceed(pnode);	
-			}
+		/* skip formulators */
+		if (HAS_SYMBOL(reachable)) {
+			BRANCH_PROCEED
 		}
-	} else if (HAS_NFLAG_EQTY(reachable)) {
-		if (HAS_GFLAG_WRAP) {
-			if (eqendwrap == reachable) {
-				UNSET_GFLAG_WRAP
-				return branch_proceed(pnode);
+
+		/* explore EXPLORABLE subbranches */
+		if (explore_branch()) {
+			PROCEED
+		}
+
+		if (HAS_NFLAG_IMPL(reachable)) {
+			/* if processing an assumption, verify it */
+			if (HAS_NFLAG_FRST(reachable) || HAS_GFLAG_FRST) {
+				if (!check_asmp(pnode)) {
+					/* pop through branch checkpoints until node is not part
+					 * of an assumption TODO: add a nice example here */
+					do {
+						POP
+					} while (HAS_NFLAG_IMPL(reachable)
+								&& HAS_NFLAG_FRST(reachable));
+
+					BRANCH_PROCEED
+				} else if (!move_right(&reachable)) {
+					/* When GFLAG_FRST is set, it might happen that we cannot
+					 * move right and have to pop back to proceed with the next
+					 * node at a lower level */
+					BRANCH_PROCEED
+				} else {
+					PROCEED
+				}
+			} else {
+				if (explore_branch()) {
+					PROCEED
+				} else {
+					BRANCH_PROCEED
+				}
 			}
-
-			/*OLD: do {
-				wrap_right();
-			} while (HAS_SYMBOL(reachable));
-			return TRUE;*/
-
-			/* NEW */
-			if (are_equal(reachable, eqendwrap)) {
-				//DBG_VERIFY(fprintf(stderr, "T", reachable->num);)
-				do {
-					wrap_right();
-				} while (HAS_SYMBOL(reachable));
+		} else if (HAS_NFLAG_EQTY(reachable)) {
+			if (HAS_GFLAG_WRAP) {
+				/* proceed with branch after cycling through equality */
+				if (eqendwrap == reachable) {
+					UNSET_GFLAG_WRAP
+					BRANCH_PROCEED
+				}
+				SKIP_FORMULATORS
 				return TRUE;
 			} else {
-				return FALSE;
-			}
-			/* --- */
-		} else {
-			if (HAS_NFLAG_FRST(reachable)) {
-				eqfirst = reachable;
-			}
+				/* remember first node in equality for wrapping */
+				if (HAS_NFLAG_FRST(reachable)) {
+					eqfirst = reachable;
+				}
 
-			do {
+				do {
+					/* loop through nodes in equality to find a valid assumption
+					 * and stop at the first reachable _after_ it */
 
-				//DBG_VERIFY(fprintf(stderr, "(%d", reachable->num);)
-				if (HAS_SYMBOL(reachable)){
-					//DBG_VERIFY(fprintf(stderr, ":S)");)
-					continue;
-				} else if (check_asmp(pnode)) {
-					//DBG_VERIFY(fprintf(stderr, ":>>)");)
-					SET_GFLAG_WRAP
-					eqendwrap = reachable;
+					if (HAS_SYMBOL(reachable)){ /* skip "=" */
+						continue;
+					} else if (check_asmp(pnode)) {
+						SET_GFLAG_WRAP
+						eqendwrap = reachable;
 
-					do {
-						wrap_right();
-					} while (HAS_SYMBOL(reachable));
-					return TRUE;
-					/*if (are_equal(reachable, eqendwrap)) {
-						DBG_VERIFY(fprintf(stderr, "T*", reachable->num);)
+						SKIP_FORMULATORS
 						return TRUE;
-					} else {
-						return FALSE;
-					}*/
-				} else {
-					//DBG_VERIFY(fprintf(stderr, ":E)");)
-				}
+					}
 
-			} while (move_right(&reachable));
+				} while (move_right(&reachable));
 
-			/* c/p from branch proceed -> optimise */
-			if (bc->above == NULL) {
-				return FALSE; /* last pop is done by exit_branch */
-			} else {
-				bc_pop(&reachable);
-				if (HAS_GFLAG_WRAP) {
-					wrap_right(); /* FIXME: is this, what we want? */
-				}
+				POP
+				wrap_right();
+				BRANCH_PROCEED
 			}
-			return branch_proceed(pnode);
-			/* --- */
-			/*return FALSE;*/
 		}
-	}
+	} while (proceed);
 
 	return FALSE;
 }
@@ -651,6 +630,7 @@ unsigned short int next_reachable_const(Pnode* pnode)
 				finish_sub();
 				//return next_reachable_const(pnode);
 				proceed = TRUE;
+				continue;
 			}
 		}
 
@@ -666,6 +646,7 @@ unsigned short int next_reachable_const(Pnode* pnode)
 		if (HAS_SYMBOL(reachable)) {
 			//return next_reachable_const(pnode);
 			proceed = TRUE;
+			continue;
 		} else {
 			if (reachable->var != NULL) {
 				init_sub(pnode);

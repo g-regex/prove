@@ -1,0 +1,8 @@
+[a] [[a]:prop] [b] [[b]:prop2] [
+	[x] [[x]:prop] [y] [[y]:prop2] [[x]=[y]] =>
+	[[y] = [[y]:prop]]
+] =>
+[
+	[[a]=[b]] =>
+	[[b]:prop]
+]
