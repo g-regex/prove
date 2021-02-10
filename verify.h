@@ -28,6 +28,7 @@ void finish_verify();
 unsigned short int verify(Pnode* pnode, Pnode** pexplorer);
 
 /* for backtracking */
-unsigned short int next_reachable_const(Pnode* pnode, Pnode** pexplorer);
+unsigned short int next_reachable_const(Pnode* pnode, Pnode** pexplorer,
+		Pnode** pwrapper);
 
 #endif
