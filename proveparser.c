@@ -283,6 +283,7 @@ void parse_statement(void)
 	unsigned short int found;
 	/*unsigned short int neg;*/		/* set, if current pair of brackets is negated */
 	unsigned short int vstatus;		/* verification status */
+	Pnode* pexplorer;
 
 	proceed = TRUE;
 	vstatus = TRUE;
@@ -414,7 +415,7 @@ void parse_statement(void)
 		if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)
 				&& !HAS_GFLAG_VRFD) {
 			/* verification is triggered here */
-			if (!trigger_verify(pnode)) {
+			if (!trigger_verify(pnode, &pexplorer)) {
 				fprintf(stderr,
 						SHELL_RED
 						"verification failed on line %d, column %d"

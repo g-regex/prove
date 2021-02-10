@@ -19,21 +19,15 @@
 
 #include "pgraph.h"
 
-unsigned short int trigger_verify(Pnode* pn);
-
-Pnode* reachable;
+unsigned short int trigger_verify(Pnode* pn, Pnode** pexplorer);
 
 unsigned short int are_equal(Pnode* p1, Pnode* p2);
 
 /* for verification */
 void finish_verify();
-unsigned short int verify(Pnode* pnode);
+unsigned short int verify(Pnode* pnode, Pnode** pexplorer);
 
 /* for backtracking */
-unsigned short int next_reachable_const(Pnode* pnode);
-void init_backtrack(Pnode* pnode);
-
-/* DEBUG */
-unsigned short int rn();
+unsigned short int next_reachable_const(Pnode* pnode, Pnode** pexplorer);
 
 #endif

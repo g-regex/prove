@@ -108,7 +108,7 @@ typedef struct Equalities {
 
 typedef struct Pnode {
 	struct Pnode* parent;
-	struct Pnode* above; /* pointing to the parent of the leftmost node in the
+	/*struct Pnode* above;*//*pointing to the parent of the leftmost node in the
 							current statement */
 	struct Pnode** child;
 	struct Pnode* left;

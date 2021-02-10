@@ -88,7 +88,7 @@ void init_pgraph(Pnode** root)
 	gflags = GFLAG_NONE;
 	*root = (Pnode*) malloc(sizeof(struct Pnode));
 
-	(*root)->parent = (*root)->above =
+	(*root)->parent = //(*root)->above =
 		(*root)->left = (*root)->prev_const = NULL;
 	(*root)->child = (*root)->right = NULL;
 	(*root)->symbol = NULL;
@@ -124,7 +124,7 @@ void create_child(Pnode* pnode)
 	child->left = NULL;
 	child->child = child->right = NULL;
 	child->parent = pnode;
-	child->above = pnode;
+	//child->above = pnode;
 	child->var = NULL;
 	child->symbol = NULL;
 
@@ -167,7 +167,7 @@ void create_right(Pnode* pnode)
 	*(pnode->right) = (Pnode*) malloc(sizeof(struct Pnode));
 
 	right = *(pnode->right);
-	right->above = pnode->above;
+	//right->above = pnode->above;
 	right->parent = NULL;
 	right->child = right->right = NULL;
 	right->left = pnode;
