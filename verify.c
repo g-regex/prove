@@ -45,14 +45,6 @@ void bc_push(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 void bc_pop(Pnode** pnode, Eqwrapper** eqwrapper, BC** checkpoint,
 		VFlags* vflags);
 
-/* stack for substitution */
-typedef struct substitution_status {
-	Pnode* known_const;	/* currently used constant sub-tree for substitution  */
-	char* sym;			/* symbol of substituted variable */
-	Variable* var;		/* substituted variable */
-	//Variable* equalto;
-	struct substitution_status* prev;
-} SUB;
 static SUB* sub = NULL;
 
 //static Pnode* eqendwrap; /*temporarily holds node at which to stop wrapping*/
@@ -196,6 +188,8 @@ unsigned short int verify_universal(Pnode* pn)
 		return HAS_NFLAG_TRUE(pn);
 	}*/
 	//init_backtrack(pn);
+	
+	//TODO: pack these in one struct
 	Eqwrapper* eqwrapper;
 	Pnode** pexplorer;
 	BC** checkpoint;
@@ -251,6 +245,7 @@ unsigned short int verify_universal(Pnode* pn)
 
 unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 {
+	//TODO: pack these in one struct
 	Eqwrapper* eqwrapper;
 	Pnode** pexplorer;
 	BC** checkpoint;
