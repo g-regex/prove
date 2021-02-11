@@ -64,7 +64,7 @@ unsigned short int wrap_right(Pnode** pexplorer, Eqwrapper** eqwrapper,
 		VFlags* vflags)
 {
 	if (!move_right(pexplorer)) {
-		if (HAS_GFLAG_WRAP) {
+		if (HAS_VFLAG_WRAP(*vflags)) {
 			*pexplorer = (*eqwrapper)->pwrapper;
 		} else {
 			return FALSE;
@@ -207,6 +207,7 @@ unsigned short int verify_universal(Pnode* pn)
 	
 	*pexplorer = pn;
 	*checkpoint = NULL;
+	vflags = VFLAG_NONE;
 
 	DBG_PARSER(fprintf(stderr, SHELL_BOLD "{%d}" SHELL_RESET2, pn->num);)	
 	DBG_PARSER(if(HAS_GFLAG_VRFD) fprintf(stderr, "*");)
@@ -261,6 +262,7 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 	
 	*pexplorer = pexstart;
 	*checkpoint = NULL;
+	vflags = VFLAG_NONE;
 	
 	bc_push(pexplorer, &eqwrapper, checkpoint, &vflags);
 	do {
@@ -415,7 +417,7 @@ void init_sub(Pnode* perspective, Pnode** pexplorer, VFlags* vflags)
 			var = var->next;
 		} while (var != NULL);
 
-		SET_GFLAG_SUBD
+		SET_VFLAG_SUBD(*vflags)
 	}
 }
 
@@ -436,7 +438,7 @@ void finish_sub(VFlags* vflags)
 		sub = prev_sub;
 	} while (sub != NULL);
 
-	UNSET_GFLAG_SUBD
+	UNSET_VFLAG_SUBD(*vflags)
 }
 
 /* --- branching ------------------------------------------------------------ */
@@ -452,8 +454,8 @@ void bc_push(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 
 	bctos->pnode = *pexplorer;
 	//bctos->pnode = pexplorer;
-	bctos->wrap = HAS_GFLAG_WRAP;
-	bctos->frst = HAS_GFLAG_FRST;
+	bctos->wrap = HAS_VFLAG_WRAP(*vflags);
+	bctos->frst = HAS_VFLAG_FRST(*vflags);
 	bctos->pwrapper = (*eqwrapper)->pwrapper;
 	bctos->pendwrap = (*eqwrapper)->pendwrap;
 	bctos->above = *checkpoint;
@@ -470,15 +472,15 @@ void bc_pop(Pnode** pnode, Eqwrapper** eqwrapper, BC** checkpoint,
 
 	*pnode = (*checkpoint)->pnode;
 	if ((*checkpoint)->wrap) {
-		SET_GFLAG_WRAP
+		SET_VFLAG_WRAP(*vflags)
 	} else {
-		UNSET_GFLAG_WRAP
+		UNSET_VFLAG_WRAP(*vflags)
 	}
 
 	if ((*checkpoint)->frst) {
-		SET_GFLAG_FRST
+		SET_VFLAG_FRST(*vflags)
 	} else {
-		UNSET_GFLAG_FRST
+		UNSET_VFLAG_FRST(*vflags)
 	}
 
 	(*eqwrapper)->pwrapper = (*checkpoint)->pwrapper;
@@ -501,7 +503,7 @@ unsigned short int explore_branch(Pnode** pexplorer, Eqwrapper** eqwrapper,
 		if (HAS_NFLAG_FRST((*pexplorer))) {
 			bc_push(pexplorer, eqwrapper, checkpoint, vflags);
 			*pexplorer = *((*pexplorer)->child);
-			SET_GFLAG_FRST
+			SET_VFLAG_FRST(*vflags)
 		} else {
 			bc_push(pexplorer, eqwrapper, checkpoint, vflags);
 			*pexplorer = *((*pexplorer)->child);
@@ -518,8 +520,8 @@ void exit_branch(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 	while (*checkpoint != NULL) {
 		bc_pop(pexplorer, eqwrapper, checkpoint, vflags);
 	}
-	UNSET_GFLAG_BRCH
-	UNSET_GFLAG_FRST
+	UNSET_VFLAG_BRCH(*vflags)
+	UNSET_VFLAG_FRST(*vflags)
 }
 
 unsigned short int attempt_explore(Pnode* pnode, Pnode** pexplorer,
@@ -529,7 +531,7 @@ unsigned short int attempt_explore(Pnode* pnode, Pnode** pexplorer,
 	if (EXPLORABLE) {
 		bc_push(pexplorer, eqwrapper, checkpoint, vflags);
 		*pexplorer = *((*pexplorer)->child);
-		SET_GFLAG_BRCH
+		SET_VFLAG_BRCH(*vflags)
 		//DBG_VERIFY(fprintf(stderr, "~");)
 		if (!next_in_branch(pnode, pexplorer, eqwrapper, checkpoint, vflags)) {
 			exit_branch(pexplorer, eqwrapper, checkpoint, vflags);
@@ -537,7 +539,7 @@ unsigned short int attempt_explore(Pnode* pnode, Pnode** pexplorer,
 					checkpoint, vflags);
 		}
 	} else {
-		UNSET_GFLAG_BRCH
+		UNSET_VFLAG_BRCH(*vflags)
 	}
 	return TRUE;
 }
@@ -604,7 +606,7 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 
 		if (HAS_NFLAG_IMPL((*pexplorer))) {
 			/* if processing an assumption, verify it */
-			if (HAS_NFLAG_FRST((*pexplorer)) || HAS_GFLAG_FRST) {
+			if (HAS_NFLAG_FRST((*pexplorer)) || HAS_VFLAG_FRST(*vflags)) {
 				if (!check_asmp(perspective, pexplorer)) {
 					/* pop through branch checkpoints until node is not part
 					 * of an assumption TODO: add a nice example here */
@@ -630,10 +632,10 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 				}
 			}
 		} else if (HAS_NFLAG_EQTY((*pexplorer))) {
-			if (HAS_GFLAG_WRAP) {
+			if (HAS_VFLAG_WRAP(*vflags)) {
 				/* proceed with branch after cycling through equality */
 				if ((*eqwrapper)->pendwrap == *pexplorer) {
-					UNSET_GFLAG_WRAP
+					UNSET_VFLAG_WRAP(*vflags)
 					BRANCH_PROCEED
 				}
 				SKIP_FORMULATORS
@@ -651,7 +653,7 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 					if (HAS_SYMBOL((*pexplorer))){ /* skip "=" */
 						continue;
 					} else if (check_asmp(perspective, pexplorer)) {
-						SET_GFLAG_WRAP
+						SET_VFLAG_WRAP(*vflags)
 						(*eqwrapper)->pendwrap = *pexplorer;
 
 						SKIP_FORMULATORS
@@ -676,10 +678,10 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 void finish_verify(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 		VFlags* vflags)
 {
-	if (HAS_GFLAG_BRCH) {
+	if (HAS_VFLAG_BRCH(*vflags)) {
 		exit_branch(pexplorer, eqwrapper, checkpoint, vflags);
 	}
-	if (HAS_GFLAG_SUBD) {
+	if (HAS_VFLAG_SUBD(*vflags)) {
 		finish_sub(vflags);
 	}
 }
@@ -693,7 +695,7 @@ unsigned short int next_reachable_const(Pnode* pnode, Pnode** pexplorer,
 		proceed = FALSE;
 
 		/* branch exploration */
-		if (HAS_GFLAG_BRCH) {
+		if (HAS_VFLAG_BRCH(*vflags)) {
 			if (!next_in_branch(pnode, pexplorer, eqwrapper, checkpoint,
 						vflags)) {
 				exit_branch(pexplorer, eqwrapper, checkpoint, vflags);
@@ -702,7 +704,7 @@ unsigned short int next_reachable_const(Pnode* pnode, Pnode** pexplorer,
 		} 
 
 		/* substitution */
-		if (HAS_GFLAG_SUBD) {
+		if (HAS_VFLAG_SUBD(*vflags)) {
 			if (next_known_const(pnode, sub)) {
 				return attempt_explore(pnode, pexplorer, eqwrapper, checkpoint,
 						vflags);
