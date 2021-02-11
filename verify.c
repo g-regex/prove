@@ -39,9 +39,11 @@
 				&& HAS_NFLAG_EQTY((*((*pexplorer)->child))))))
 
 unsigned short int next_in_branch(Pnode* pnode, Pnode** pexplorer,
-		Eqwrapper** eqwrapper, BC** checkpoint);
-void bc_push(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint);
-void bc_pop(Pnode** pnode, Eqwrapper** eqwrapper, BC** checkpoint);
+		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags);
+void bc_push(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
+		VFlags* vflags);
+void bc_pop(Pnode** pnode, Eqwrapper** eqwrapper, BC** checkpoint,
+		VFlags* vflags);
 
 /* stack for substitution */
 typedef struct substitution_status {
@@ -58,7 +60,8 @@ static SUB* sub = NULL;
 /* --- verification specific movement functions ----------------------------- */
 
 /* move right; if already at the right-most node, move to the left-most node */ 
-unsigned short int wrap_right(Pnode** pexplorer, Eqwrapper** eqwrapper)
+unsigned short int wrap_right(Pnode** pexplorer, Eqwrapper** eqwrapper,
+		VFlags* vflags)
 {
 	if (!move_right(pexplorer)) {
 		if (HAS_GFLAG_WRAP) {
@@ -196,6 +199,7 @@ unsigned short int verify_universal(Pnode* pn)
 	Eqwrapper* eqwrapper;
 	Pnode** pexplorer;
 	BC** checkpoint;
+	VFlags vflags;
 
 	eqwrapper = (Eqwrapper*) malloc(sizeof(Eqwrapper));
 	pexplorer = (Pnode**) malloc(sizeof(Pnode*));
@@ -207,7 +211,8 @@ unsigned short int verify_universal(Pnode* pn)
 	DBG_PARSER(fprintf(stderr, SHELL_BOLD "{%d}" SHELL_RESET2, pn->num);)	
 	DBG_PARSER(if(HAS_GFLAG_VRFD) fprintf(stderr, "*");)
 	if (!HAS_GFLAG_VRFD || DBG_COMPLETE_IS_SET) {
-		while (next_reachable_const(pn, pexplorer, &eqwrapper, checkpoint)) {
+		while (next_reachable_const(pn, pexplorer, &eqwrapper, checkpoint,
+					&vflags)) {
 			if(verify(pn, pexplorer)) {
 				DBG_PARSER(fprintf(stderr, SHELL_GREEN "<#%d",
 							(*pexplorer)->num);)
@@ -218,7 +223,7 @@ unsigned short int verify_universal(Pnode* pn)
 				/* if no debugging options are selected and not
 				 * explicitly requested, skip unnecessary compares */
 				if (DBG_NONE_IS_SET || !DBG_COMPLETE_IS_SET) {
-					finish_verify(pexplorer, &eqwrapper, checkpoint);
+					finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags);
 					DBG_PARSER(fprintf(stderr, ">" SHELL_RESET1);) 
 					break;
 				}
@@ -248,6 +253,7 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 	Eqwrapper* eqwrapper;
 	Pnode** pexplorer;
 	BC** checkpoint;
+	VFlags vflags;
 
 	eqwrapper = (Eqwrapper*) malloc(sizeof(Eqwrapper));
 	pexplorer = (Pnode**) malloc(sizeof(Pnode*));
@@ -256,12 +262,12 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 	*pexplorer = pexstart;
 	*checkpoint = NULL;
 	
-	bc_push(pexplorer, &eqwrapper, checkpoint);
+	bc_push(pexplorer, &eqwrapper, checkpoint, &vflags);
 	do {
 		fprintf(stderr, SHELL_BROWN "%d " SHELL_RESET1, (*pexplorer)->num);
 		/*if(!verify(pn, pexplorer)) {
 		}*/
-	} while (next_in_branch(pn, pexplorer, &eqwrapper, checkpoint));
+	} while (next_in_branch(pn, pexplorer, &eqwrapper, checkpoint, &vflags));
 
 	if (*pexplorer == pn) {
 		DBG_VERIFY(fprintf(stderr, SHELL_GREEN "<verified>" SHELL_RESET1);)	
@@ -270,7 +276,7 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 		/* TODO: add verification information
 		DBG_VERIFY(print_sub();) */
 	}
-	bc_pop(pexplorer, &eqwrapper, checkpoint);
+	bc_pop(pexplorer, &eqwrapper, checkpoint, &vflags);
 #if 0
 	DBG_PARSER(fprintf(stderr, SHELL_BOLD "{%d}" SHELL_RESET2, pn->num);)	
 	DBG_PARSER(if(HAS_GFLAG_VRFD) fprintf(stderr, "*");)
@@ -382,7 +388,7 @@ unsigned short int next_known_const(Pnode* perspective, SUB* s)
 }
 
 /* initialise substitution */
-void init_sub(Pnode* perspective, Pnode** pexplorer)
+void init_sub(Pnode* perspective, Pnode** pexplorer, VFlags* vflags)
 {
 	Variable* var;
 	SUB* oldsub;
@@ -414,7 +420,7 @@ void init_sub(Pnode* perspective, Pnode** pexplorer)
 }
 
 /* substitute original variable symbols back in */
-void finish_sub()
+void finish_sub(VFlags* vflags)
 {
 	SUB* prev_sub;
 
@@ -437,7 +443,8 @@ void finish_sub()
 
 /* implementation of a "branch checkpoint" stack to easily find the next
  * parent node of the current level to jump back to */
-void bc_push(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint)
+void bc_push(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
+		VFlags* vflags)
 {
 	BC* bctos; /* top of stack for branch checkpoint, if descending */
 
@@ -453,7 +460,8 @@ void bc_push(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint)
 	*checkpoint = bctos;
 }
 
-void bc_pop(Pnode** pnode, Eqwrapper** eqwrapper, BC** checkpoint)
+void bc_pop(Pnode** pnode, Eqwrapper** eqwrapper, BC** checkpoint,
+		VFlags* vflags)
 {
 	BC* bcold;
 	unsigned short int wrap;
@@ -483,7 +491,7 @@ void bc_pop(Pnode** pnode, Eqwrapper** eqwrapper, BC** checkpoint)
 /* The following functions all set the value of pexplorer directly or
  * indirectly and return TRUE in the case of success and FALSE otherwise. */
 unsigned short int explore_branch(Pnode** pexplorer, Eqwrapper** eqwrapper,
-		BC** checkpoint)
+		BC** checkpoint, VFlags* vflags)
 {
 	/* OLD less restricted definition of EXPLORABLE:
 	 * if (HAS_NFLAG_IMPL((*(reachable->child)))
@@ -491,11 +499,11 @@ unsigned short int explore_branch(Pnode** pexplorer, Eqwrapper** eqwrapper,
 	 */
 	if (EXPLORABLE) {
 		if (HAS_NFLAG_FRST((*pexplorer))) {
-			bc_push(pexplorer, eqwrapper, checkpoint);
+			bc_push(pexplorer, eqwrapper, checkpoint, vflags);
 			*pexplorer = *((*pexplorer)->child);
 			SET_GFLAG_FRST
 		} else {
-			bc_push(pexplorer, eqwrapper, checkpoint);
+			bc_push(pexplorer, eqwrapper, checkpoint, vflags);
 			*pexplorer = *((*pexplorer)->child);
 		}
 		return TRUE;
@@ -504,27 +512,29 @@ unsigned short int explore_branch(Pnode** pexplorer, Eqwrapper** eqwrapper,
 	}
 }
 
-void exit_branch(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint)
+void exit_branch(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
+		VFlags* vflags)
 {
 	while (*checkpoint != NULL) {
-		bc_pop(pexplorer, eqwrapper, checkpoint);
+		bc_pop(pexplorer, eqwrapper, checkpoint, vflags);
 	}
 	UNSET_GFLAG_BRCH
 	UNSET_GFLAG_FRST
 }
 
 unsigned short int attempt_explore(Pnode* pnode, Pnode** pexplorer,
-		Eqwrapper** eqwrapper, BC** checkpoint)
+		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags)
 {
 	/* OLD implementation: if (explore_branch()) { */
 	if (EXPLORABLE) {
-		bc_push(pexplorer, eqwrapper, checkpoint);
+		bc_push(pexplorer, eqwrapper, checkpoint, vflags);
 		*pexplorer = *((*pexplorer)->child);
 		SET_GFLAG_BRCH
 		//DBG_VERIFY(fprintf(stderr, "~");)
-		if (!next_in_branch(pnode, pexplorer, eqwrapper, checkpoint)) {
-			exit_branch(pexplorer, eqwrapper, checkpoint);
-			return next_reachable_const(pnode, pexplorer, eqwrapper, checkpoint);
+		if (!next_in_branch(pnode, pexplorer, eqwrapper, checkpoint, vflags)) {
+			exit_branch(pexplorer, eqwrapper, checkpoint, vflags);
+			return next_reachable_const(pnode, pexplorer, eqwrapper,
+					checkpoint, vflags);
 		}
 	} else {
 		UNSET_GFLAG_BRCH
@@ -536,17 +546,17 @@ unsigned short int attempt_explore(Pnode* pnode, Pnode** pexplorer,
 	if ((*checkpoint)->above == NULL) {\
 		return FALSE; /* last pop is done by exit_branch */\
 	} else {\
-		bc_pop(pexplorer, eqwrapper, checkpoint);\
+		bc_pop(pexplorer, eqwrapper, checkpoint, vflags);\
 	}
 
 /* move up in branch in proceed with exploration to the right, if possible */
 unsigned short int branch_proceed(Pnode** pexplorer, Eqwrapper** eqwrapper,
-		BC** checkpoint)
+		BC** checkpoint, VFlags* vflags)
 {
 	/* FIXME: check, whether GFLAG_FRST is set properly */
-	while (!wrap_right(pexplorer, eqwrapper)) {
+	while (!wrap_right(pexplorer, eqwrapper, vflags)) {
 		POP
-		if (wrap_right(pexplorer, eqwrapper)) {
+		if (wrap_right(pexplorer, eqwrapper, vflags)) {
 			break;
 		}
 	}
@@ -554,7 +564,7 @@ unsigned short int branch_proceed(Pnode** pexplorer, Eqwrapper** eqwrapper,
 }
 
 #define BRANCH_PROCEED \
-	if (!branch_proceed(pexplorer, eqwrapper, checkpoint)) {\
+	if (!branch_proceed(pexplorer, eqwrapper, checkpoint, vflags)) {\
 		return FALSE;\
 	} else if (!HAS_SYMBOL((*pexplorer))) {\
 		return TRUE;\
@@ -569,12 +579,12 @@ unsigned short int branch_proceed(Pnode** pexplorer, Eqwrapper** eqwrapper,
 
 #define SKIP_FORMULATORS \
 	do {\
-		wrap_right(pexplorer, eqwrapper);\
+		wrap_right(pexplorer, eqwrapper, vflags);\
 	} while (HAS_SYMBOL((*pexplorer)));
 
 /* set pexplorer to the next valid value or return FALSE */
 unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
-		Eqwrapper** eqwrapper, BC** checkpoint)
+		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags)
 {
 	/* FIXME: too much recursion */
 	unsigned short int proceed;
@@ -588,7 +598,7 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 		}
 
 		/* explore EXPLORABLE subbranches */
-		if (explore_branch(pexplorer, eqwrapper, checkpoint)) {
+		if (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {
 			PROCEED
 		}
 
@@ -613,7 +623,7 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 					PROCEED
 				}
 			} else {
-				if (explore_branch(pexplorer, eqwrapper, checkpoint)) {
+				if (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {
 					PROCEED
 				} else {
 					BRANCH_PROCEED
@@ -651,7 +661,7 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 				} while (move_right(pexplorer));
 
 				POP
-				wrap_right(pexplorer, eqwrapper);
+				wrap_right(pexplorer, eqwrapper, vflags);
 				BRANCH_PROCEED
 			}
 		}
@@ -663,18 +673,19 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 /* --- backtracking --------------------------------------------------------- */
 
 /* finish verification of current node cleanly */
-void finish_verify(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint)
+void finish_verify(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
+		VFlags* vflags)
 {
 	if (HAS_GFLAG_BRCH) {
-		exit_branch(pexplorer, eqwrapper, checkpoint);
+		exit_branch(pexplorer, eqwrapper, checkpoint, vflags);
 	}
 	if (HAS_GFLAG_SUBD) {
-		finish_sub();
+		finish_sub(vflags);
 	}
 }
 
 unsigned short int next_reachable_const(Pnode* pnode, Pnode** pexplorer,
-		Eqwrapper** eqwrapper, BC** checkpoint)
+		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags)
 {
 	unsigned short int proceed;
 
@@ -683,8 +694,9 @@ unsigned short int next_reachable_const(Pnode* pnode, Pnode** pexplorer,
 
 		/* branch exploration */
 		if (HAS_GFLAG_BRCH) {
-			if (!next_in_branch(pnode, pexplorer, eqwrapper, checkpoint)) {
-				exit_branch(pexplorer, eqwrapper, checkpoint);
+			if (!next_in_branch(pnode, pexplorer, eqwrapper, checkpoint,
+						vflags)) {
+				exit_branch(pexplorer, eqwrapper, checkpoint, vflags);
 			}
 			return TRUE;
 		} 
@@ -692,10 +704,11 @@ unsigned short int next_reachable_const(Pnode* pnode, Pnode** pexplorer,
 		/* substitution */
 		if (HAS_GFLAG_SUBD) {
 			if (next_known_const(pnode, sub)) {
-				return attempt_explore(pnode, pexplorer, eqwrapper, checkpoint);
+				return attempt_explore(pnode, pexplorer, eqwrapper, checkpoint,
+						vflags);
 				/* TODO: remove recursion */
 			} else {
-				finish_sub();
+				finish_sub(vflags);
 				proceed = TRUE;
 				continue;
 			}
@@ -715,9 +728,10 @@ unsigned short int next_reachable_const(Pnode* pnode, Pnode** pexplorer,
 			continue;
 		} else {
 			if ((*pexplorer)->var != NULL) {
-				init_sub(pnode, pexplorer);
+				init_sub(pnode, pexplorer, vflags);
 			}
-			return attempt_explore(pnode, pexplorer, eqwrapper, checkpoint);
+			return attempt_explore(pnode, pexplorer, eqwrapper, checkpoint,
+					vflags);
 			/* TODO: remove recursion */
 		}
 	} while (proceed);

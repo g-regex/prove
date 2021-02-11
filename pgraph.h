@@ -75,29 +75,32 @@ typedef enum {
 GFlags gflags;  /* accessed by verify.c and proveparser.c */
 
 #define HAS_GFLAG_VRFD (gflags & GFLAG_VRFD)
+#define HAS_GFLAG_PSTP (gflags & GFLAG_PSTP)
+
 #define HAS_GFLAG_SUBD (gflags & GFLAG_SUBD)
 #define HAS_GFLAG_BRCH (gflags & GFLAG_BRCH)
 #define HAS_GFLAG_WRAP (gflags & GFLAG_WRAP)
 #define HAS_GFLAG_FRST (gflags & GFLAG_FRST)
-#define HAS_GFLAG_PSTP (gflags & GFLAG_PSTP)
 
 #define HAS_CHILD(pnode) (pnode->child != NULL && *(pnode->child) != NULL)
 #define HAS_RIGHT(pnode) (pnode->right != NULL && *(pnode->right) != NULL)
 #define HAS_SYMBOL(pnode) (pnode->symbol != NULL && *(pnode->symbol) != NULL)
 
 #define SET_GFLAG_VRFD gflags |= GFLAG_VRFD;
+#define SET_GFLAG_PSTP gflags |= GFLAG_PSTP;
+
 #define SET_GFLAG_SUBD gflags |= GFLAG_SUBD;
 #define SET_GFLAG_BRCH gflags |= GFLAG_BRCH;
 #define SET_GFLAG_WRAP gflags |= GFLAG_WRAP;
 #define SET_GFLAG_FRST gflags |= GFLAG_FRST;
-#define SET_GFLAG_PSTP gflags |= GFLAG_PSTP;
 
 #define UNSET_GFLAG_VRFD gflags &= ~GFLAG_VRFD;
+#define UNSET_GFLAG_PSTP gflags &= ~GFLAG_PSTP;
+
 #define UNSET_GFLAG_SUBD gflags &= ~GFLAG_SUBD;
 #define UNSET_GFLAG_BRCH gflags &= ~GFLAG_BRCH;
 #define UNSET_GFLAG_WRAP gflags &= ~GFLAG_WRAP;
 #define UNSET_GFLAG_FRST gflags &= ~GFLAG_FRST;
-#define UNSET_GFLAG_PSTP gflags &= ~GFLAG_PSTP;
 
 /* TODO: change name "Variable" */
 typedef struct Variable {

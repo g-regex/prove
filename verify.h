@@ -19,6 +19,29 @@
 
 #include "pgraph.h"
 
+typedef enum {
+	VFLAG_NONE = 0,
+	VFLAG_SUBD = 1,
+	VFLAG_BRCH = 2,
+	VFLAG_WRAP = 4,
+	VFLAG_FRST = 8,
+} VFlags;
+
+#define HAS_VFLAG_SUBD(vflags) (vflags & VFLAG_SUBD)
+#define HAS_VFLAG_BRCH(vflags) (vflags & VFLAG_BRCH)
+#define HAS_VFLAG_WRAP(vflags) (vflags & VFLAG_WRAP)
+#define HAS_VFLAG_FRST(vflags) (vflags & VFLAG_FRST)
+
+#define SET_VFLAG_SUBD(vflags) vflags |= VFLAG_SUBD;
+#define SET_VFLAG_BRCH(vflags) vflags |= VFLAG_BRCH;
+#define SET_VFLAG_WRAP(vflags) vflags |= VFLAG_WRAP;
+#define SET_VFLAG_FRST(vflags) vflags |= VFLAG_FRST;
+
+#define UNSET_VFLAG_SUBD(vflags) vflags &= ~VFLAG_SUBD;
+#define UNSET_VFLAG_BRCH(vflags) vflags &= ~VFLAG_BRCH;
+#define UNSET_VFLAG_WRAP(vflags) vflags &= ~VFLAG_WRAP;
+#define UNSET_VFLAG_FRST(vflags) vflags &= ~VFLAG_FRST;
+
 typedef struct Eqwrapper {
 	Pnode* pwrapper;
 	Pnode* pendwrap;
@@ -46,6 +69,6 @@ unsigned short int verify(Pnode* pnode, Pnode** pexplorer);
 
 /* for backtracking */
 unsigned short int next_reachable_const(Pnode* pnode, Pnode** pexplorer,
-		Eqwrapper** eqwrapper, BC** checkpoint);
+		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags);
 
 #endif
