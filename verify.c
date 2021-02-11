@@ -50,6 +50,11 @@ typedef struct substitution_status {
 } SUB;
 static SUB* sub = NULL;
 
+typedef struct Eqwrapper {
+	Pnode* pfirst;
+	Pnode* pendwrap;
+} Eqwrapper;
+
 /* stack for branch exploration */
 typedef struct branch_checkpoint { /* stack for jumping back to parent levels */
 	Pnode* pnode;
