@@ -56,11 +56,11 @@ typedef struct branch_checkpoint { /* stack for jumping back to parent levels */
 	unsigned short int wrap;
 	unsigned short int frst;
 	Pnode* pwrapper;
-	Pnode* eqendwrap;
+	Pnode* pendwrap;
 	struct branch_checkpoint* above;
 } BC;
 static BC* bc = NULL;
-static Pnode* eqendwrap; /*temporarily holds node at which to stop wrapping*/
+//static Pnode* eqendwrap; /*temporarily holds node at which to stop wrapping*/
 
 /* --- verification specific movement functions ----------------------------- */
 
@@ -385,7 +385,7 @@ void bc_push(Pnode** pexplorer, Eqwrapper** eqwrapper)
 	bctos->wrap = HAS_GFLAG_WRAP;
 	bctos->frst = HAS_GFLAG_FRST;
 	bctos->pwrapper = (*eqwrapper)->pwrapper;
-	bctos->eqendwrap = eqendwrap;
+	bctos->pendwrap = (*eqwrapper)->pendwrap;
 	bctos->above = bc;
 	bc = bctos;
 }
@@ -411,7 +411,7 @@ void bc_pop(Pnode** pnode, Eqwrapper** eqwrapper)
 	}
 
 	(*eqwrapper)->pwrapper = bc->pwrapper;
-	eqendwrap = bc->eqendwrap;
+	(*eqwrapper)->pendwrap = bc->pendwrap;
 
 	bc = bc->above;
 	free(bcold);
@@ -557,7 +557,7 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 		} else if (HAS_NFLAG_EQTY((*pexplorer))) {
 			if (HAS_GFLAG_WRAP) {
 				/* proceed with branch after cycling through equality */
-				if (eqendwrap == *pexplorer) {
+				if ((*eqwrapper)->pendwrap == *pexplorer) {
 					UNSET_GFLAG_WRAP
 					BRANCH_PROCEED
 				}
@@ -577,7 +577,7 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 						continue;
 					} else if (check_asmp(perspective, pexplorer)) {
 						SET_GFLAG_WRAP
-						eqendwrap = *pexplorer;
+						(*eqwrapper)->pendwrap = *pexplorer;
 
 						SKIP_FORMULATORS
 						return TRUE;

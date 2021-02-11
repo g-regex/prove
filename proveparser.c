@@ -280,8 +280,10 @@ void parse_statement(void)
 {
 	Pnode* ptmp;
 	int proceed;
-	unsigned short int found;
-	/*unsigned short int neg;*/		/* set, if current pair of brackets is negated */
+	unsigned short int found;		/* indicating whether an identifier has been
+									   found during backtracking */
+	/*unsigned short int neg;*/		/* set, if current pair of brackets is
+									   negated */
 	unsigned short int vstatus;		/* verification status */
 	Pnode* pexplorer;
 
@@ -289,8 +291,10 @@ void parse_statement(void)
 	vstatus = TRUE;
 
 	while (proceed) {
+		found = FALSE;
 		lvl++;
-		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1, recall_chars());)
+		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1,
+					recall_chars());)
 		//DBG_PARSER(fprintf(stderr, "%s", recall_chars());)
 		DBG_PARSER(fprintf(stderr, "%s", token.id);)
 
@@ -302,7 +306,8 @@ void parse_statement(void)
 		}*/
 
 		expect(TOK_LBRACK);
-		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1, recall_chars());)
+		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1,
+					recall_chars());)
 		//DBG_PARSER(fprintf(stderr, "%s", recall_chars());)
 		if (HAS_GFLAG_VRFD) {
 			UNSET_GFLAG_VRFD
@@ -320,7 +325,8 @@ void parse_statement(void)
 
 		parse_expr();
 
-		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1, recall_chars());)
+		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1,
+					recall_chars());)
 		//DBG_PARSER(fprintf(stderr, "%s", recall_chars());)
 		DBG_PARSER(fprintf(stderr, "%s", token.id);)
 		expect(TOK_RBRACK);
@@ -335,7 +341,6 @@ void parse_statement(void)
 
 		/* check whether a new identifier was introduced */
 		if (CONTAINS_ID(pnode)) {
-			found = FALSE;
 
 			ptmp = pnode->prev_const;
 			while (ptmp != NULL) {
@@ -405,10 +410,9 @@ void parse_statement(void)
 			}
 		}*/
 
-		if (HAS_NFLAG_EQTY(pnode) /*&& HAS_NFLAG_NEWC(prev_node)*/) {
+		/* TODO: handle equalities */
+		if (HAS_NFLAG_EQTY(pnode)) {
 			equate(prev_node, pnode);
-			/*equate(prev_node, pnode->above);
-			equate(pnode, pnode->above);*/
 			prev_node = pnode;
 		}
 
@@ -428,30 +432,13 @@ void parse_statement(void)
 					success = EXIT_FAILURE;
 				}
 			}
-		} else if (HAS_NFLAG_EQTY(pnode) && !HAS_NFLAG_ASMP(pnode)) {
-			/* TODO: this is just c/p from above */
-			/* FIXME: currently just takes equalities of the form [...]=[...]
-			 * into account */
-			if (!are_equal(prev_node, pnode)) {
-				fprintf(stderr,
-						SHELL_RED
-						"verification failed on line %d, column %d"
-						SHELL_RESET1
-						"\n",
-						 cursor.line, cursor.col);
-				if (!DBG_FINISH_IS_SET) {
-					exit(EXIT_FAILURE);
-				} else {
-					success = EXIT_FAILURE;
-				}
-			}
 		}
 
 		if (token.type != TOK_LBRACK /*&& token.type != TOK_NOT*/) {
 			proceed = FALSE;
 		}
-		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1, recall_chars());)
-	}
+		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1,
+					recall_chars());) }
 }
 
 /* --- helpers ---------------------------------------------------------------*/
