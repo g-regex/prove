@@ -24,7 +24,19 @@ typedef struct Eqwrapper {
 	Pnode* pendwrap;
 } Eqwrapper;
 
-unsigned short int trigger_verify(Pnode* pn, Pnode** pexplorer);
+
+/* stack for branch exploration */
+typedef struct branch_checkpoint { /* stack for jumping back to parent levels */
+	Pnode* pnode;
+	unsigned short int wrap;
+	unsigned short int frst;
+	Pnode* pwrapper;
+	Pnode* pendwrap;
+	struct branch_checkpoint* above;
+} BC;
+
+unsigned short int verify_universal(Pnode* pn);
+unsigned short int verify_existence(Pnode* pn, Pnode* pexstart);
 
 unsigned short int are_equal(Pnode* p1, Pnode* p2);
 
@@ -34,6 +46,6 @@ unsigned short int verify(Pnode* pnode, Pnode** pexplorer);
 
 /* for backtracking */
 unsigned short int next_reachable_const(Pnode* pnode, Pnode** pexplorer,
-		Eqwrapper** eqwrapper);
+		Eqwrapper** eqwrapper, BC** checkpoint);
 
 #endif

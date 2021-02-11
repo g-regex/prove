@@ -279,16 +279,20 @@ void parse_formula(void)
 void parse_statement(void)
 {
 	Pnode* ptmp;
+	Pnode* pexstart;				/* to remember first node for verifying
+									   existence */
 	int proceed;
 	unsigned short int found;		/* indicating whether an identifier has been
 									   found during backtracking */
 	/*unsigned short int neg;*/		/* set, if current pair of brackets is
 									   negated */
 	unsigned short int vstatus;		/* verification status */
-	Pnode* pexplorer;
 
 	proceed = TRUE;
 	vstatus = TRUE;
+
+	pexstart = NULL; /* NULLed to make sure that existence will only be
+						verified on the same level */
 
 	while (proceed) {
 		found = FALSE;
@@ -387,7 +391,16 @@ void parse_statement(void)
 			}*/
 
 			if (found == FALSE) {
-				fprintf(stderr, SHELL_MAGENTA "*" SHELL_RESET1);
+				DBG_PARSER(fprintf(stderr, SHELL_MAGENTA "*" SHELL_RESET1);)
+
+				/* postpone verification for existence */
+				if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)
+							&& !HAS_GFLAG_PSTP) {
+					SET_GFLAG_PSTP
+					pexstart = pnode;
+					DBG_VERIFY(fprintf(stderr, SHELL_MAGENTA "{%d}>"
+								SHELL_RESET1, pnode->num);)
+				}
 
 				SET_NFLAG_NEWC(pnode)
 
@@ -417,9 +430,9 @@ void parse_statement(void)
 		}
 
 		if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)
-				&& !HAS_GFLAG_VRFD) {
-			/* verification is triggered here */
-			if (!trigger_verify(pnode, &pexplorer)) {
+				&& !HAS_GFLAG_VRFD && !HAS_GFLAG_PSTP) {
+			/* universal verification is triggered here */
+			if (!verify_universal(pnode)) {
 				fprintf(stderr,
 						SHELL_RED
 						"verification failed on line %d, column %d"
@@ -434,8 +447,34 @@ void parse_statement(void)
 			}
 		}
 
+		/*if (HAS_GFLAG_PSTP && pexstart != NULL) {
+			DBG_PARSER(fprintf(stderr, SHELL_MAGENTA "%d" SHELL_RESET1,
+					pexstart->num);)	
+		}*/
+
 		if (token.type != TOK_LBRACK /*&& token.type != TOK_NOT*/) {
 			proceed = FALSE;
+
+			/* trigger existence verification here */
+			if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)
+					&& HAS_GFLAG_PSTP && pexstart != NULL) {
+				DBG_VERIFY(fprintf(stderr, SHELL_MAGENTA "<" SHELL_RESET1);)
+				UNSET_GFLAG_PSTP
+
+				if (!verify_existence(pnode, pexstart)) {
+					fprintf(stderr,
+							SHELL_RED
+							"verification failed on line %d, column %d"
+							SHELL_RESET1
+							"\n",
+							 cursor.line, cursor.col);
+					if (!DBG_FINISH_IS_SET) {
+						exit(EXIT_FAILURE);
+					} else {
+						success = EXIT_FAILURE;
+					}
+				}
+			}
 		}
 		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1,
 					recall_chars());) }
