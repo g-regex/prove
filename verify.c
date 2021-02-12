@@ -233,7 +233,7 @@ unsigned short int verify_universal(Pnode* pn)
 	free(eqwrapper);
 	free(pexplorer);
 	free(checkpoint);
-	//free(subd);
+	free(subd);
 
 	if (!HAS_GFLAG_VRFD) {	
 		/*TOGGLE_NFLAG_TRUE(pn)
@@ -244,6 +244,56 @@ unsigned short int verify_universal(Pnode* pn)
 		}*/
 	}
 	return TRUE;
+}
+
+unsigned short int search_justification(Pnode* pn, Pnode* pexstart)
+{
+	unsigned short int success;
+
+	Eqwrapper* eqwrapper;
+	Pnode** pexplorer;
+	BC** checkpoint;
+	SUB** subd;
+	VFlags vflags;
+
+	eqwrapper = (Eqwrapper*) malloc(sizeof(Eqwrapper));
+	pexplorer = (Pnode**) malloc(sizeof(Pnode*));
+	checkpoint = (BC**) malloc(sizeof(BC*));
+	subd = (SUB**) malloc(sizeof(SUB*));
+	
+	*pexplorer = pexstart;
+	*checkpoint = NULL;
+	*subd = NULL;
+	vflags = VFLAG_NONE;
+
+	success = FALSE;
+
+	while (next_reachable_const(pn, pexplorer, &eqwrapper, checkpoint, &vflags,
+				subd)) {
+		if(verify(pn, pexplorer)) {
+			DBG_PARSER(fprintf(stderr, SHELL_GREEN "<#%d",
+						(*pexplorer)->num);)
+			DBG_VERIFY(print_sub(subd);)
+			DBG_PARSER(fprintf(stderr, ">" SHELL_RESET1);) 
+			
+			finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
+					subd);
+			success = TRUE;
+			break;
+		} else {
+			/*DBG_PARSER(fprintf(stderr, SHELL_RED "<%d",
+						(*pexplorer)->num);)
+			DBG_VERIFY(print_sub(subd);)
+			DBG_PARSER(fprintf(stderr, ">" SHELL_RESET1);)*/
+		}
+	}
+
+	free(eqwrapper);
+	free(pexplorer);
+	free(checkpoint);
+	free(subd);
+
+	return success;
 }
 
 unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
@@ -267,7 +317,13 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 	
 	bc_push(pexplorer, &eqwrapper, checkpoint, &vflags);
 	do {
-		fprintf(stderr, SHELL_BROWN "%d " SHELL_RESET1, (*pexplorer)->num);
+		DBG_VERIFY(fprintf(stderr, SHELL_BROWN " %d" SHELL_RESET1,
+					(*pexplorer)->num);)
+		if (HAS_NFLAG_NEWC((*pexplorer))) {
+			DBG_VERIFY(fprintf(stderr, SHELL_MAGENTA "*" SHELL_RESET1);)
+		} else {
+			search_justification(*pexplorer, pexstart);
+		}
 		/*if(!verify(pn, pexplorer)) {
 		}*/
 	} while (next_in_branch(pn, pexplorer, &eqwrapper, checkpoint, &vflags));
