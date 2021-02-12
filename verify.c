@@ -274,7 +274,7 @@ unsigned short int search_justification(Pnode* pexstart,
 	success = FALSE;
 
 	DBG_VERIFY(fprintf(stderr, SHELL_BROWN " %d" SHELL_RESET1,
-				(*pexplorer)->num);)
+				(*p_pexplorer)->num);)
 
 	while (next_reachable_const(*p_pexplorer, pexplorer, &eqwrapper,
 				checkpoint, &vflags, subd)) {
@@ -288,12 +288,19 @@ unsigned short int search_justification(Pnode* pexstart,
 			}) 
 		
 			/* TODO: recursion needed here */
+			if (!next_in_branch(p_perspective, p_pexplorer, p_eqwrapper,
+						p_checkpoint, p_vflags, TRUE)) {
+				return TRUE;
+			} else {
 			expl_cp = *p_pexplorer;
+
+			success = search_justification(pexstart, p_perspective, p_pexplorer, 
+					p_eqwrapper, p_checkpoint, p_vflags);
 
 			finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
 					subd);
 			*p_pexplorer = expl_cp;
-			success = TRUE;
+			}
 			break;
 		} else {
 			/*DBG_PARSER(fprintf(stderr, SHELL_RED "<%d",
