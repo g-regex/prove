@@ -247,11 +247,13 @@ unsigned short int verify_universal(Pnode* pn)
 	return TRUE;
 }
 
-unsigned short int search_justification(Pnode* pexstart, Pnode* p_perspective,
-		Pnode** p_pexplorer, Eqwrapper** p_eqwrapper, BC** p_checkpoint,
-		VFlags* p_vflags)
+unsigned short int search_justification(Pnode* pexstart,
+		/* parent: */
+		Pnode* p_perspective, Pnode** p_pexplorer, Eqwrapper** p_eqwrapper,
+		BC** p_checkpoint, VFlags* p_vflags)
 {
 	unsigned short int success;
+	Pnode* expl_cp; /* checkpoint for parent explorer */
 
 	Eqwrapper* eqwrapper;
 	Pnode** pexplorer;
@@ -276,15 +278,21 @@ unsigned short int search_justification(Pnode* pexstart, Pnode* p_perspective,
 
 	while (next_reachable_const(*p_pexplorer, pexplorer, &eqwrapper,
 				checkpoint, &vflags, subd)) {
-		if (verify(*p_pexplorer, pexplorer)) {
-			DBG_PARSER(fprintf(stderr, SHELL_GREEN "<#%d",
-						(*pexplorer)->num);)
-			DBG_VERIFY(print_sub(subd);)
-			DBG_PARSER(fprintf(stderr, ">" SHELL_RESET1);) 
+		if (HAS_NFLAG_NEWC((*p_pexplorer)) || verify(*p_pexplorer, pexplorer)) {
+			DBG_VERIFY(if (!HAS_NFLAG_NEWC((*p_pexplorer))) {
+					fprintf(stderr, SHELL_GREEN "<#%d", (*pexplorer)->num);
+					print_sub(subd);
+					fprintf(stderr, ">" SHELL_RESET1);
+			} else {
+					fprintf(stderr, SHELL_MAGENTA "*", (*pexplorer)->num);
+			}) 
 		
 			/* TODO: recursion needed here */
+			expl_cp = *p_pexplorer;
+
 			finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
 					subd);
+			*p_pexplorer = expl_cp;
 			success = TRUE;
 			break;
 		} else {
