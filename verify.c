@@ -368,6 +368,7 @@ unsigned short int sub_var(SUB* s)
 /* substitutes variable(s) by the next known constant/sub-tree */
 unsigned short int next_known_const(Pnode* perspective, SUB* s)
 {
+#if 0
 	if (s != NULL) {
 		if (s->known_const != NULL) {
 			s->known_const = s->known_const->prev_const;
@@ -389,6 +390,35 @@ unsigned short int next_known_const(Pnode* perspective, SUB* s)
 	} else {
 		return FALSE; /* finish substitution */
 	}
+#endif
+
+	SUB* s_iter;
+
+	s_iter = s;
+
+	while (s_iter != NULL) {
+		//if (s->known_const != NULL) {
+			s_iter->known_const = s_iter->known_const->prev_const;
+			if (s_iter->known_const == NULL) {
+				/*if (next_known_const(perspective, s->prev)) {
+					init_known_const(perspective, s);
+					sub_var(s);
+					return TRUE;
+				} else {
+					return FALSE;
+				}*/
+				init_known_const(perspective, s_iter);
+				sub_var(s_iter);
+				s_iter = s_iter->prev;
+			} else {
+				sub_var(s_iter);
+				return TRUE;
+			}
+		//} else {
+		//	return FALSE; /* FATAL ERROR: should not happen */
+		//}
+	}
+	return FALSE; /* finish substitution */
 }
 
 /* initialise substitution */
