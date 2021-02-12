@@ -152,12 +152,18 @@ unsigned short int verify(Pnode* pnode, Pnode** pexplorer)
 }
 
 /* checks assumption in pexplorer from the perspective of 'perspective' */
-unsigned short int check_asmp(Pnode* perspective, Pnode** pexplorer)
+unsigned short int check_asmp(Pnode* perspective, Pnode** pexplorer,
+		unsigned short int dbg)
 {
 	Pnode* pconst;
 
 	for (pconst = perspective->prev_const; pconst != NULL;
 			pconst = pconst->prev_const) {
+	DBG_VERIFY(
+			if (dbg) {
+				fprintf(stderr, SHELL_CYAN "(%d)" SHELL_RESET1, pconst->num);
+				}
+			)
 		if (verify(pconst, pexplorer)) {
 			return TRUE;
 		}
@@ -281,7 +287,7 @@ unsigned short int search_justification(Pnode* pexstart,
 	DBG_VERIFY(
 			fprintf(stderr, SHELL_RED " [%d" SHELL_RESET1,
 					(*p_pexplorer)->num);
-			fprintf(stderr, SHELL_RED ":#%d", (*pexplorer)->num);
+			fprintf(stderr, SHELL_RED ":#%d", perspective->num);
 			print_sub(subd);
 			fprintf(stderr, "]" SHELL_RESET1);
 	)
@@ -290,6 +296,9 @@ unsigned short int search_justification(Pnode* pexstart,
 		pexplorer, &eqwrapper, checkpoint, &vflags, subd)) {
 	DBG_VERIFY(
 			fprintf(stderr, ".(%d)", (*pexplorer)->num);
+			if (CONTAINS_ID((*pexplorer))) {
+				fprintf(stderr, "[%s]", *((*((*pexplorer)->child))->symbol));
+			}
 			)
 		if (verify(*p_pexplorer, pexplorer)) {	
 
@@ -789,17 +798,25 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 	do {
 		proceed = FALSE;
 
+		DBG_VERIFY(
+				if(exst) {
+					fprintf(stderr, SHELL_MAGENTA "?%d" SHELL_RESET1,
+							(*pexplorer)->num);
+				}
+		)
+
+		while (exst && HAS_NFLAG_FRST((*pexplorer))
+				&& HAS_NFLAG_IMPL((*pexplorer))) {
+			if (!branch_proceed(pexplorer, eqwrapper, checkpoint, vflags)) {
+				return FALSE;
+			}
+		}
+
 		/* skip formulators */
 		if (HAS_SYMBOL((*pexplorer))) {
 			BRANCH_PROCEED
 		}
 
-			DBG_VERIFY(
-					if(exst) {
-						fprintf(stderr, SHELL_MAGENTA "?%d" SHELL_RESET1,
-								(*pexplorer)->num);
-					}
-			)
 		/* explore EXPLORABLE subbranches */
 		if (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {
 			PROCEED
@@ -810,14 +827,15 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 			if (!exst
 					&& (HAS_NFLAG_FRST((*pexplorer))
 						|| HAS_VFLAG_FRST(*vflags))) {
-				if (!check_asmp(perspective, pexplorer)) {
+				int bkp = (*pexplorer)->num;
+				if (!check_asmp(perspective, pexplorer,
+							(perspective->num == 209))) {
 					/* pop through branch checkpoints until node is not part
 					 * of an assumption TODO: add a nice example here */
 					do {
 						POP
 					} while (HAS_NFLAG_IMPL((*pexplorer))
 								&& HAS_NFLAG_FRST((*pexplorer)));
-
 					BRANCH_PROCEED
 				} else if (!move_right(pexplorer)) {
 					/* When GFLAG_FRST is set, it might happen that we cannot
@@ -828,31 +846,34 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 					PROCEED
 				}
 			} else {
-			DBG_VERIFY(
-					if(exst) {
-						fprintf(stderr, SHELL_MAGENTA " <%d>" SHELL_RESET1,
-							(*pexplorer)->num);
-					}
-			)
+				DBG_VERIFY(
+						if(exst) {
+							fprintf(stderr, SHELL_MAGENTA " <%d>" SHELL_RESET1,
+								(*pexplorer)->num);
+						}
+				)
+
 				if (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {
-			DBG_VERIFY(
-					if(exst) {
-						fprintf(stderr, SHELL_MAGENTA "X" SHELL_RESET1);
-					}
-			)
+					DBG_VERIFY(
+							if(exst) {
+								fprintf(stderr, SHELL_MAGENTA "X" SHELL_RESET1);
+							}
+					)
 					PROCEED
 				} else {
-			DBG_VERIFY(
-					if(exst) {
-						fprintf(stderr, SHELL_MAGENTA "P" SHELL_RESET1);
-					}
-			)
+					DBG_VERIFY(
+							if(exst) {
+								fprintf(stderr, SHELL_MAGENTA "P" SHELL_RESET1);
+							}
+					)
 					//BRANCH_PROCEED
 
 					if (!branch_proceed(pexplorer, eqwrapper, checkpoint, vflags)) {
 						return FALSE;
-					} else if (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {
-						return TRUE;
+					} else if (explore_branch(pexplorer, eqwrapper, checkpoint,
+								vflags)) {
+						//return TRUE;
+						PROCEED
 					} else if (!HAS_SYMBOL((*pexplorer))) {\
 						return TRUE;\
 					} else {
@@ -882,7 +903,7 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 
 					if (HAS_SYMBOL((*pexplorer))){ /* skip "=" */
 						continue;
-					} else if (check_asmp(perspective, pexplorer)) {
+					} else if (check_asmp(perspective, pexplorer, FALSE)) {
 						SET_VFLAG_WRAP(*vflags)
 						(*eqwrapper)->pendwrap = *pexplorer;
 
