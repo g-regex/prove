@@ -247,7 +247,9 @@ unsigned short int verify_universal(Pnode* pn)
 	return TRUE;
 }
 
-unsigned short int search_justification(Pnode* pn, Pnode* pexstart)
+unsigned short int search_justification(Pnode* pexstart, Pnode* p_perspective,
+		Pnode** p_pexplorer, Eqwrapper** p_eqwrapper, BC** p_checkpoint,
+		VFlags* p_vflags)
 {
 	unsigned short int success;
 
@@ -269,9 +271,12 @@ unsigned short int search_justification(Pnode* pn, Pnode* pexstart)
 
 	success = FALSE;
 
-	while (next_reachable_const(pn, pexplorer, &eqwrapper, checkpoint, &vflags,
-				subd)) {
-		if (verify(pn, pexplorer)) {
+	DBG_VERIFY(fprintf(stderr, SHELL_BROWN " %d" SHELL_RESET1,
+				(*pexplorer)->num);)
+
+	while (next_reachable_const(*p_pexplorer, pexplorer, &eqwrapper,
+				checkpoint, &vflags, subd)) {
+		if (verify(*p_pexplorer, pexplorer)) {
 			DBG_PARSER(fprintf(stderr, SHELL_GREEN "<#%d",
 						(*pexplorer)->num);)
 			DBG_VERIFY(print_sub(subd);)
@@ -318,7 +323,7 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 	vflags = VFLAG_NONE;
 	
 	bc_push(pexplorer, &eqwrapper, checkpoint, &vflags);
-	do {
+	/*do {
 		DBG_VERIFY(fprintf(stderr, SHELL_BROWN " %d" SHELL_RESET1,
 					(*pexplorer)->num);)
 		if (HAS_NFLAG_NEWC((*pexplorer))) {
@@ -327,7 +332,10 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 			search_justification(*pexplorer, pexstart);
 		}
 	} while (next_in_branch(pn, pexplorer, &eqwrapper, checkpoint, &vflags,
-				TRUE));
+				TRUE));*/
+
+	search_justification(pexstart, pn, pexplorer, &eqwrapper, checkpoint,
+			&vflags);
 
 	if (*pexplorer == pn) {
 		DBG_VERIFY(fprintf(stderr, SHELL_GREEN "<verified>" SHELL_RESET1);)	
