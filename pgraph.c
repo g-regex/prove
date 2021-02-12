@@ -266,13 +266,16 @@ void move_and_sum_up(Pnode** pnode)
 			var = (Variable*) malloc(sizeof(Variable));
 			var->pnode = *((*pnode)->child);
 			var->next = oldvar;
+			var->locked = FALSE;
 			oldvar = var;
 			DBG_GRAPH(fprintf(stderr, "/VAR\\");)
 		} else if ((*pnode)->var != NULL){
-			var = (Variable*) malloc(sizeof(Variable));
+			/*var = (Variable*) malloc(sizeof(Variable));
 			var->pnode = (*pnode)->var->pnode;
 			var->next = (*pnode)->var->next;
-			oldvar = var;
+			oldvar = var;*/
+			//oldvar = var = (*pnode)->var;
+			oldvar = (*pnode)->var;
 		}
 	} while (move_left(pnode) &&
 			DO((*pnode)->flags |= GET_NFFLAGS((*((*pnode)->right)))));
@@ -388,10 +391,12 @@ void free_graph(Pnode* pnode)
 			free(pnode->right);
 		}
 
-		//TODO: test for mem leaks
-		if (pnode->var != NULL) {
+		//TODO: free linked list of variables
+		/*if (pnode->var != NULL) {
 			free(pnode->var);
-		}
+		}*/
+
+		//redundant
 		/*if (pnode->num == (*(pnode->equalto))->pnode->num) {
 			free(*(pnode->equalto));
 			free(pnode->equalto);
@@ -411,9 +416,13 @@ void free_graph(Pnode* pnode)
 	}
 
 	TIKZ(print_flags(pnode);)
-	if (pnode->var != NULL) {
+
+	//TODO: free linked list of variables
+	/*if (pnode->var != NULL) {
 		free(pnode->var);
-	}
+	}*/
+
+	//redundant
 	/*if (pnode->num == (*(pnode->equalto))->pnode->num) {
 		free(*(pnode->equalto));
 		free(pnode->equalto);

@@ -87,6 +87,7 @@ GFlags gflags;  /* accessed by verify.c and proveparser.c */
 typedef struct Variable {
 	struct Pnode* pnode;
 	struct Variable* next;
+	unsigned short int locked;
 } Variable;
 
 typedef struct Equalities {
