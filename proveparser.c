@@ -459,7 +459,6 @@ void parse_statement(void)
 			if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)
 					&& HAS_GFLAG_PSTP && pexstart != NULL) {
 				DBG_VERIFY(fprintf(stderr, SHELL_MAGENTA "<" SHELL_RESET1);)
-				UNSET_GFLAG_PSTP
 
 				if (!verify_existence(pnode, pexstart)) {
 					fprintf(stderr,
@@ -474,6 +473,8 @@ void parse_statement(void)
 						success = EXIT_FAILURE;
 					}
 				}
+
+				UNSET_GFLAG_PSTP
 			}
 		}
 		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1,
