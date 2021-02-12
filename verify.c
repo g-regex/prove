@@ -433,19 +433,25 @@ void init_sub(Pnode* perspective, Pnode** pexplorer, VFlags* vflags, SUB** subd)
 	/* only substitute, if there is something to substitute in */
 	if (perspective->prev_const != NULL) {
 		do {
-			*subd = (SUB*) malloc(sizeof(SUB));
-			(*subd)->prev = oldsub;
-			oldsub = *subd;
+			if (!var->locked) {
+				var->locked = TRUE;
 
-			init_known_const(perspective, *subd);
+				*subd = (SUB*) malloc(sizeof(SUB));
+				(*subd)->prev = oldsub;
+				oldsub = *subd;
 
-			(*subd)->sym = *(var->pnode->symbol);
-			//sub->equalto = *(var->pnode->equalto);
-			(*subd)->var = var;
+				init_known_const(perspective, *subd);
 
-			/* FIXME: added this. correct? */
-			sub_var(*subd);
+				(*subd)->sym = *(var->pnode->symbol);
+				//sub->equalto = *(var->pnode->equalto);
+				(*subd)->var = var;
 
+				/* FIXME: added this. correct? */
+				sub_var(*subd);
+			} else {
+				/* temp debug */
+				DBG_VERIFY(fprintf(stderr, SHELL_GREEN "L" SHELL_RESET1);)
+			}
 			var = var->next;
 		} while (var != NULL);
 
@@ -465,6 +471,8 @@ void finish_sub(VFlags* vflags, SUB** subd)
 		//*(sub->var->pnode->equalto) = sub->equalto;
 		*((*subd)->var->pnode->child) = NULL;
 		*((*subd)->var->pnode->right) = NULL;
+
+		(*subd)->var->locked = FALSE;
 
 		free(*subd);
 		*subd = prev_sub;
