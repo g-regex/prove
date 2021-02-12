@@ -134,6 +134,7 @@ void equate(Pnode* p1, Pnode* p2);
 
 /* navigation */
 unsigned short int move_right(Pnode** pnode);
+void move_rightmost(Pnode** pnode);
 unsigned short int move_left(Pnode** pnode);
 unsigned short int move_up(Pnode** pnode);
 unsigned short int move_down(Pnode** pnode);

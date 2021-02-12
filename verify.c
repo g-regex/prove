@@ -250,10 +250,11 @@ unsigned short int verify_universal(Pnode* pn)
 unsigned short int search_justification(Pnode* pexstart,
 		/* parent: */
 		Pnode* p_perspective, Pnode** p_pexplorer, Eqwrapper** p_eqwrapper,
-		BC** p_checkpoint, VFlags* p_vflags)
+		BC** p_checkpoint, VFlags* p_vflags, unsigned short int dbg)
 {
 	unsigned short int success;
 	Pnode* expl_cp; /* checkpoint for parent explorer */
+	Pnode* perspective; /* perspective for validation of next_reachable */
 
 	Eqwrapper* eqwrapper;
 	Pnode** pexplorer;
@@ -269,39 +270,95 @@ unsigned short int search_justification(Pnode* pexstart,
 	*pexplorer = pexstart;
 	*checkpoint = NULL;
 	*subd = NULL;
+
 	vflags = VFLAG_NONE;
-
 	success = FALSE;
+	perspective = *p_pexplorer;
 
-	DBG_VERIFY(fprintf(stderr, SHELL_BROWN " %d" SHELL_RESET1,
-				(*p_pexplorer)->num);)
+	move_rightmost(&perspective);
 
-	while (next_reachable_const(*p_pexplorer, pexplorer, &eqwrapper,
-				checkpoint, &vflags, subd)) {
-		if (HAS_NFLAG_NEWC((*p_pexplorer)) || verify(*p_pexplorer, pexplorer)) {
-			DBG_VERIFY(if (!HAS_NFLAG_NEWC((*p_pexplorer))) {
-					fprintf(stderr, SHELL_GREEN "<#%d", (*pexplorer)->num);
-					print_sub(subd);
-					fprintf(stderr, ">" SHELL_RESET1);
-			} else {
-					fprintf(stderr, SHELL_MAGENTA "*", (*pexplorer)->num);
-			}) 
-		
+
+	DBG_VERIFY(
+			fprintf(stderr, SHELL_RED " [%d" SHELL_RESET1,
+					(*p_pexplorer)->num);
+			fprintf(stderr, SHELL_RED ":#%d", (*pexplorer)->num);
+			print_sub(subd);
+			fprintf(stderr, "]" SHELL_RESET1);
+	)
+
+	while (next_reachable_const(perspective,
+		pexplorer, &eqwrapper, checkpoint, &vflags, subd)) {
+	DBG_VERIFY(
+			fprintf(stderr, ".(%d)", (*pexplorer)->num);
+			)
+		if (verify(*p_pexplorer, pexplorer)) {	
+
+	DBG_VERIFY(
+			fprintf(stderr, SHELL_BROWN " <%d" SHELL_RESET1,
+					(*p_pexplorer)->num);
+			fprintf(stderr, SHELL_BROWN ":#%d", (*pexplorer)->num);
+			print_sub(subd);
+			fprintf(stderr, ">" SHELL_RESET1);
+	)
+
+
 			/* TODO: recursion needed here */
-			if (!next_in_branch(p_perspective, p_pexplorer, p_eqwrapper,
-						p_checkpoint, p_vflags, TRUE)) {
-				return TRUE;
-			} else {
 			expl_cp = *p_pexplorer;
+			do {
+				DBG_VERIFY(
+						fprintf(stderr, "  {%d} ",
+								(*p_pexplorer)->num);
+						)
+				if (*p_pexplorer == p_perspective) {
+					SET_GFLAG_VRFD
 
-			success = search_justification(pexstart, p_perspective, p_pexplorer, 
-					p_eqwrapper, p_checkpoint, p_vflags);
+					DBG_VERIFY(
+							fprintf(stderr, SHELL_BROWN "< %d" SHELL_RESET1,
+									(*p_pexplorer)->num);
+							fprintf(stderr, SHELL_GREEN "<#%d", (*pexplorer)->num);
+							print_sub(subd);
+							fprintf(stderr, ">" SHELL_RESET1);
+					)
 
-			finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
-					subd);
-			*p_pexplorer = expl_cp;
+					finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
+						subd);
+
+					free(eqwrapper);
+					free(pexplorer);
+					free(checkpoint);
+					free(subd);
+
+					return TRUE;
+				} else if (!next_in_branch(p_perspective, p_pexplorer, p_eqwrapper,
+						p_checkpoint, p_vflags, TRUE)) {
+					SET_GFLAG_VRFD
+
+					DBG_VERIFY(fprintf(stderr, SHELL_RED "F" SHELL_RESET1);)
+
+					finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
+						subd);
+
+					free(eqwrapper);
+					free(pexplorer);
+					free(checkpoint);
+					free(subd);
+						
+					return TRUE;
+				} else if (!HAS_NFLAG_NEWC((*p_pexplorer))) {
+					break;
+				} 
+			} while (TRUE);
+
+			if (search_justification(pexstart, p_perspective,
+					p_pexplorer, p_eqwrapper, p_checkpoint, p_vflags,
+					FALSE)) {
+				success = TRUE;
+				*p_pexplorer = expl_cp;
+				break;
+			} else {
+				*p_pexplorer = expl_cp;
 			}
-			break;
+
 		} else {
 			/*DBG_PARSER(fprintf(stderr, SHELL_RED "<%d",
 						(*pexplorer)->num);)
@@ -309,6 +366,20 @@ unsigned short int search_justification(Pnode* pexstart,
 			DBG_PARSER(fprintf(stderr, ">" SHELL_RESET1);)*/
 		}
 	}
+
+	DBG_VERIFY(if (success) {
+			fprintf(stderr, SHELL_BROWN "E %d" SHELL_RESET1,
+					(*p_pexplorer)->num);
+			fprintf(stderr, SHELL_GREEN "<#%d", (*pexplorer)->num);
+			print_sub(subd);
+			fprintf(stderr, ">" SHELL_RESET1);
+	} else {
+			fprintf(stderr, SHELL_RED "<%d:F>" SHELL_RESET1,
+					(*p_pexplorer)->num);
+	})
+
+	finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
+		subd);
 
 	free(eqwrapper);
 	free(pexplorer);
@@ -350,7 +421,7 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 				TRUE));*/
 
 	search_justification(pexstart, pn, pexplorer, &eqwrapper, checkpoint,
-			&vflags);
+			&vflags, TRUE);
 
 	if (*pexplorer == pn) {
 		DBG_VERIFY(fprintf(stderr, SHELL_GREEN "<verified>" SHELL_RESET1);)	
@@ -528,9 +599,6 @@ void init_sub(Pnode* perspective, Pnode** pexplorer, VFlags* vflags, SUB** subd)
 
 				/* FIXME: added this. correct? */
 				sub_var(*subd);
-			} else {
-				/* temp debug */
-				DBG_VERIFY(fprintf(stderr, SHELL_GREEN "L" SHELL_RESET1);)
 			}
 			var = var->next;
 		} while (var != NULL);
@@ -713,7 +781,7 @@ unsigned short int branch_proceed(Pnode** pexplorer, Eqwrapper** eqwrapper,
 /* set pexplorer to the next valid value or return FALSE */
 unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags,
-		unsigned short int dbg)
+		unsigned short int exst)
 {
 	/* FIXME: too much recursion */
 	unsigned short int proceed;
@@ -726,25 +794,23 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 			BRANCH_PROCEED
 		}
 
+			DBG_VERIFY(
+					if(exst) {
+						fprintf(stderr, SHELL_MAGENTA "?%d" SHELL_RESET1,
+								(*pexplorer)->num);
+					}
+			)
 		/* explore EXPLORABLE subbranches */
 		if (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {
-			DBG_VERIFY(if (dbg) {
-				fprintf(stderr, SHELL_BROWN "(%d)" SHELL_RESET1,
-						(*pexplorer)->num);
-			})
 			PROCEED
 		}
 
 		if (HAS_NFLAG_IMPL((*pexplorer))) {
 			/* if processing an assumption, verify it */
-			if (!HAS_GFLAG_PSTP
+			if (!exst
 					&& (HAS_NFLAG_FRST((*pexplorer))
 						|| HAS_VFLAG_FRST(*vflags))) {
 				if (!check_asmp(perspective, pexplorer)) {
-					DBG_VERIFY(if (dbg) {
-						fprintf(stderr, SHELL_BROWN "(<- unsatisfied)"
-								SHELL_RESET1, (*pexplorer)->num);
-					})
 					/* pop through branch checkpoints until node is not part
 					 * of an assumption TODO: add a nice example here */
 					do {
@@ -762,10 +828,37 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 					PROCEED
 				}
 			} else {
+			DBG_VERIFY(
+					if(exst) {
+						fprintf(stderr, SHELL_MAGENTA " <%d>" SHELL_RESET1,
+							(*pexplorer)->num);
+					}
+			)
 				if (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {
+			DBG_VERIFY(
+					if(exst) {
+						fprintf(stderr, SHELL_MAGENTA "X" SHELL_RESET1);
+					}
+			)
 					PROCEED
 				} else {
-					BRANCH_PROCEED
+			DBG_VERIFY(
+					if(exst) {
+						fprintf(stderr, SHELL_MAGENTA "P" SHELL_RESET1);
+					}
+			)
+					//BRANCH_PROCEED
+
+					if (!branch_proceed(pexplorer, eqwrapper, checkpoint, vflags)) {
+						return FALSE;
+					} else if (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {
+						return TRUE;
+					} else if (!HAS_SYMBOL((*pexplorer))) {\
+						return TRUE;\
+					} else {
+						proceed = TRUE;
+						continue;
+					}
 				}
 			}
 		} else if (HAS_NFLAG_EQTY((*pexplorer))) {
@@ -874,4 +967,6 @@ unsigned short int next_reachable_const(Pnode* pnode, Pnode** pexplorer,
 			/* TODO: remove recursion */
 		}
 	} while (proceed);
+
+	return FALSE;
 }

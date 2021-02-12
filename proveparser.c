@@ -460,6 +460,7 @@ void parse_statement(void)
 					&& HAS_GFLAG_PSTP && pexstart != NULL) {
 				DBG_VERIFY(fprintf(stderr, SHELL_MAGENTA "<" SHELL_RESET1);)
 
+				/* FIXME: fix known_const for right-most pnode */
 				if (!verify_existence(pnode, pexstart)) {
 					fprintf(stderr,
 							SHELL_RED
