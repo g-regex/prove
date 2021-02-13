@@ -21,37 +21,40 @@
 #   maintained.
 
 # Deduction Rule 1
+#[
+#	[a] [b] [c] [d] =>
+#	[
+#		[
+#			[a] [b] [c] =>
+#			[[]False]
+#		] [
+#			[
+#				[a] =>
+#				[[]False]
+#			] =>
+#			[d]
+#		] [
+#			[
+#				[b] =>
+#				[[]False]
+#			] =>
+#			[d]
+#		] [
+#			[
+#				[c] =>
+#				[[]False]
+#			] =>
+#			[d]
+#		] =>
+#		[d]
+#	]
+#]
 
-[
-	[ =>
-		[a] [b] [c] [d]
-	] =>
-	[
-		[
-			[a] [b] [c] =>
-			[[]False]
-		] [
-			[
-				[a] =>
-				[[]False]
-			] =>
-			[d]
-		] [
-			[
-				[b] =>
-				[[]False]
-			] =>
-			[d]
-		] [
-			[
-				[c] =>
-				[[]False]
-			] =>
-			[d]
-		] =>
-		[d]
-	]
-]
+# experimental
+#[
+#	[a] [[a]:point] =>
+#	[b] [[b]:point]
+#]
 
 # Axiom 2b
 # There exist [p1][p2][p3] distinct points on [pln], which do not lie on the
@@ -102,7 +105,8 @@
 			[[]False]
 		]
 	] 
-] [
+] =>
+[
 	[
 		[[p2]in[l1]] =>
 		[[]False]

@@ -424,16 +424,6 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 	vflags = VFLAG_NONE;
 	
 	bc_push(pexplorer, &eqwrapper, checkpoint, &vflags);
-	/*do {
-		DBG_VERIFY(fprintf(stderr, SHELL_BROWN " %d" SHELL_RESET1,
-					(*pexplorer)->num);)
-		if (HAS_NFLAG_NEWC((*pexplorer))) {
-			DBG_VERIFY(fprintf(stderr, SHELL_MAGENTA "*" SHELL_RESET1);)
-		} else {
-			search_justification(*pexplorer, pexstart);
-		}
-	} while (next_in_branch(pn, pexplorer, &eqwrapper, checkpoint, &vflags,
-				TRUE));*/
 
 	if (search_justification(pexstart, pn, pexplorer, &eqwrapper, checkpoint,
 			&vflags, TRUE)) {
@@ -447,31 +437,6 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 		DBG_VERIFY(fprintf(stderr, SHELL_RED "<not verified>" SHELL_RESET1);)	
 	}
 	bc_pop(pexplorer, &eqwrapper, checkpoint, &vflags);
-#if 0
-	DBG_PARSER(fprintf(stderr, SHELL_BOLD "{%d}" SHELL_RESET2, pn->num);)	
-	DBG_PARSER(if (HAS_GFLAG_VRFD) fprintf(stderr, "*");)
-	if (!HAS_GFLAG_VRFD || DBG_COMPLETE_IS_SET) {
-		while (next_reachable_const(pn, pexplorer, &eqwrapper)) {
-			if (verify(pn, pexplorer)) {
-				DBG_PARSER(fprintf(stderr, SHELL_GREEN "<#%d",
-							(*pexplorer)->num);)
-				SET_GFLAG_VRFD
-
-				DBG_VERIFY(print_sub();)
-				
-				/* if no debugging options are selected and not
-				 * explicitly requested, skip unnecessary compares */
-				if (DBG_NONE_IS_SET || !DBG_COMPLETE_IS_SET) {
-					finish_verify(pexplorer, &eqwrapper);
-					DBG_PARSER(fprintf(stderr, ">" SHELL_RESET1);) 
-					break;
-				}
-				DBG_PARSER(fprintf(stderr, ">" SHELL_RESET1);) 
-			}
-			/* DBG_PARSER(fprintf(stderr, "<%d>", rn());) */
-		}
-	}
-#endif
 
 	free(eqwrapper);
 	free(pexplorer);
@@ -944,7 +909,7 @@ void finish_verify(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 	}
 }
 
-unsigned short int next_reachable_const(Pnode* pnode, Pnode** pexplorer,
+unsigned short int next_reachable_const(Pnode* perspective, Pnode** pexplorer,
 		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags, SUB** subd)
 {
 	unsigned short int proceed;
@@ -954,7 +919,7 @@ unsigned short int next_reachable_const(Pnode* pnode, Pnode** pexplorer,
 
 		/* branch exploration */
 		if (HAS_VFLAG_BRCH(*vflags)) {
-			if (!next_in_branch(pnode, pexplorer, eqwrapper, checkpoint,
+			if (!next_in_branch(perspective, pexplorer, eqwrapper, checkpoint,
 						vflags, FALSE)) {
 				exit_branch(pexplorer, eqwrapper, checkpoint, vflags);
 			}
@@ -963,8 +928,8 @@ unsigned short int next_reachable_const(Pnode* pnode, Pnode** pexplorer,
 
 		/* substitution */
 		if (HAS_VFLAG_SUBD(*vflags)) {
-			if (next_known_const(pnode, *subd)) {
-				return attempt_explore(pnode, pexplorer, eqwrapper, checkpoint,
+			if (next_known_const(perspective, *subd)) {
+				return attempt_explore(perspective, pexplorer, eqwrapper, checkpoint,
 						vflags, subd);
 				/* TODO: remove recursion */
 			} else {
@@ -988,9 +953,9 @@ unsigned short int next_reachable_const(Pnode* pnode, Pnode** pexplorer,
 			continue;
 		} else {
 			if ((*pexplorer)->var != NULL) {
-				init_sub(pnode, pexplorer, vflags, subd);
+				init_sub(perspective, pexplorer, vflags, subd);
 			}
-			return attempt_explore(pnode, pexplorer, eqwrapper, checkpoint,
+			return attempt_explore(perspective, pexplorer, eqwrapper, checkpoint,
 					vflags, subd);
 			/* TODO: remove recursion */
 		}
