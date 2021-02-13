@@ -1,0 +1,137 @@
+# Indentation rules:
+# - If a statement (i.e. a chain like [..][..][..]) is preceded or followed
+#   by "=>", then insert a line break before the statement.
+# - If a "[" precedes an implication formula, increase the indentation level
+#   from the next line onwards (i.e. by adding a tabstop, which is equivalent to
+#   8 spaces).
+# - If a "]" follows an implication formula, insert a line break before the "]"
+#   and decrease the indentation level from the line containing the "]"
+#   onwards.
+#
+# Spacing:
+# - Before every "=>" insert a space.
+# - Between every single statement, which is part of an implication formula or 
+#   a statement (i.e. a chain like [..][..][..]), insert a space.
+#
+# Line Width:
+# - If a single statement, which is part of an implication formula would cause
+#   the maximum line width of 80 characters to be exceeded, a new line is to be
+#   inserted before that single statement, if the exceedence of the line width
+#   can be avoided by doing so. In the next line the indentation level is to be
+#   maintained.
+
+# Deduction Rule 1
+
+[
+	[ =>
+		[a] [b] [c] [d]
+	] =>
+	[
+		[
+			[a] [b] [c] =>
+			[[]False]
+		] [
+			[
+				[a] =>
+				[[]False]
+			] =>
+			[d]
+		] [
+			[
+				[b] =>
+				[[]False]
+			] =>
+			[d]
+		] [
+			[
+				[c] =>
+				[[]False]
+			] =>
+			[d]
+		] =>
+		[d]
+	]
+]
+
+# Axiom 2b
+# There exist [p1][p2][p3] distinct points on [pln], which do not lie on the
+# same line.
+
+[
+	[pln] [[pln]:plane] [y] [[y]:line] =>
+	[Axiom2b:[y][pln]]
+] [
+	[pln] [[pln]:plane] [y] [[y]:line] [Axiom2b:[y][pln]] =>
+	[p1] [[p1]:point] [p2] [[p2]:point] [p3] [[p3]:point] [
+		[[p1]=[p2]] =>
+		[[]False]
+	] [
+		[[p1]=[p3]] =>
+		[[]False]
+	] [
+		[[p2]=[p3]] =>
+		[[]False]
+	] [[p1]in[pln]] [[p2]in[pln]] [[p3]in[pln]] =>
+	[
+		[ =>
+			[y] [[y]:line] [[p1]in[y]] [[p2]in[y]] [[p3]in[y]]
+		] =>
+		[[]False]
+	]
+]
+
+# Theorem 1
+[l1] [[l1]:line] [pln] [[pln]:plane] [[l1]in[pln]] =>
+#-------------------------------- BEGIN PROOF ---------------------------------#
+[Axiom2b:[l1][pln]] =>	
+[p1] [[p1]:point] [p2] [[p2]:point] [p3] [[p3]:point] [[p1]in[pln]]
+[[p2]in[pln]] [[p3]in[pln]]
+[
+	[[p2]in[l1]] [[p3]in[l1]] [[p1]in[l1]] =>
+	[[]False]
+] =>
+[
+	[
+		[[p1]in[l1]] =>
+		[[]False]
+	] =>
+	[ =>
+		[p] [[p]:point]
+		[
+			[[p]in[pln]] [[p]in[l1]] =>
+			[[]False]
+		]
+	] 
+] [
+	[
+		[[p2]in[l1]] =>
+		[[]False]
+	] =>
+	[ =>
+		[p] [[p]:point]
+		[
+			[[p]in[pln]] [[p]in[l1]] =>
+			[[]False]
+		]
+	] 
+] [
+	[
+		[[p3]in[l1]] =>
+		[[]False]
+	] =>
+	[ =>
+		[p] [[p]:point]
+		[
+			[[p]in[pln]] [[p]in[l1]] =>
+			[[]False]
+		]
+	] 
+] =>
+#--------------------------------- END PROOF ----------------------------------#
+[ =>
+	[p] [[p]:point]
+	[
+		[[p]in[pln]] [[p]in[l1]] =>
+		[[]False]
+	]
+] 
