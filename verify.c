@@ -572,6 +572,7 @@ void bc_push(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 	//bctos->pnode = pexplorer;
 	bctos->wrap = HAS_VFLAG_WRAP(*vflags);
 	bctos->frst = HAS_VFLAG_FRST(*vflags);
+	bctos->fail = HAS_VFLAG_FAIL(*vflags);
 	bctos->pwrapper = (*eqwrapper)->pwrapper;
 	bctos->pendwrap = (*eqwrapper)->pendwrap;
 	bctos->above = *checkpoint;
@@ -599,6 +600,12 @@ void bc_pop(Pnode** pnode, Eqwrapper** eqwrapper, BC** checkpoint,
 		UNSET_VFLAG_FRST(*vflags)
 	}
 
+	if ((*checkpoint)->fail) {
+		SET_VFLAG_FAIL(*vflags)
+	} else {
+		UNSET_VFLAG_FAIL(*vflags)
+	}
+
 	(*eqwrapper)->pwrapper = (*checkpoint)->pwrapper;
 	(*eqwrapper)->pendwrap = (*checkpoint)->pendwrap;
 
@@ -624,6 +631,8 @@ unsigned short int explore_branch(Pnode** pexplorer, Eqwrapper** eqwrapper,
 			bc_push(pexplorer, eqwrapper, checkpoint, vflags);
 			*pexplorer = *((*pexplorer)->child);
 		}
+		UNSET_VFLAG_FAIL(*vflags)
+		UNSET_VFLAG_WRAP(*vflags)
 		return TRUE;
 	} else {
 		return FALSE;
@@ -722,6 +731,9 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 
 		/* skip formulators */
 		if (HAS_SYMBOL((*pexplorer))) {
+			if (HAS_NFLAG_IMPL((*pexplorer))) {
+				UNSET_VFLAG_FAIL((*vflags))
+			}
 			BRANCH_PROCEED
 		}
 
@@ -732,11 +744,14 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 
 		if (HAS_NFLAG_IMPL((*pexplorer))) {
 			/* if processing an assumption, verify it */
+			if (!check_asmp(perspective, pexplorer, FALSE)) {
+				SET_VFLAG_FAIL((*vflags))
+			}
+
 			if (!exst
 					&& (HAS_NFLAG_FRST((*pexplorer))
 						/*|| HAS_VFLAG_FRST(*vflags)*/)) {
-				if (!check_asmp(perspective, pexplorer,
-							(perspective->num == 209))) {
+				if (HAS_VFLAG_FAIL((*vflags))) {
 					/* pop through branch checkpoints until node is not part
 					 * of an assumption TODO: add a nice example here */
 					do {

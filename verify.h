@@ -57,6 +57,7 @@ typedef struct branch_checkpoint { /* stack for jumping back to parent levels */
 	Pnode* pnode;
 	unsigned short int wrap;
 	unsigned short int frst;
+	unsigned short int fail;
 	Pnode* pwrapper;
 	Pnode* pendwrap;
 	struct branch_checkpoint* above;
