@@ -214,7 +214,7 @@ unsigned short int verify_universal(Pnode* pn)
 	DBG_PARSER(fprintf(stderr, SHELL_BOLD "{%d}" SHELL_RESET2, pn->num);)	
 	DBG_PARSER(if (HAS_GFLAG_VRFD) fprintf(stderr, "*");)
 	if (!HAS_GFLAG_VRFD || DBG_COMPLETE_IS_SET) {
-		while (next_reachable_const(pn, pexplorer, &eqwrapper, checkpoint,
+		while (next_reachable_const(pn, pn, pexplorer, &eqwrapper, checkpoint,
 					&vflags, subd)) {
 			if (verify(pn, pexplorer)) {
 				DBG_PARSER(fprintf(stderr, SHELL_GREEN "<#%d",
@@ -283,7 +283,7 @@ unsigned short int search_justification(Pnode* pexstart,
 
 	move_rightmost(&perspective);
 
-	while (next_reachable_const(perspective,
+	while (next_reachable_const(perspective, perspective,
 		pexplorer, &eqwrapper, checkpoint, &vflags, subd)) {
 		if (verify(*p_pexplorer, pexplorer)) {	
 
@@ -465,45 +465,13 @@ unsigned short int sub_var(SUB* s)
 /* substitutes variable(s) by the next known constant/sub-tree */
 unsigned short int next_known_const(Pnode* perspective, SUB* s)
 {
-#if 0
-	if (s != NULL) {
-		if (s->known_const != NULL) {
-			s->known_const = s->known_const->prev_const;
-			if (s->known_const == NULL) {
-				if (next_known_const(perspective, s->prev)) {
-					init_known_const(perspective, s);
-					sub_var(s);
-					return TRUE;
-				} else {
-					return FALSE;
-				}
-			} else {
-				sub_var(s);
-				return TRUE;
-			}
-		} else {
-			return FALSE; /* FATAL ERROR: should not happen */
-		}
-	} else {
-		return FALSE; /* finish substitution */
-	}
-#endif
-
 	SUB* s_iter;
 
 	s_iter = s;
 
 	while (s_iter != NULL) {
-		//if (s->known_const != NULL) {
 			s_iter->known_const = s_iter->known_const->prev_const;
 			if (s_iter->known_const == NULL) {
-				/*if (next_known_const(perspective, s->prev)) {
-					init_known_const(perspective, s);
-					sub_var(s);
-					return TRUE;
-				} else {
-					return FALSE;
-				}*/
 				init_known_const(perspective, s_iter);
 				sub_var(s_iter);
 				s_iter = s_iter->prev;
@@ -511,9 +479,6 @@ unsigned short int next_known_const(Pnode* perspective, SUB* s)
 				sub_var(s_iter);
 				return TRUE;
 			}
-		//} else {
-		//	return FALSE; /* FATAL ERROR: should not happen */
-		//}
 	}
 	return FALSE; /* finish substitution */
 }
@@ -663,8 +628,9 @@ void exit_branch(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 	UNSET_VFLAG_FRST(*vflags)
 }
 
-unsigned short int attempt_explore(Pnode* pnode, Pnode** pexplorer,
-		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags, SUB** subd)
+unsigned short int attempt_explore(Pnode* veri_perspec, Pnode* sub_perspec,
+		Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
+		VFlags* vflags, SUB** subd)
 {
 	/* OLD implementation: if (explore_branch()) { */
 	if (EXPLORABLE) {
@@ -672,11 +638,11 @@ unsigned short int attempt_explore(Pnode* pnode, Pnode** pexplorer,
 		*pexplorer = *((*pexplorer)->child);
 		SET_VFLAG_BRCH(*vflags)
 		//DBG_VERIFY(fprintf(stderr, "~");)
-		if (!next_in_branch(pnode, pexplorer, eqwrapper, checkpoint, vflags,
-					FALSE)) {
+		if (!next_in_branch(veri_perspec, pexplorer, eqwrapper, checkpoint,
+					vflags, FALSE)) {
 			exit_branch(pexplorer, eqwrapper, checkpoint, vflags);
-			return next_reachable_const(pnode, pexplorer, eqwrapper,
-					checkpoint, vflags, subd);
+			return next_reachable_const(veri_perspec, sub_perspec,
+					pexplorer, eqwrapper, checkpoint, vflags, subd);
 		}
 	} else {
 		UNSET_VFLAG_BRCH(*vflags)
@@ -874,8 +840,9 @@ void finish_verify(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 	}
 }
 
-unsigned short int next_reachable_const(Pnode* perspective, Pnode** pexplorer,
-		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags, SUB** subd)
+unsigned short int next_reachable_const(Pnode* veri_perspec, Pnode* sub_perspec,
+		Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
+		VFlags* vflags, SUB** subd)
 {
 	unsigned short int proceed;
 
@@ -884,7 +851,7 @@ unsigned short int next_reachable_const(Pnode* perspective, Pnode** pexplorer,
 
 		/* branch exploration */
 		if (HAS_VFLAG_BRCH(*vflags)) {
-			if (!next_in_branch(perspective, pexplorer, eqwrapper, checkpoint,
+			if (!next_in_branch(veri_perspec, pexplorer, eqwrapper, checkpoint,
 						vflags, FALSE)) {
 				exit_branch(pexplorer, eqwrapper, checkpoint, vflags);
 			}
@@ -893,8 +860,8 @@ unsigned short int next_reachable_const(Pnode* perspective, Pnode** pexplorer,
 
 		/* substitution */
 		if (HAS_VFLAG_SUBD(*vflags)) {
-			if (next_known_const(perspective, *subd)) {
-				return attempt_explore(perspective, pexplorer, eqwrapper, checkpoint,
+			if (next_known_const(sub_perspec, *subd)) {
+				return attempt_explore(veri_perspec, sub_perspec, pexplorer, eqwrapper, checkpoint,
 						vflags, subd);
 				/* TODO: remove recursion */
 			} else {
@@ -918,10 +885,10 @@ unsigned short int next_reachable_const(Pnode* perspective, Pnode** pexplorer,
 			continue;
 		} else {
 			if ((*pexplorer)->var != NULL) {
-				init_sub(perspective, pexplorer, vflags, subd);
+				init_sub(sub_perspec, pexplorer, vflags, subd);
 			}
-			return attempt_explore(perspective, pexplorer, eqwrapper, checkpoint,
-					vflags, subd);
+			return attempt_explore(veri_perspec, sub_perspec, pexplorer,
+					eqwrapper, checkpoint, vflags, subd);
 			/* TODO: remove recursion */
 		}
 	} while (proceed);
