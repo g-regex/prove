@@ -50,12 +50,6 @@
 #	]
 #]
 
-# experimental
-#[
-#	[a] [[a]:point] =>
-#	[b] [[b]:point]
-#]
-
 # Axiom 2b
 # There exist [p1][p2][p3] distinct points on [pln], which do not lie on the
 # same line.
@@ -82,6 +76,13 @@
 		[[]False]
 	]
 ]
+
+# experimental
+[
+	[a] [[a]:point] =>
+	[b] [[b]:point]
+]
+
 
 # Theorem 1
 [l1] [[l1]:line] [pln] [[pln]:plane] [[l1]in[pln]] =>
