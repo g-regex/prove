@@ -283,86 +283,54 @@ unsigned short int search_justification(Pnode* pexstart,
 
 	move_rightmost(&perspective);
 
-
-	/*DBG_VERIFY(
-			fprintf(stderr, SHELL_RED " [%d" SHELL_RESET1,
-					(*p_pexplorer)->num);
-			fprintf(stderr, SHELL_RED ":#%d", perspective->num);
-			print_sub(subd);
-			fprintf(stderr, "]" SHELL_RESET1);
-	)*/
-
 	while (next_reachable_const(perspective,
 		pexplorer, &eqwrapper, checkpoint, &vflags, subd)) {
-	/*DBG_VERIFY(
-			fprintf(stderr, ".(%d)", (*pexplorer)->num);
-			if (CONTAINS_ID((*pexplorer))) {
-				fprintf(stderr, "[%s]", *((*((*pexplorer)->child))->symbol));
-			}
-			)*/
 		if (verify(*p_pexplorer, pexplorer)) {	
-
-	/*DBG_VERIFY(
-			fprintf(stderr, SHELL_BROWN " <%d" SHELL_RESET1,
-					(*p_pexplorer)->num);
-			fprintf(stderr, SHELL_BROWN ":#%d", (*pexplorer)->num);
-			print_sub(subd);
-			fprintf(stderr, ">" SHELL_RESET1);
-	)*/
-
 
 			/* TODO: recursion needed here */
 			expl_cp = *p_pexplorer;
-			//do {
-				/*DBG_VERIFY(
-						fprintf(stderr, "  {%d} ",
+
+			if (*p_pexplorer == p_perspective) {
+				SET_GFLAG_VRFD
+
+				DBG_VERIFY(
+						fprintf(stderr, SHELL_BROWN "< %d" SHELL_RESET1,
 								(*p_pexplorer)->num);
-						)*/
-				if (*p_pexplorer == p_perspective) {
-					SET_GFLAG_VRFD
+						fprintf(stderr, SHELL_GREEN "<#%d", (*pexplorer)->num);
+						print_sub(subd);
+						fprintf(stderr, ">" SHELL_RESET1);
+				)
 
-					DBG_VERIFY(
-							fprintf(stderr, SHELL_BROWN "< %d" SHELL_RESET1,
-									(*p_pexplorer)->num);
-							fprintf(stderr, SHELL_GREEN "<#%d", (*pexplorer)->num);
-							print_sub(subd);
-							fprintf(stderr, ">" SHELL_RESET1);
-					)
+				finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
+					subd);
 
-					finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
-						subd);
+				free(eqwrapper);
+				free(pexplorer);
+				free(checkpoint);
+				free(subd);
 
-					free(eqwrapper);
-					free(pexplorer);
-					free(checkpoint);
-					free(subd);
+				return TRUE;
+			} else if (!next_in_branch(p_perspective, p_pexplorer, p_eqwrapper,
+					p_checkpoint, p_vflags, TRUE)) {
+				SET_GFLAG_VRFD
 
-					return TRUE;
-				} else if (!next_in_branch(p_perspective, p_pexplorer, p_eqwrapper,
-						p_checkpoint, p_vflags, TRUE)) {
-					SET_GFLAG_VRFD
+				//DBG_VERIFY(fprintf(stderr, SHELL_RED "F" SHELL_RESET1);)
 
-					//DBG_VERIFY(fprintf(stderr, SHELL_RED "F" SHELL_RESET1);)
+				DBG_VERIFY(fprintf(stderr, SHELL_BROWN " %d" SHELL_RESET1,
+						(*p_pexplorer)->num);
+				fprintf(stderr, SHELL_GREEN "<#%d", (*pexplorer)->num);
+				print_sub(subd);
+				fprintf(stderr, ">" SHELL_RESET1);
+				finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
+					subd);)
 
-					DBG_VERIFY(fprintf(stderr, SHELL_BROWN " %d" SHELL_RESET1,
-							(*p_pexplorer)->num);
-					fprintf(stderr, SHELL_GREEN "<#%d", (*pexplorer)->num);
-					print_sub(subd);
-					fprintf(stderr, ">" SHELL_RESET1);
-					finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
-						subd);)
-
-					free(eqwrapper);
-					free(pexplorer);
-					free(checkpoint);
-					free(subd);
-					
-					return TRUE;
-				}
-			//	} else if (!HAS_NFLAG_NEWC((*p_pexplorer))) {
-			//		break;
-			//	} 
-			//} while (TRUE);
+				free(eqwrapper);
+				free(pexplorer);
+				free(checkpoint);
+				free(subd);
+				
+				return TRUE;
+			}
 
 			if (search_justification(pexstart, p_perspective,
 					p_pexplorer, p_eqwrapper, p_checkpoint, p_vflags,
@@ -388,9 +356,6 @@ unsigned short int search_justification(Pnode* pexstart,
 			fprintf(stderr, SHELL_GREEN "<#%d", (*pexplorer)->num);
 			print_sub(subd);
 			fprintf(stderr, ">" SHELL_RESET1);
-	} else {
-			//fprintf(stderr, SHELL_RED "<%d:F>" SHELL_RESET1,
-			//		(*p_pexplorer)->num);
 	})
 
 	finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
