@@ -283,9 +283,17 @@ unsigned short int search_justification(Pnode* pexstart,
 
 	move_rightmost(&perspective);
 
-	while (next_reachable_const(perspective, perspective,
+	while (next_reachable_const(/*pexstart*/perspective, perspective,
 		pexplorer, &eqwrapper, checkpoint, &vflags, subd)) {
 		if (verify(*p_pexplorer, pexplorer)) {	
+
+			/* add DBG flag for this */
+			/*DBG_VERIFY(
+					fprintf(stderr, SHELL_BROWN "<%d:%d",
+						(*p_pexplorer)->num, (*pexplorer)->num);
+					print_sub(subd);
+					fprintf(stderr, ">" SHELL_RESET1);
+			)*/
 
 			/* TODO: recursion needed here */
 			expl_cp = *p_pexplorer;
@@ -346,10 +354,11 @@ unsigned short int search_justification(Pnode* pexstart,
 			}
 
 		} else {
-			/*DBG_PARSER(fprintf(stderr, SHELL_RED "<%d",
-						(*pexplorer)->num);)
+			/* TODO: add DBG flag FAIL */
+			/*DBG_VERIFY(fprintf(stderr, SHELL_RED "<%d:%d",
+						(*p_pexplorer)->num, (*pexplorer)->num);)
 			DBG_VERIFY(print_sub(subd);)
-			DBG_PARSER(fprintf(stderr, ">" SHELL_RESET1);)*/
+			DBG_VERIFY(fprintf(stderr, ">" SHELL_RESET1);)*/
 		}
 	}
 
@@ -704,13 +713,6 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 	do {
 		proceed = FALSE;
 
-		/*DBG_VERIFY(
-				if(exst) {
-					fprintf(stderr, SHELL_MAGENTA "?%d" SHELL_RESET1,
-							(*pexplorer)->num);
-				}
-		)*/
-
 		while (exst && HAS_NFLAG_FRST((*pexplorer))
 				&& HAS_NFLAG_IMPL((*pexplorer))) {
 			if (!branch_proceed(pexplorer, eqwrapper, checkpoint, vflags)) {
@@ -732,8 +734,7 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 			/* if processing an assumption, verify it */
 			if (!exst
 					&& (HAS_NFLAG_FRST((*pexplorer))
-						|| HAS_VFLAG_FRST(*vflags))) {
-				int bkp = (*pexplorer)->num;
+						/*|| HAS_VFLAG_FRST(*vflags)*/)) {
 				if (!check_asmp(perspective, pexplorer,
 							(perspective->num == 209))) {
 					/* pop through branch checkpoints until node is not part

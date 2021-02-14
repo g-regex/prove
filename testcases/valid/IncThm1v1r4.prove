@@ -78,10 +78,10 @@
 ]
 
 # experimental
-[
-	[a] [[a]:point] =>
-	[b] [[b]:point]
-]
+#[
+#	[a] [[a]:point] =>
+#	[b] [[b]:point]
+#]
 
 
 # Theorem 1

@@ -24,23 +24,27 @@ typedef enum {
 	VFLAG_SUBD = 1,
 	VFLAG_BRCH = 2,
 	VFLAG_WRAP = 4,
-	VFLAG_FRST = 8,
+	VFLAG_FRST = 8, /* deprecated */
+	VFLAG_FAIL = 16,
 } VFlags;
 
 #define HAS_VFLAG_SUBD(vflags) (vflags & VFLAG_SUBD)
 #define HAS_VFLAG_BRCH(vflags) (vflags & VFLAG_BRCH)
 #define HAS_VFLAG_WRAP(vflags) (vflags & VFLAG_WRAP)
 #define HAS_VFLAG_FRST(vflags) (vflags & VFLAG_FRST)
+#define HAS_VFLAG_FAIL(vflags) (vflags & VFLAG_FAIL)
 
 #define SET_VFLAG_SUBD(vflags) vflags |= VFLAG_SUBD;
 #define SET_VFLAG_BRCH(vflags) vflags |= VFLAG_BRCH;
 #define SET_VFLAG_WRAP(vflags) vflags |= VFLAG_WRAP;
 #define SET_VFLAG_FRST(vflags) vflags |= VFLAG_FRST;
+#define SET_VFLAG_FAIL(vflags) vflags |= VFLAG_FAIL;
 
 #define UNSET_VFLAG_SUBD(vflags) vflags &= ~VFLAG_SUBD;
 #define UNSET_VFLAG_BRCH(vflags) vflags &= ~VFLAG_BRCH;
 #define UNSET_VFLAG_WRAP(vflags) vflags &= ~VFLAG_WRAP;
 #define UNSET_VFLAG_FRST(vflags) vflags &= ~VFLAG_FRST;
+#define UNSET_VFLAG_FAIL(vflags) vflags &= ~VFLAG_FAIL;
 
 typedef struct Eqwrapper {
 	Pnode* pwrapper;
