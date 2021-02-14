@@ -692,19 +692,25 @@ unsigned short int branch_proceed(Pnode** pexplorer, Eqwrapper** eqwrapper,
 	return TRUE;
 }
 
+#define PROCEED \
+	proceed = TRUE;\
+	continue;
+
 #define BRANCH_PROCEED \
 	if (!branch_proceed(pexplorer, eqwrapper, checkpoint, vflags)) {\
 		return FALSE;\
 	} else if (!HAS_SYMBOL((*pexplorer))) {\
 		return TRUE;\
 	} else {\
-		proceed = TRUE;\
-		continue;\
+		PROCEED\
 	}
 
-#define PROCEED \
-	proceed = TRUE;\
-	continue;
+#define POP_PROCEED \
+	do {\
+		POP\
+	} while (HAS_NFLAG_IMPL((*pexplorer))\
+				&& HAS_NFLAG_FRST((*pexplorer)));\
+	BRANCH_PROCEED\
 
 #define SKIP_FORMULATORS \
 	do {\
@@ -732,9 +738,15 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 		/* skip formulators */
 		if (HAS_SYMBOL((*pexplorer))) {
 			if (HAS_NFLAG_IMPL((*pexplorer))) {
-				UNSET_VFLAG_FAIL((*vflags))
+				//UNSET_VFLAG_FAIL((*vflags))
+				if (HAS_VFLAG_FAIL((*vflags))) {
+					POP_PROCEED
+				} else {
+					BRANCH_PROCEED
+				}
+			} else {
+				BRANCH_PROCEED
 			}
-			BRANCH_PROCEED
 		}
 
 		/* explore EXPLORABLE subbranches */
@@ -754,11 +766,7 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 				if (HAS_VFLAG_FAIL((*vflags))) {
 					/* pop through branch checkpoints until node is not part
 					 * of an assumption TODO: add a nice example here */
-					do {
-						POP
-					} while (HAS_NFLAG_IMPL((*pexplorer))
-								&& HAS_NFLAG_FRST((*pexplorer)));
-					BRANCH_PROCEED
+					POP_PROCEED
 				} else if (!move_right(pexplorer)) {
 					/* When GFLAG_FRST is set, it might happen that we cannot
 					 * move right and have to pop back to proceed with the next
