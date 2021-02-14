@@ -235,6 +235,71 @@ void create_right(Pnode* pnode)
 //#endif
 }
 
+void free_right_dummy(Pnode* pnode)
+{
+	free(*(pnode->right));
+	free(pnode->right);
+	pnode->right = NULL;
+}
+
+/* TODO: currently this is just c/p from above; remove unnecessary code */
+void create_right_dummy(Pnode* pnode)
+{
+	Pnode* right;
+
+	pnode->right = (Pnode**) malloc(sizeof(struct Pnode*));
+	*(pnode->right) = (Pnode*) malloc(sizeof(struct Pnode));
+
+	right = *(pnode->right);
+	right->parent = NULL;
+	right->child = right->right = NULL;
+	right->left = pnode;
+	right->symbol = NULL;
+	right->var = NULL;
+
+	/* flags are carried over to the right hand side */
+	right->flags = pnode->flags; /* | NFLAG_TRUE; */
+	UNSET_NFLAG_NEWC(right)
+	UNSET_NFLAG_FRST(right) /* TODO this can be done better */
+	if (!HAS_FFLAGS(pnode)) {
+		SET_NFLAG_FRST(pnode) /* FRST flag is not set for identifiers (i.e. when
+								 no right node is created, but it is not needed
+								 for them anyway. */
+	}
+
+	/* If the current node has no variable children and is no formulator,
+	 * let it be the "previous constant" for the next node (linked list). */
+	if (pnode->var == NULL && !HAS_SYMBOL(pnode)) {
+		/* This will result in duplicates, but we are lazy.
+		 * It also enables us to "hint" the software, which substitutions
+		 * to do first. */
+		right->prev_const = pnode;
+	} else {
+		right->prev_const = pnode->prev_const;
+	}
+
+	/* All nodes in a subtree before the first implication formulator carry the
+	 * ASMP flag. That is because all statements before that formulator are
+	 * assumptions, when the formula is an implication, and because the ASMP
+	 * flag is ignored if the formula is no implication. */
+	if (!HAS_NFLAG_IMPL(pnode)) {
+		SET_NFLAG_ASMP(pnode)
+	}
+
+	/* All nodes in equalities and ordinary formulae are assumptions. */
+	if (HAS_NFLAG_EQTY(pnode) || HAS_NFLAG_FMLA(pnode)) {
+		SET_NFLAG_ASMP(right)
+	}
+
+	/* All nodes are assumptions in "locked" subtrees. */
+	if (HAS_NFLAG_LOCK(pnode)) {
+		SET_NFLAG_ASMP(right)
+		SET_NFLAG_LOCK(right)
+	}
+
+	right->num = -1;
+}
+
 /* move leftwards through the subtree and create a linked list of all
  * identifiers, which are variables at the parent level; then move up
  * to the parent level */

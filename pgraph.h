@@ -129,6 +129,8 @@ typedef struct Pnode {
 void init_pgraph(Pnode** root);
 void create_child(Pnode* pnode);
 void create_right(Pnode* pnode);
+void create_right_dummy(Pnode* pnode);
+void free_right_dummy(Pnode* pnode);
 void set_symbol(Pnode* pnode, char* symbol);
 void equate(Pnode* p1, Pnode* p2);
 

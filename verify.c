@@ -288,12 +288,12 @@ unsigned short int search_justification(Pnode* pexstart,
 		if (verify(*p_pexplorer, pexplorer)) {	
 
 			/* add DBG flag for this */
-			DBG_VERIFY(
+			/*DBG_VERIFY(
 					fprintf(stderr, SHELL_BROWN "<%d:%d",
 						(*p_pexplorer)->num, (*pexplorer)->num);
 					print_sub(subd);
 					fprintf(stderr, ">" SHELL_RESET1);
-			)
+			)*/
 
 			/* TODO: recursion needed here */
 			expl_cp = *p_pexplorer;
@@ -328,6 +328,26 @@ unsigned short int search_justification(Pnode* pexstart,
 								(*p_pexplorer)->num, (*pexplorer)->num);
 						print_sub(subd);
 						fprintf(stderr, ">" SHELL_RESET1);
+				)
+
+				finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
+									subd);
+
+				free(eqwrapper);
+				free(pexplorer);
+				free(checkpoint);
+				free(subd);
+				
+				return TRUE;
+			}
+
+			if ((*p_pexplorer)->num == -1) {
+				SET_GFLAG_VRFD
+
+				//DBG_VERIFY(fprintf(stderr, SHELL_RED "F" SHELL_RESET1);)
+
+				DBG_VERIFY(
+						fprintf(stderr, SHELL_GREEN "<dummy>" SHELL_RESET1);
 				)
 
 				finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,

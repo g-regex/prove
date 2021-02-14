@@ -461,7 +461,10 @@ void parse_statement(void)
 				DBG_VERIFY(fprintf(stderr, SHELL_MAGENTA "<" SHELL_RESET1);)
 
 				/* FIXME: fix known_const for right-most pnode */
-				if (!verify_existence(pnode, pexstart)) {
+				/* this is a quick work-around: */
+				create_right_dummy(pnode);
+				if (!verify_existence(*(pnode->right), pexstart)) {
+				//if (!verify_existence(pnode, pexstart)) {
 					fprintf(stderr,
 							SHELL_RED
 							"verification failed on line %d, column %d"
@@ -473,7 +476,8 @@ void parse_statement(void)
 					} else {
 						success = EXIT_FAILURE;
 					}
-				}
+				}	
+				free_right_dummy(pnode);
 
 				UNSET_GFLAG_PSTP
 			}

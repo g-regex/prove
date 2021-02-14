@@ -60,7 +60,7 @@
 ] [
 	[pln] [[pln]:plane] [y] [[y]:line] [Axiom2b:[y][pln]] =>
 	[p1] [[p1]:point] [p2] [[p2]:point] [p3] [[p3]:point]
-	[[p1][p2][p3]distinct]
+	[[p1][p2][p3]distinct] =>
 	[[p1]in[pln]] [[p2]in[pln]] [[p3]in[pln]]
 	[
 		[ =>
