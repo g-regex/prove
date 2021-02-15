@@ -253,7 +253,7 @@ unsigned short int verify_universal(Pnode* pn)
 	return TRUE;
 }
 
-unsigned short int search_justification(Pnode* pexstart,
+unsigned short int ve_recursion(Pnode* pexstart,
 		/* parent: */
 		Pnode* p_perspective, Pnode** p_pexplorer, Eqwrapper** p_eqwrapper,
 		BC** p_checkpoint, VFlags* p_vflags, unsigned short int dbg)
@@ -318,7 +318,7 @@ unsigned short int search_justification(Pnode* pexstart,
 				return TRUE;
 			}
 
-			if (search_justification(pexstart, p_perspective,
+			if (ve_recursion(pexstart, p_perspective,
 					p_pexplorer, p_eqwrapper, p_checkpoint, p_vflags,
 					FALSE)) {
 				success = TRUE;
@@ -378,7 +378,7 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 	
 	bc_push(pexplorer, &eqwrapper, checkpoint, &vflags);
 
-	if (search_justification(pexstart, pn, pexplorer, &eqwrapper, checkpoint,
+	if (ve_recursion(pexstart, pn, pexplorer, &eqwrapper, checkpoint,
 			&vflags, TRUE)) {
 
 		/*DBG_VERIFY(fprintf(stderr, SHELL_GREEN "<verified>" SHELL_RESET1);)*/	
