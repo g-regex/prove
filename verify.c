@@ -416,18 +416,25 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 			&vflags, TRUE)) {
 		SET_GFLAG_VRFD
 	} else {
-		DBG_VERIFY(fprintf(stderr, SHELL_RED "<not verified>" SHELL_RESET1);)	
+		DBG_VERIFY(fprintf(stderr, SHELL_BROWN "<not verified; "
+					"trying forward substitution>");)	
 
 		fw_vars = collect_forward_vars(pexstart);
 		if (fw_vars != NULL) {
 			init_sub(pn, fw_vars, &vflags, subd, TRUE);
 			while (next_known_const(pn, *subd, TRUE)) {
 				print_sub(subd);
+				if (ve_recursion(pexstart, pn, pexplorer, &eqwrapper, checkpoint,
+						&vflags, TRUE)) {
+					SET_GFLAG_VRFD
+					break;
+				}
 			}
 			finish_sub(&vflags, subd);
 		}
 		free_forward_vars(fw_vars);
 	}
+	DBG_VERIFY(fprintf(stderr, SHELL_RESET1);)	
 	
 	bc_pop(pexplorer, &eqwrapper, checkpoint, &vflags);
 
