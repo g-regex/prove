@@ -452,12 +452,10 @@ unsigned short int next_known_const(Pnode* perspective, SUB* s)
 }
 
 /* initialise substitution */
-void init_sub(Pnode* perspective, Pnode** pexplorer, VFlags* vflags, SUB** subd)
+void init_sub(Pnode* perspective, Variable* var, VFlags* vflags, SUB** subd)
 {
-	Variable* var;
 	SUB* oldsub;
 
-	var = (*pexplorer)->var;
 	oldsub = *subd;
 
 	/* only substitute, if there is something to substitute in */
@@ -860,7 +858,7 @@ unsigned short int next_reachable_const(Pnode* veri_perspec, Pnode* sub_perspec,
 			continue;
 		} else {
 			if ((*pexplorer)->var != NULL) {
-				init_sub(sub_perspec, pexplorer, vflags, subd);
+				init_sub(sub_perspec, (*pexplorer)->var, vflags, subd);
 			}
 			return attempt_explore(veri_perspec, sub_perspec, pexplorer,
 					eqwrapper, checkpoint, vflags, subd);
