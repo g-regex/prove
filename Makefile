@@ -65,6 +65,8 @@ debug: proveparser
 
 check: CHECKARGS=--dparser --dtikz --dfinish
 check: debug runchecks
+noveri: CHECKARGS=--dparser --dtikz --dcomplete --dfinish --noveri
+noveri: debug runchecks
 checkcmplt: CHECKARGS=--dparser --dtikz --dcomplete --dfinish
 checkcmplt: debug runchecks
 checknd: all runchecks
@@ -76,7 +78,7 @@ pdf: cleanbin cleantex safecheck pdflatex
 
 .ONESHELL:
 safecheck:
-	@-${MAKE} check
+	@-${MAKE} noveri &> /dev/null
 docgen:
 	mkdir -p doc/tikz
 	mkdir -p doc/examples/out

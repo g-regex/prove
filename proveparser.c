@@ -48,6 +48,7 @@ void expect(TType type);
 void check_conflict(Pnode* pnode, TType ttype);
 
 unsigned short int success = EXIT_SUCCESS;
+unsigned short int do_veri = TRUE;
 
 int main(int argc, char *argv[])
 {
@@ -120,6 +121,8 @@ int main(int argc, char *argv[])
 				SET_DBG_COMPLETE
 				SET_DBG_FINISH
 				SET_DBG_VERIFY
+			} else if (strcmp(argv[i], "--noveri") == 0) {
+				do_veri = FALSE;
 			} else if (argv[i][0] == '-' && argv[i][1] == '-') {
 				fprintf(stderr, "unknown argument '%s', try '--help'\n"
 						USAGE, argv[i], argv[0]);
@@ -179,7 +182,7 @@ int main(int argc, char *argv[])
 
 	fclose(file);
 
-	return success;
+	return (success || do_veri);
 }
 
 /* --- parser functions ------------------------------------------------------*/
@@ -445,7 +448,7 @@ void parse_statement(void)
 		if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)
 				&& !HAS_GFLAG_VRFD && !HAS_GFLAG_PSTP) {
 			/* universal verification is triggered here */
-			if (!verify_universal(pnode)) {
+			if (do_veri && !verify_universal(pnode)) {
 				fprintf(stderr,
 						SHELL_RED
 						"verification failed on line %d, column %d"
@@ -477,7 +480,7 @@ void parse_statement(void)
 				/* FIXME: fix known_const for right-most pnode */
 				/* this is a quick work-around: */
 				create_right_dummy(pnode);
-				if (!verify_existence(*(pnode->right), pexstart)) {
+				if (do_veri && !verify_existence(*(pnode->right), pexstart)) {
 				//if (!verify_existence(pnode, pexstart)) {
 					fprintf(stderr,
 							SHELL_RED
