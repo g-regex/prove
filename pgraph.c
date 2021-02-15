@@ -288,6 +288,15 @@ void create_right_dummy(Pnode* pnode)
 		right->prev_const = pnode->prev_const;
 	}
 
+	if (HAS_NFLAG_NEWC(pnode)) {
+		/* This will result in duplicates, but we are lazy.
+		 * It also enables us to "hint" the software, which substitutions
+		 * to do first. */
+		right->prev_id = pnode;
+	} else {
+		right->prev_id = pnode->prev_id;
+	}
+
 	/* All nodes in a subtree before the first implication formulator carry the
 	 * ASMP flag. That is because all statements before that formulator are
 	 * assumptions, when the formula is an implication, and because the ASMP

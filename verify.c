@@ -45,6 +45,12 @@ void bc_push(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 		VFlags* vflags);
 void bc_pop(Pnode** pnode, Eqwrapper** eqwrapper, BC** checkpoint,
 		VFlags* vflags);
+void print_sub(SUB** subd);
+void init_sub(Pnode* perspective, Variable* var, VFlags* vflags, SUB** subd,
+		unsigned short int fwd);
+unsigned short int next_known_const(Pnode* perspective, SUB* s,
+		unsigned short int fwd);
+void finish_sub(VFlags* vflags, SUB** subd);
 
 //static Pnode* eqendwrap; /*temporarily holds node at which to stop wrapping*/
 
@@ -152,18 +158,12 @@ unsigned short int verify(Pnode* pnode, Pnode** pexplorer)
 }
 
 /* checks assumption in pexplorer from the perspective of 'perspective' */
-unsigned short int check_asmp(Pnode* perspective, Pnode** pexplorer,
-		unsigned short int dbg)
+unsigned short int check_asmp(Pnode* perspective, Pnode** pexplorer)
 {
 	Pnode* pconst;
 
 	for (pconst = perspective->prev_const; pconst != NULL;
 			pconst = pconst->prev_const) {
-	/*DBG_VERIFY(
-			if (dbg) {
-				fprintf(stderr, SHELL_CYAN "(%d)" SHELL_RESET1, pconst->num);
-				}
-			)*/
 		if (verify(pconst, pexplorer)) {
 			return TRUE;
 		}
@@ -357,6 +357,39 @@ unsigned short int ve_recursion(Pnode* pexstart,
 	return success;
 }
 
+Variable* collect_forward_vars(Pnode* pcollector)
+{
+	Variable* var;
+	Variable* newvar;
+
+	var = NULL;
+
+	/* TODO: think about how to handle _variables_ during forward substitution*/
+	while (pcollector->num != -1) {
+		if (HAS_NFLAG_NEWC(pcollector)) {
+			//DBG_VERIFY(fprintf(stderr, SHELL_RED "." SHELL_RESET1);)	
+			newvar = (Variable*) malloc(sizeof(Variable));
+			newvar->pnode = *(pcollector->child);
+			newvar->next = var;
+			newvar->locked = FALSE;
+			var = newvar;
+		}
+		pcollector = *(pcollector->right);
+	}
+
+	return var;
+}
+
+void free_forward_vars(Variable* var)
+{
+	Variable *v_iter;
+	while (var != NULL) {
+		v_iter = var->next;
+		free(var);
+		var = v_iter;
+	}
+}
+
 unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 {
 	//TODO: pack these in one struct
@@ -365,6 +398,7 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 	BC** checkpoint;
 	SUB** subd;
 	VFlags vflags;
+	Variable* fw_vars;
 
 	eqwrapper = (Eqwrapper*) malloc(sizeof(Eqwrapper));
 	pexplorer = (Pnode**) malloc(sizeof(Pnode*));
@@ -380,15 +414,21 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 
 	if (ve_recursion(pexstart, pn, pexplorer, &eqwrapper, checkpoint,
 			&vflags, TRUE)) {
-
-		/*DBG_VERIFY(fprintf(stderr, SHELL_GREEN "<verified>" SHELL_RESET1);)*/	
 		SET_GFLAG_VRFD
-
-		/* TODO: add verification information
-		DBG_VERIFY(print_sub();) */
 	} else {
 		DBG_VERIFY(fprintf(stderr, SHELL_RED "<not verified>" SHELL_RESET1);)	
+
+		fw_vars = collect_forward_vars(pexstart);
+		if (fw_vars != NULL) {
+			init_sub(pn, fw_vars, &vflags, subd, TRUE);
+			while (next_known_const(pn, *subd, TRUE)) {
+				print_sub(subd);
+			}
+			finish_sub(&vflags, subd);
+		}
+		free_forward_vars(fw_vars);
 	}
+	
 	bc_pop(pexplorer, &eqwrapper, checkpoint, &vflags);
 
 	free(eqwrapper);
@@ -401,9 +441,13 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 
 /* --- substitution --------------------------------------------------------- */
 
-void init_known_const(Pnode* perspective, SUB* s)
+void init_known_const(Pnode* perspective, SUB* s, unsigned short int fwd)
 {
-	s->known_const = perspective->prev_const;
+	if (fwd) {
+		s->known_const = perspective->prev_id;
+	} else {
+		s->known_const = perspective->prev_const;
+	}
 }
 
 /* substitute variable */
@@ -431,16 +475,22 @@ unsigned short int sub_var(SUB* s)
 }
 
 /* substitutes variable(s) by the next known constant/sub-tree */
-unsigned short int next_known_const(Pnode* perspective, SUB* s)
+unsigned short int next_known_const(Pnode* perspective, SUB* s,
+		unsigned short int fwd)
 {
 	SUB* s_iter;
 
 	s_iter = s;
 
 	while (s_iter != NULL) {
-			s_iter->known_const = s_iter->known_const->prev_const;
+			if (fwd) {
+				s_iter->known_const = s_iter->known_const->prev_id;
+			} else {
+				s_iter->known_const = s_iter->known_const->prev_const;
+			}
+
 			if (s_iter->known_const == NULL) {
-				init_known_const(perspective, s_iter);
+				init_known_const(perspective, s_iter, fwd);
 				sub_var(s_iter);
 				s_iter = s_iter->prev;
 			} else {
@@ -452,14 +502,16 @@ unsigned short int next_known_const(Pnode* perspective, SUB* s)
 }
 
 /* initialise substitution */
-void init_sub(Pnode* perspective, Variable* var, VFlags* vflags, SUB** subd)
+void init_sub(Pnode* perspective, Variable* var, VFlags* vflags, SUB** subd,
+		unsigned short int fwd)
 {
 	SUB* oldsub;
 
 	oldsub = *subd;
 
 	/* only substitute, if there is something to substitute in */
-	if (perspective->prev_const != NULL) {
+	if ((!fwd && perspective->prev_const != NULL) 
+			|| (fwd && perspective->prev_id != NULL)) {
 		do {
 			if (!var->locked) {
 				var->locked = TRUE;
@@ -468,7 +520,7 @@ void init_sub(Pnode* perspective, Variable* var, VFlags* vflags, SUB** subd)
 				(*subd)->prev = oldsub;
 				oldsub = *subd;
 
-				init_known_const(perspective, *subd);
+				init_known_const(perspective, *subd, fwd);
 
 				(*subd)->sym = *(var->pnode->symbol);
 				//sub->equalto = *(var->pnode->equalto);
@@ -713,7 +765,7 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 		if (HAS_NFLAG_IMPL((*pexplorer))) {
 			/* if processing an assumption, verify it */
 			justfailed = FALSE;
-			if (!check_asmp(perspective, pexplorer, FALSE)) {
+			if (!check_asmp(perspective, pexplorer)) {
 
 				DBG_VERIFY(
 				 //fprintf(stderr, SHELL_CYAN "(%d)" SHELL_RESET1,
@@ -779,7 +831,7 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 
 					if (HAS_SYMBOL((*pexplorer))){ /* skip "=" */
 						continue;
-					} else if (check_asmp(perspective, pexplorer, FALSE)) {
+					} else if (check_asmp(perspective, pexplorer)) {
 						SET_VFLAG_WRAP(*vflags)
 						(*eqwrapper)->pendwrap = *pexplorer;
 
@@ -833,7 +885,7 @@ unsigned short int next_reachable_const(Pnode* veri_perspec, Pnode* sub_perspec,
 
 		/* substitution */
 		if (HAS_VFLAG_SUBD(*vflags)) {
-			if (next_known_const(sub_perspec, *subd)) {
+			if (next_known_const(sub_perspec, *subd, FALSE)) {
 				return attempt_explore(veri_perspec, sub_perspec, pexplorer,
 						eqwrapper, checkpoint, vflags, subd);
 				/* TODO: remove recursion */
@@ -858,7 +910,7 @@ unsigned short int next_reachable_const(Pnode* veri_perspec, Pnode* sub_perspec,
 			continue;
 		} else {
 			if ((*pexplorer)->var != NULL) {
-				init_sub(sub_perspec, (*pexplorer)->var, vflags, subd);
+				init_sub(sub_perspec, (*pexplorer)->var, vflags, subd, FALSE);
 			}
 			return attempt_explore(veri_perspec, sub_perspec, pexplorer,
 					eqwrapper, checkpoint, vflags, subd);

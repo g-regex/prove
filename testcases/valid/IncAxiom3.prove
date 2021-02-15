@@ -6,7 +6,7 @@
 ##Formulation 1: there is a line passing through two points and there does not exist a second line distinct from the first, passing through those two points
 [p1][[p1]:point]
 [p2][[p2]:point]
-[ [[p1]=[p2]]=> [[]False] ]=>
+[ [[p1]=[p2]]=> [[]False] ] =>
 
 [l][[l]:line]
 [[p1]in[l]]
@@ -22,7 +22,7 @@
 ##Formulation 2: there is a line passing through two points and any line passing through those same points is equal to that first line
 [p1][[p1]:point]
 [p2][[p2]:point]
-[ [[p1]=[p2]]=> [[]False] ]=>
+[ [[p1]=[p2]]=> [[]False] ] =>
 [l][[l]:line]
 [[p1]in[l]]
 [[p2]in[l]]
