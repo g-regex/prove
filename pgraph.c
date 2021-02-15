@@ -89,7 +89,7 @@ void init_pgraph(Pnode** root)
 	*root = (Pnode*) malloc(sizeof(struct Pnode));
 
 	(*root)->parent = //(*root)->above =
-		(*root)->left = (*root)->prev_const = NULL;
+		(*root)->left = (*root)->prev_const = (*root)->prev_id = NULL;
 	(*root)->child = (*root)->right = NULL;
 	(*root)->symbol = NULL;
 	(*root)->flags = NFLAG_FRST | NFLAG_TRUE;
@@ -145,6 +145,7 @@ void create_child(Pnode* pnode)
 		SET_NFLAG_LOCK(child)
 	}
 	child->prev_const = pnode->prev_const;
+	child->prev_id = pnode->prev_id;
 
 	TIKZ(fprintf(tikz, TIKZ_CHILDNODE(pnode->num, n));
 	fprintf(tikz, TIKZ_CHILDARROW(pnode->num, n));
@@ -200,6 +201,15 @@ void create_right(Pnode* pnode)
 		right->prev_const = pnode;
 	} else {
 		right->prev_const = pnode->prev_const;
+	}
+
+	if (HAS_NFLAG_NEWC(pnode)) {
+		/* This will result in duplicates, but we are lazy.
+		 * It also enables us to "hint" the software, which substitutions
+		 * to do first. */
+		right->prev_id = pnode;
+	} else {
+		right->prev_id = pnode->prev_id;
 	}
 
 	/* All nodes in a subtree before the first implication formulator carry the

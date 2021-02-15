@@ -102,7 +102,8 @@ typedef struct Pnode {
 	struct Pnode** child;
 	struct Pnode* left;
 	struct Pnode** right;
-	struct Pnode* prev_const; /* link to previous constant in the tree */
+	struct Pnode* prev_const; /* link to previous constant sub-tree */
+	struct Pnode* prev_id; /* link to previous constant id */
 	char** symbol; /* using a double pointer to let known identifiers
 					  point to the same char* in memory */
 	NFlags flags;
@@ -111,7 +112,7 @@ typedef struct Pnode {
 					  sub-tree (for substitution) */
 
 	//Variable** equalto;
-	Equalities* prev_eq;
+	//Equalities* prev_eq;
 } Pnode;
 
 #define CONTAINS_ID(pnode) \
