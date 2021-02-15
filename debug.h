@@ -30,6 +30,8 @@ typedef enum {
 	DBG_FINISH = 16,	/* finish execution, even if verification failed */
 	DBG_GRAPH = 32,
 	DBG_EQUAL = 64,
+	DBG_EPATH = 128,
+	DBG_EFAIL = 256,
 } DBGops;
 
 DBGops dbgops;
@@ -103,6 +105,28 @@ DBGops dbgops;
 #else
 #define DBG_EQUAL(cmd)
 #define SET_DBG_EQUAL
+#endif
+
+#ifdef DVERIFY
+#define DEBUG
+#define DBG_EPATH_IS_SET (dbgops & DBG_EPATH)
+#define SET_DBG_EPATH dbgops |= DBG_EPATH;
+#define DBG_EPATH(cmd) \
+	if (DBG_EPATH_IS_SET) { cmd }
+#else
+#define DBG_EPATH(cmd)
+#define SET_DBG_EPATH
+#endif
+
+#ifdef DVERIFY
+#define DEBUG
+#define DBG_EFAIL_IS_SET (dbgops & DBG_EFAIL)
+#define SET_DBG_EFAIL dbgops |= DBG_EFAIL;
+#define DBG_EFAIL(cmd) \
+	if (DBG_EFAIL_IS_SET) { cmd }
+#else
+#define DBG_EFAIL(cmd)
+#define SET_DBG_EFAIL
 #endif
 
 #ifdef DCOLOUR
