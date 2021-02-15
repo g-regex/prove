@@ -283,72 +283,29 @@ unsigned short int search_justification(Pnode* pexstart,
 
 	move_rightmost(&perspective);
 
-	while (next_reachable_const(/*pexstart*/perspective, perspective,
+	while (next_reachable_const(*p_pexplorer /*perspective*/, perspective,
 		pexplorer, &eqwrapper, checkpoint, &vflags, subd)) {
 		if (verify(*p_pexplorer, pexplorer)) {	
 
-			/* add DBG flag for this */
-			/*DBG_VERIFY(
+			DBG_EPATH(
 					fprintf(stderr, SHELL_BROWN "<%d:%d",
 						(*p_pexplorer)->num, (*pexplorer)->num);
 					print_sub(subd);
 					fprintf(stderr, ">" SHELL_RESET1);
-			)*/
+			)
 
-			/* TODO: recursion needed here */
 			expl_cp = *p_pexplorer;
+			next_in_branch(p_perspective, p_pexplorer, p_eqwrapper,
+					p_checkpoint, p_vflags, TRUE);
 
-			if (*p_pexplorer == p_perspective) {
-				SET_GFLAG_VRFD
-
-				DBG_VERIFY(
-						fprintf(stderr, SHELL_GREEN "<%d:#%d",
-								(*p_pexplorer)->num, (*pexplorer)->num);
-						print_sub(subd);
-						fprintf(stderr, ">" SHELL_RESET1);
-				)
-
-				finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
-					subd);
-
-				free(eqwrapper);
-				free(pexplorer);
-				free(checkpoint);
-				free(subd);
-
-				return TRUE;
-			} else if (!next_in_branch(p_perspective, p_pexplorer, p_eqwrapper,
-					p_checkpoint, p_vflags, TRUE)) {
-				SET_GFLAG_VRFD
-
-				//DBG_VERIFY(fprintf(stderr, SHELL_RED "F" SHELL_RESET1);)
-
-				DBG_VERIFY(
-						fprintf(stderr, SHELL_GREEN "<%d:#%d",
-								(*p_pexplorer)->num, (*pexplorer)->num);
-						print_sub(subd);
-						fprintf(stderr, ">" SHELL_RESET1);
-				)
-
-				finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
-									subd);
-
-				free(eqwrapper);
-				free(pexplorer);
-				free(checkpoint);
-				free(subd);
-				
-				return TRUE;
-			}
-
+			/* if the dummy node has been reached, verification has been
+			 * successful */
 			if ((*p_pexplorer)->num == -1) {
-				SET_GFLAG_VRFD
+				//SET_GFLAG_VRFD
 
-				//DBG_VERIFY(fprintf(stderr, SHELL_RED "F" SHELL_RESET1);)
-
-				DBG_VERIFY(
+				/*DBG_VERIFY(
 						fprintf(stderr, SHELL_GREEN "<dummy>" SHELL_RESET1);
-				)
+				)*/
 
 				finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
 									subd);
@@ -372,11 +329,12 @@ unsigned short int search_justification(Pnode* pexstart,
 			}
 
 		} else {
-			/* TODO: add DBG flag FAIL */
-			/*DBG_VERIFY(fprintf(stderr, SHELL_RED "<%d:%d",
-						(*p_pexplorer)->num, (*pexplorer)->num);)
-			DBG_VERIFY(print_sub(subd);)
-			DBG_VERIFY(fprintf(stderr, ">" SHELL_RESET1);)*/
+			DBG_EFAIL(
+				fprintf(stderr, SHELL_RED "<%d:%d",
+						(*p_pexplorer)->num, (*pexplorer)->num);
+				print_sub(subd);
+				fprintf(stderr, ">" SHELL_RESET1);
+			)
 		}
 	}
 
@@ -423,7 +381,7 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 	if (search_justification(pexstart, pn, pexplorer, &eqwrapper, checkpoint,
 			&vflags, TRUE)) {
 
-		DBG_VERIFY(fprintf(stderr, SHELL_GREEN "<verified>" SHELL_RESET1);)	
+		/*DBG_VERIFY(fprintf(stderr, SHELL_GREEN "<verified>" SHELL_RESET1);)*/	
 		SET_GFLAG_VRFD
 
 		/* TODO: add verification information
@@ -878,8 +836,8 @@ unsigned short int next_reachable_const(Pnode* veri_perspec, Pnode* sub_perspec,
 		/* substitution */
 		if (HAS_VFLAG_SUBD(*vflags)) {
 			if (next_known_const(sub_perspec, *subd)) {
-				return attempt_explore(veri_perspec, sub_perspec, pexplorer, eqwrapper, checkpoint,
-						vflags, subd);
+				return attempt_explore(veri_perspec, sub_perspec, pexplorer,
+						eqwrapper, checkpoint, vflags, subd);
 				/* TODO: remove recursion */
 			} else {
 				finish_sub(vflags, subd);

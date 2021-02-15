@@ -80,6 +80,19 @@ int main(int argc, char *argv[])
 				NOSUPPORT
 #endif
 				SET_DBG_EQUAL
+			} else if (strcmp(argv[i], "--depath") == 0) {
+#ifndef DPARSER
+				NOSUPPORT
+#endif
+				SET_DBG_VERIFY
+				SET_DBG_EPATH
+			} else if (strcmp(argv[i], "--defail") == 0) {
+#ifndef DPARSER
+				NOSUPPORT
+#endif
+				SET_DBG_VERIFY
+				SET_DBG_EPATH
+				SET_DBG_EFAIL
 			} else if (strcmp(argv[i], "--dtikz") == 0) {
 #ifndef DTIKZ
 				NOSUPPORT
@@ -398,8 +411,8 @@ void parse_statement(void)
 							&& !HAS_GFLAG_PSTP) {
 					SET_GFLAG_PSTP
 					pexstart = pnode;
-					DBG_VERIFY(fprintf(stderr, SHELL_MAGENTA "{%d}>"
-								SHELL_RESET1, pnode->num);)
+					DBG_VERIFY(fprintf(stderr, SHELL_BOLD "{%d}>"
+								SHELL_RESET2, pnode->num);)
 				}
 
 				SET_NFLAG_NEWC(pnode)
@@ -458,7 +471,8 @@ void parse_statement(void)
 			/* trigger existence verification here */
 			if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)
 					&& HAS_GFLAG_PSTP && pexstart != NULL) {
-				DBG_VERIFY(fprintf(stderr, SHELL_MAGENTA "<" SHELL_RESET1);)
+				DBG_VERIFY(fprintf(stderr, SHELL_BOLD "<{%d}" SHELL_RESET2,
+							pnode->num);)
 
 				/* FIXME: fix known_const for right-most pnode */
 				/* this is a quick work-around: */
