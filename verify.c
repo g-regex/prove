@@ -39,8 +39,11 @@
 				&& HAS_NFLAG_EQTY((*((*pexplorer)->child))))))
 
 unsigned short int next_in_branch(Pnode* pnode, Pnode** pexplorer,
-		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags,
-		unsigned short int dbg);
+		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags);
+
+unsigned short int next_existence(Pnode* perspective, Pnode** pexplorer,
+		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags);
+
 void bc_push(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 		VFlags* vflags);
 void bc_pop(Pnode** pnode, Eqwrapper** eqwrapper, BC** checkpoint,
@@ -158,13 +161,18 @@ unsigned short int verify(Pnode* pnode, Pnode** pexplorer)
 }
 
 /* checks assumption in pexplorer from the perspective of 'perspective' */
-unsigned short int check_asmp(Pnode* perspective, Pnode** pexplorer)
+unsigned short int check_asmp(Pnode* perspective, Pnode** pexplorer,
+		unsigned short int exst)
 {
 	Pnode* pconst;
 
 	for (pconst = perspective->prev_const; pconst != NULL;
 			pconst = pconst->prev_const) {
 		if (verify(pconst, pexplorer)) {
+			if (exst) {
+				DBG_VERIFY(fprintf(stderr, SHELL_MAGENTA "<%d:#%d>",
+							(*pexplorer)->num, pconst->num);)
+			}
 			return TRUE;
 		}
 	}
@@ -295,17 +303,30 @@ unsigned short int ve_recursion(Pnode* pexstart,
 			)
 
 			expl_cp = *p_pexplorer;
-			next_in_branch(p_perspective, p_pexplorer, p_eqwrapper,
-					p_checkpoint, p_vflags, TRUE);
+			/* FIXME: fail if this returns FALSE - but first find out, why it
+			 * fails in the first place */
+			if (!next_existence(p_perspective, p_pexplorer, p_eqwrapper,
+					p_checkpoint, p_vflags)) {
+
+				finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
+									subd);
+
+				free(eqwrapper);
+				free(pexplorer);
+				free(checkpoint);
+				free(subd);
+				
+				return FALSE;
+			}
 
 			/* if the dummy node has been reached, verification has been
 			 * successful */
 			if ((*p_pexplorer)->num == -1) {
 				//SET_GFLAG_VRFD
 
-				/*DBG_VERIFY(
+				DBG_VERIFY(
 						fprintf(stderr, SHELL_GREEN "<dummy>" SHELL_RESET1);
-				)*/
+				)
 
 				finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
 									subd);
@@ -666,15 +687,13 @@ unsigned short int attempt_explore(Pnode* veri_perspec, Pnode* sub_perspec,
 		Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 		VFlags* vflags, SUB** subd)
 {
-	/* OLD implementation: if (explore_branch()) { */
 	if (EXPLORABLE) {
 		bc_push(pexplorer, eqwrapper, checkpoint, vflags);
 		*pexplorer = *((*pexplorer)->child);
 		SET_VFLAG_BRCH(*vflags)
 		UNSET_VFLAG_FAIL(*vflags)
-		//DBG_VERIFY(fprintf(stderr, "~");)
 		if (!next_in_branch(veri_perspec, pexplorer, eqwrapper, checkpoint,
-					vflags, FALSE)) {
+					vflags)) {
 			exit_branch(pexplorer, eqwrapper, checkpoint, vflags);
 			return next_reachable_const(veri_perspec, sub_perspec,
 					pexplorer, eqwrapper, checkpoint, vflags, subd);
@@ -698,7 +717,9 @@ unsigned short int branch_proceed(Pnode** pexplorer, Eqwrapper** eqwrapper,
 {
 	/* FIXME: check, whether GFLAG_FRST is set properly */
 	while (!wrap_right(pexplorer, eqwrapper, vflags)) {
+		DBG_EPATH(fprintf(stderr, SHELL_BROWN ">" SHELL_RESET1);)
 		POP
+		DBG_EPATH(fprintf(stderr, SHELL_CYAN ">" SHELL_RESET1);)
 		if (wrap_right(pexplorer, eqwrapper, vflags)) {
 			break;
 		}
@@ -733,8 +754,7 @@ unsigned short int branch_proceed(Pnode** pexplorer, Eqwrapper** eqwrapper,
 
 /* set pexplorer to the next valid value or return FALSE */
 unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
-		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags,
-		unsigned short int exst)
+		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags)
 {
 	/* FIXME: too much recursion */
 	unsigned short int proceed;
@@ -742,13 +762,6 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 
 	do {
 		proceed = FALSE;
-
-		while (exst && HAS_NFLAG_FRST((*pexplorer))
-				&& HAS_NFLAG_IMPL((*pexplorer))) {
-			if (!branch_proceed(pexplorer, eqwrapper, checkpoint, vflags)) {
-				return FALSE;
-			}
-		}
 
 		/* skip formulators */
 		if (HAS_SYMBOL((*pexplorer))) {
@@ -765,6 +778,9 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 		}
 
 		/* explore EXPLORABLE subbranches */
+		/*if (exst) {
+		DBG_VERIFY(fprintf(stderr, SHELL_CYAN "%d/" SHELL_RESET1, (*pexplorer)->num);)
+		}*/
 		if (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {
 			PROCEED
 		}
@@ -772,7 +788,10 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 		if (HAS_NFLAG_IMPL((*pexplorer))) {
 			/* if processing an assumption, verify it */
 			justfailed = FALSE;
-			if (!check_asmp(perspective, pexplorer)) {
+			/* don't check assumptions, when branching through claimed
+			 * existence */
+			if (!check_asmp(perspective, pexplorer, FALSE)) {
+			//if (!check_asmp(perspective, pexplorer, exst)) {
 
 				DBG_VERIFY(
 				 //fprintf(stderr, SHELL_CYAN "(%d)" SHELL_RESET1,
@@ -783,8 +802,7 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 				justfailed = TRUE;
 			}
 
-			if (!exst
-					&& (HAS_NFLAG_FRST((*pexplorer))
+			if ((HAS_NFLAG_FRST((*pexplorer))
 						/*|| HAS_VFLAG_FRST(*vflags)*/)) {
 				if (justfailed) {
 					/* pop through branch checkpoints until node is not part
@@ -802,8 +820,12 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 				if (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {
 					PROCEED
 				} else {
+
+					DBG_EPATH(fprintf(stderr, SHELL_GREEN ">" SHELL_RESET1);)
+
 					//BRANCH_PROCEED
 					if (!branch_proceed(pexplorer, eqwrapper, checkpoint, vflags)) {
+						DBG_EPATH(fprintf(stderr, SHELL_RED ">" SHELL_RESET1);)
 						return FALSE;
 					} else if (explore_branch(pexplorer, eqwrapper, checkpoint,
 								vflags)) {
@@ -832,13 +854,15 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 					(*eqwrapper)->pwrapper = *pexplorer;
 				}
 
+				/* do not check any assumptions whe branching through claimed
+				 * existence */
 				do {
 					/* loop through nodes in equality to find a valid assumption
 					 * and stop at the first reachable _after_ it */
 
 					if (HAS_SYMBOL((*pexplorer))){ /* skip "=" */
 						continue;
-					} else if (check_asmp(perspective, pexplorer)) {
+					} else if (check_asmp(perspective, pexplorer, FALSE)) {
 						SET_VFLAG_WRAP(*vflags)
 						(*eqwrapper)->pendwrap = *pexplorer;
 
@@ -848,6 +872,96 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 
 				} while (move_right(pexplorer));
 
+				POP
+				wrap_right(pexplorer, eqwrapper, vflags);
+				BRANCH_PROCEED
+			}
+		}
+	} while (proceed);
+
+	return FALSE;
+}
+
+
+unsigned short int next_existence(Pnode* perspective, Pnode** pexplorer,
+		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags)
+{
+	unsigned short int proceed;
+	unsigned short int justfailed;
+
+	do {
+		proceed = FALSE;
+
+		while (HAS_NFLAG_FRST((*pexplorer))
+				&& HAS_NFLAG_IMPL((*pexplorer))) {
+			if (!branch_proceed(pexplorer, eqwrapper, checkpoint, vflags)) {
+				return FALSE;
+			}
+		}
+
+		/* skip formulators */
+		if (HAS_SYMBOL((*pexplorer))) {
+			if (HAS_NFLAG_IMPL((*pexplorer))) {
+				//UNSET_VFLAG_FAIL((*vflags))
+				if (HAS_VFLAG_FAIL((*vflags))) {
+					POP_PROCEED
+				} else {
+					BRANCH_PROCEED
+				}
+			} else {
+				BRANCH_PROCEED
+			}
+		}
+
+		/* explore EXPLORABLE subbranches */
+		if (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {
+			PROCEED
+		}
+
+		if (HAS_NFLAG_IMPL((*pexplorer))) {
+			/* if processing an assumption, verify it */
+			justfailed = FALSE;
+			/* don't check assumptions, when branching through claimed
+			 * existence */
+
+			if (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {
+				PROCEED
+			} else {
+
+				DBG_EPATH(fprintf(stderr, SHELL_GREEN ">" SHELL_RESET1);)
+
+				//BRANCH_PROCEED
+				if (!branch_proceed(pexplorer, eqwrapper, checkpoint, vflags)) {
+					DBG_EPATH(fprintf(stderr, SHELL_RED ">" SHELL_RESET1);)
+					return FALSE;
+				} else if (explore_branch(pexplorer, eqwrapper, checkpoint,
+							vflags)) {
+					//return TRUE;
+					PROCEED
+				} else if (!HAS_SYMBOL((*pexplorer))) {\
+					return TRUE;\
+				} else {
+					proceed = TRUE;
+					continue;
+				}
+			}
+		} else if (HAS_NFLAG_EQTY((*pexplorer))) {
+			if (HAS_VFLAG_WRAP(*vflags)) {
+				/* proceed with branch after cycling through equality */
+				if ((*eqwrapper)->pendwrap == *pexplorer) {
+					UNSET_VFLAG_WRAP(*vflags)
+					BRANCH_PROCEED
+				}
+				SKIP_FORMULATORS
+				return TRUE;
+			} else {
+				/* remember first node in equality for wrapping */
+				if (HAS_NFLAG_FRST((*pexplorer))) {
+					(*eqwrapper)->pwrapper = *pexplorer;
+				}
+
+				/* do not check any assumptions whe branching through claimed
+				 * existence */
 				POP
 				wrap_right(pexplorer, eqwrapper, vflags);
 				BRANCH_PROCEED
@@ -872,6 +986,23 @@ void finish_verify(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 	}
 }
 
+#define ATTEMPT_EXPLORE \
+	if (EXPLORABLE) {\
+		bc_push(pexplorer, eqwrapper, checkpoint, vflags);\
+		*pexplorer = *((*pexplorer)->child);\
+		SET_VFLAG_BRCH(*vflags)\
+		UNSET_VFLAG_FAIL(*vflags)\
+		if (!next_in_branch(veri_perspec, pexplorer, eqwrapper, checkpoint,\
+					vflags)) {\
+			exit_branch(pexplorer, eqwrapper, checkpoint, vflags);\
+			return next_reachable_const(veri_perspec, sub_perspec,\
+					pexplorer, eqwrapper, checkpoint, vflags, subd);\
+		}\
+	} else {\
+		UNSET_VFLAG_BRCH(*vflags)\
+	}\
+	return TRUE;\
+
 unsigned short int next_reachable_const(Pnode* veri_perspec, Pnode* sub_perspec,
 		Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 		VFlags* vflags, SUB** subd)
@@ -884,7 +1015,7 @@ unsigned short int next_reachable_const(Pnode* veri_perspec, Pnode* sub_perspec,
 		/* branch exploration */
 		if (HAS_VFLAG_BRCH(*vflags)) {
 			if (!next_in_branch(veri_perspec, pexplorer, eqwrapper, checkpoint,
-						vflags, FALSE)) {
+						vflags)) {
 				exit_branch(pexplorer, eqwrapper, checkpoint, vflags);
 			}
 			return TRUE;
@@ -892,6 +1023,7 @@ unsigned short int next_reachable_const(Pnode* veri_perspec, Pnode* sub_perspec,
 
 		/* substitution */
 		if (HAS_VFLAG_SUBD(*vflags)) {
+
 			if (next_known_const(sub_perspec, *subd, FALSE)) {
 				return attempt_explore(veri_perspec, sub_perspec, pexplorer,
 						eqwrapper, checkpoint, vflags, subd);

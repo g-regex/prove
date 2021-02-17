@@ -182,7 +182,11 @@ int main(int argc, char *argv[])
 
 	fclose(file);
 
-	return (success || do_veri);
+	if (!do_veri) {
+		return EXIT_SUCCESS;
+	} else {
+		return success;
+	}
 }
 
 /* --- parser functions ------------------------------------------------------*/
