@@ -18,6 +18,7 @@
 #define VERIFY_H
 
 #include "pgraph.h"
+#include <gmp.h>
 
 typedef enum {
 	VFLAG_NONE = 0,
@@ -86,4 +87,5 @@ unsigned short int next_reachable_const(Pnode* veri_perspec, Pnode* sub_perspec,
 		Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 		VFlags* vflags, SUB** subd);
 
+mpz_t comp_count;
 #endif

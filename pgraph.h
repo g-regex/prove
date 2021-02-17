@@ -148,4 +148,6 @@ void move_and_sum_up(Pnode** pnode);
 /* memory deallocation */
 void free_graph(Pnode* pnode);
 
+int get_node_count();
+
 #endif

@@ -2,8 +2,9 @@ DEBUG    = -ggdb
 OPTIMISE = -O0
 WARNINGS = -Wall -Wextra -Wno-variadic-macros -Wno-overlength-strings -pedantic
 CC       = gcc
+LDFLAGS  = -lgmp
 RM       = rm -f
-COMPILE  = $(CC) $(CFLAGS) $(DFLAGS) $(DEBUG)
+COMPILE  = $(CC) $(CFLAGS) $(DFLAGS) $(LDFLAGS) $(DEBUG)
 EXES     = proveparser pscanner
 
 BINDIR   = bin

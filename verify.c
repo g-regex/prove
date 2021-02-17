@@ -104,6 +104,8 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 	unsigned short int equal;
 
 	equal = TRUE;
+	mpz_add_ui(comp_count, comp_count, 1);
+
 	if (IS_ID(p1)) {
 		if (IS_ID(p2)) {
 
