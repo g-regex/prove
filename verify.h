@@ -71,6 +71,7 @@ typedef struct substitution_status {
 	Variable* var;		/* substituted variable */
 	//Variable* equalto;
 	struct substitution_status* prev;
+	struct substitution_status* next;
 } SUB;
 
 unsigned short int verify_universal(Pnode* pn);

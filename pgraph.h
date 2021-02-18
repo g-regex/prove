@@ -117,6 +117,7 @@ typedef struct Pnode {
 	int num; /* number of the current node in pre-order traversal of the tree */
 	Variable* var; /* link to the first variable in
 					  sub-tree (for substitution) */
+	VTree* vtree;
 
 	//Variable** equalto;
 	//Equalities* prev_eq;

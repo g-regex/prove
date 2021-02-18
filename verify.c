@@ -543,33 +543,44 @@ unsigned short int next_known_const(Pnode* perspective, SUB* s,
 void init_sub(Pnode* perspective, Variable* var, VFlags* vflags, SUB** subd,
 		unsigned short int fwd)
 {
-	SUB* oldsub;
+	SUB* prev;
+	SUB* next;
 
-	oldsub = *subd;
+	prev = *subd;
 
-	/* only substitute, if there is something to substitute in */
+	/* only substitute, if there is anything to substitute in */
 	if ((!fwd && perspective->prev_const != NULL) 
 			|| (fwd && perspective->prev_id != NULL)) {
+
 		do {
 			if (!var->locked) {
 				var->locked = TRUE;
 
 				*subd = (SUB*) malloc(sizeof(SUB));
-				(*subd)->prev = oldsub;
-				oldsub = *subd;
+				(*subd)->prev = prev;
+				prev = *subd;
 
 				init_known_const(perspective, *subd, fwd);
 
 				(*subd)->sym = *(var->pnode->symbol);
-				//sub->equalto = *(var->pnode->equalto);
 				(*subd)->var = var;
 
-				/* FIXME: added this. correct? */
 				sub_var(*subd);
 			}
 			var = var->next;
 		} while (var != NULL);
 
+		/* reverse list */
+		prev = NULL;
+		if (*subd != NULL) {
+			while ((*subd) != NULL) {
+				next = (*subd)->prev;
+				(*subd)->prev = prev;
+				prev = *subd;
+				*subd = next;
+			}
+			*subd = prev;
+		}
 		SET_VFLAG_SUBD(*vflags)
 	}
 }
@@ -590,7 +601,6 @@ void finish_sub(VFlags* vflags, SUB** subd)
 		prev_sub = (*subd)->prev;
 
 		*((*subd)->var->pnode->symbol) = (*subd)->sym;
-		//*(sub->var->pnode->equalto) = sub->equalto;
 		*((*subd)->var->pnode->child) = NULL;
 		*((*subd)->var->pnode->right) = NULL;
 

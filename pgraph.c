@@ -94,6 +94,7 @@ void init_pgraph(Pnode** root)
 	(*root)->symbol = NULL;
 	(*root)->flags = NFLAG_FRST | NFLAG_TRUE;
 	(*root)->var = NULL;
+	(*root)->vtree = NULL;
 	
 	/*
 	(*root)->equalto = (Variable**) malloc(sizeof(Variable*));
@@ -126,6 +127,7 @@ void create_child(Pnode* pnode)
 	child->parent = pnode;
 	//child->above = pnode;
 	child->var = NULL;
+	child->vtree = NULL;
 	child->symbol = NULL;
 
 	/*
@@ -174,6 +176,7 @@ void create_right(Pnode* pnode)
 	right->left = pnode;
 	right->symbol = NULL;
 	right->var = NULL;
+	right->vtree = NULL;
 
 	/*
 	right->equalto = (Variable**) malloc(sizeof(Variable*));
@@ -266,6 +269,7 @@ void create_right_dummy(Pnode* pnode)
 	right->left = pnode;
 	right->symbol = NULL;
 	right->var = NULL;
+	right->vtree = NULL;
 
 	/* flags are carried over to the right hand side */
 	right->flags = pnode->flags; /* | NFLAG_TRUE; */
@@ -326,6 +330,8 @@ void move_and_sum_up(Pnode** pnode)
 {
 	Variable* var;
 	Variable* oldvar;
+	VTree* vtree;
+	VTree* oldvtree;
 	
 	/* only update rightmost child, if a new right node was created before */
 	TIKZ(if (rightmost_child == 0) {
@@ -335,6 +341,8 @@ void move_and_sum_up(Pnode** pnode)
 
 	oldvar = (*pnode)->var;
 	var = oldvar;
+	oldvtree =  (*pnode)->vtree;
+	vtree = oldvtree;
 
 	/* carry flags over from right to left in order to be able to
 	 * determine the type of a formula, when reading the first statement,
@@ -358,9 +366,20 @@ void move_and_sum_up(Pnode** pnode)
 			var->pnode = (*pnode)->var->pnode;
 			var->next = (*pnode)->var->next;
 			oldvar = var;
+		}
 
-			//oldvar = var = (*pnode)->var;	
-			//oldvar = (*pnode)->var;
+		if (HAS_NFLAG_NEWC((*pnode))) {
+			vtree = (VTree*) malloc(sizeof(VTree));
+			vtree->pnode = *((*pnode)->child);
+			vtree->right = oldvtree;
+			vtree->locked = FALSE;
+			oldvtree = vtree;
+		} else if ((*pnode)->vtree != NULL){
+			vtree = (VTree*) malloc(sizeof(VTree));
+			vtree->left = (*pnode)->vtree;
+			vtree->right = oldvtree;
+			vtree->locked = FALSE;
+			oldvtree = vtree;
 		}
 	} while (move_left(pnode) &&
 			DO((*pnode)->flags |= GET_NFFLAGS((*((*pnode)->right)))));

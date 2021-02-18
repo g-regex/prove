@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
 
 	TIKZ(fprintf(tikz, TIKZ_ENDSCOPE);)
 
-	free_graph(pnode);
+	//free_graph(pnode);
 
 	TIKZ(fprintf(tikz, TIKZ_ENDPIC TIKZ_FOOTER);
 	fclose(tikz);)
