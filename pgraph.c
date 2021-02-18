@@ -358,8 +358,8 @@ void move_and_sum_up(Pnode** pnode)
 			var->pnode = (*pnode)->var->pnode;
 			var->next = (*pnode)->var->next;
 			oldvar = var;
-			//oldvar = var = (*pnode)->var;
-			
+
+			//oldvar = var = (*pnode)->var;	
 			//oldvar = (*pnode)->var;
 		}
 	} while (move_left(pnode) &&
