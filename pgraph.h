@@ -90,6 +90,13 @@ typedef struct Variable {
 	unsigned short int locked;
 } Variable;
 
+typedef struct VTree {
+	struct Pnode* pnode;
+	struct VTree* left;
+	struct VTree* right;
+	unsigned short int locked;
+} VTree;
+
 typedef struct Equalities {
 	Variable* eqcircle;
 	struct Equalities* next;
