@@ -402,7 +402,7 @@ Variable* collect_forward_vars(Pnode* pcollector)
 			newvar = (Variable*) malloc(sizeof(Variable));
 			newvar->pnode = *(pcollector->child);
 			newvar->next = var;
-			newvar->locked = FALSE;
+			newvar->flags = VARFLAG_NONE;
 			var = newvar;
 		}
 		pcollector = *(pcollector->right);
@@ -553,8 +553,8 @@ void init_sub(Pnode* perspective, Variable* var, VFlags* vflags, SUB** subd,
 			|| (fwd && perspective->prev_id != NULL)) {
 
 		do {
-			if (!var->locked) {
-				var->locked = TRUE;
+			if (!HAS_VARFLAG_LOCK(var->flags)) {
+				SET_VARFLAG_LOCK(var->flags)
 
 				*subd = (SUB*) malloc(sizeof(SUB));
 				(*subd)->prev = prev;
@@ -604,7 +604,7 @@ void finish_sub(VFlags* vflags, SUB** subd)
 		*((*subd)->var->pnode->child) = NULL;
 		*((*subd)->var->pnode->right) = NULL;
 
-		(*subd)->var->locked = FALSE;
+		UNSET_VARFLAG_LOCK(((*subd)->var->flags))
 
 		free(*subd);
 		*subd = prev_sub;
@@ -836,7 +836,7 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 					 * of an assumption TODO: add a nice example here */
 					POP_PROCEED
 				} else if (!move_right(pexplorer)) {
-					/* When GFLAG_FRST is set, it might happen that we cannot
+					/* When VFLAG_FRST is set, it might happen that we cannot
 					 * move right and have to pop back to proceed with the next
 					 * node at a lower level */
 					BRANCH_PROCEED

@@ -358,13 +358,14 @@ void move_and_sum_up(Pnode** pnode)
 			var = (Variable*) malloc(sizeof(Variable));
 			var->pnode = *((*pnode)->child);
 			var->next = oldvar;
-			var->locked = FALSE;
+			var->flags = VARFLAG_NONE;
 			oldvar = var;
 			DBG_GRAPH(fprintf(stderr, "/VAR\\");)
 		} else if ((*pnode)->var != NULL){
 			var = (Variable*) malloc(sizeof(Variable));
 			var->pnode = (*pnode)->var->pnode;
 			var->next = (*pnode)->var->next;
+			var->flags = VARFLAG_NONE;
 			oldvar = var;
 		}
 
@@ -373,16 +374,20 @@ void move_and_sum_up(Pnode** pnode)
 			vtree->parent = NULL;
 			vtree->pnode = *((*pnode)->child);
 			vtree->right = oldvtree;
-			oldvtree->parent = vtree;
-			vtree->locked = FALSE;
+			if (oldvtree != NULL) {
+				oldvtree->parent = vtree;
+			}
+			vtree->flags = VARFLAG_NONE;
 			oldvtree = vtree;
 		} else if ((*pnode)->vtree != NULL){
 			vtree = (VTree*) malloc(sizeof(VTree));
 			vtree->parent = NULL;
 			vtree->left = (*pnode)->vtree;
 			vtree->right = oldvtree;
-			oldvtree->parent = vtree;
-			vtree->locked = FALSE;
+			if (oldvtree != NULL) {
+				oldvtree->parent = vtree;
+			}
+			vtree->flags = VARFLAG_NONE;
 			oldvtree = vtree;
 		}
 	} while (move_left(pnode) &&

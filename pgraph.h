@@ -98,12 +98,15 @@ typedef enum {
 #define SET_VARFLAG_LEFT(flags) flags |= VARFLAG_LEFT;
 #define SET_VARFLAG_RGHT(flags) flags |= VARFLAG_RGHT;
 
+#define UNSET_VARFLAG_LOCK(flags) flags &= ~VARFLAG_LOCK;
+#define UNSET_VARFLAG_LEFT(flags) flags &= ~VARFLAG_LEFT;
+#define UNSET_VARFLAG_RGHT(flags) flags &= ~VARFLAG_RGHT;
+
 /* TODO: change name "Variable" */
 typedef struct Variable {
 	struct Pnode* pnode;
 	struct Variable* next;
 	VarFlags flags;
-	unsigned short int locked;
 } Variable;
 
 typedef struct VTree {
@@ -111,7 +114,7 @@ typedef struct VTree {
 	struct VTree* left;
 	struct VTree* right;
 	struct VTree* parent;
-	unsigned short int locked;
+	VarFlags flags;
 } VTree;
 
 typedef struct Equalities {
