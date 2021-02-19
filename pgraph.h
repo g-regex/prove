@@ -83,10 +83,26 @@ GFlags gflags;  /* accessed by verify.c and proveparser.c */
 #define UNSET_GFLAG_VRFD gflags &= ~GFLAG_VRFD;
 #define UNSET_GFLAG_PSTP gflags &= ~GFLAG_PSTP;
 
+typedef enum {
+	VARFLAG_NONE = 0,
+	VARFLAG_LOCK = 1,
+	VARFLAG_LEFT = 2,
+	VARFLAG_RGHT = 4,
+} VarFlags;
+
+#define HAS_VARFLAG_LOCK(flags) (flags & VARFLAG_LOCK)
+#define HAS_VARFLAG_LEFT(flags) (flags & VARFLAG_LEFT)
+#define HAS_VARFLAG_RGHT(flags) (flags & VARFLAG_RGHT)
+
+#define SET_VARFLAG_LOCK(flags) flags |= VARFLAG_LOCK;
+#define SET_VARFLAG_LEFT(flags) flags |= VARFLAG_LEFT;
+#define SET_VARFLAG_RGHT(flags) flags |= VARFLAG_RGHT;
+
 /* TODO: change name "Variable" */
 typedef struct Variable {
 	struct Pnode* pnode;
 	struct Variable* next;
+	VarFlags flags;
 	unsigned short int locked;
 } Variable;
 
@@ -94,6 +110,7 @@ typedef struct VTree {
 	struct Pnode* pnode;
 	struct VTree* left;
 	struct VTree* right;
+	struct VTree* parent;
 	unsigned short int locked;
 } VTree;
 
@@ -155,6 +172,8 @@ void move_and_sum_up(Pnode** pnode);
 
 /* memory deallocation */
 void free_graph(Pnode* pnode);
+
+unsigned short int next_var(VTree* vtree);
 
 int get_node_count();
 

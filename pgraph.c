@@ -370,14 +370,18 @@ void move_and_sum_up(Pnode** pnode)
 
 		if (HAS_NFLAG_NEWC((*pnode))) {
 			vtree = (VTree*) malloc(sizeof(VTree));
+			vtree->parent = NULL;
 			vtree->pnode = *((*pnode)->child);
 			vtree->right = oldvtree;
+			oldvtree->parent = vtree;
 			vtree->locked = FALSE;
 			oldvtree = vtree;
 		} else if ((*pnode)->vtree != NULL){
 			vtree = (VTree*) malloc(sizeof(VTree));
+			vtree->parent = NULL;
 			vtree->left = (*pnode)->vtree;
 			vtree->right = oldvtree;
+			oldvtree->parent = vtree;
 			vtree->locked = FALSE;
 			oldvtree = vtree;
 		}
@@ -394,6 +398,10 @@ void move_and_sum_up(Pnode** pnode)
 			fprintf(stderr, "\\");
 		)
 	}
+}
+
+unsigned short int next_var(VTree* vtree)
+{
 }
 
 /* set the symbol field of a node (i.e. when encountering an identifier or
