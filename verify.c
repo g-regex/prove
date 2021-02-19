@@ -388,6 +388,7 @@ unsigned short int ve_recursion(Pnode* pexstart,
 	return success;
 }
 
+#if 0
 Variable* collect_forward_vars(Pnode* pcollector)
 {
 	Variable* var;
@@ -409,6 +410,31 @@ Variable* collect_forward_vars(Pnode* pcollector)
 	}
 
 	return var;
+}
+#endif
+
+VTree* collect_forward_vars(Pnode* pcollector)
+{
+	VTree* vtree;
+	VTree* newvtree;
+
+	vtree = NULL;
+
+	/* TODO: think about how to handle _variables_ during forward substitution*/
+	while (pcollector->num != -1) {
+		if (HAS_NFLAG_NEWC(pcollector)) {
+			//DBG_VERIFY(fprintf(stderr, SHELL_RED "." SHELL_RESET1);)	
+			newvtree = (VTree*) malloc(sizeof(VTree));
+			newvtree->pnode = *(pcollector->child);
+			newvtree->right = vtree;
+			newvtree->left = NULL;
+			newvtree->flags = VARFLAG_NONE;
+			vtree = newvtree;
+		}
+		pcollector = *(pcollector->right);
+	}
+
+	return vtree;
 }
 
 void free_forward_vars(Variable* var)
@@ -494,7 +520,7 @@ unsigned short int sub_var(SUB* s)
 {
 	/* ATTENTION: This approach to substitution relies on the fact that we only
 	 * move rightwards and downwards, while the substitution is in place. */
-	if ((*(s->known_const->child))->symbol != NULL) {
+	/*if ((*(s->known_const->child))->symbol != NULL) {
 		*(s->var->pnode->symbol) = *((*(s->known_const->child))->symbol);
 	} else {
 		*(s->var->pnode->symbol) = NULL;
@@ -510,9 +536,9 @@ unsigned short int sub_var(SUB* s)
 		*(s->var->pnode->right) = *((*(s->known_const->child))->right);
 	} else {
 		*(s->var->pnode->right) = NULL;
-	}
+	}*/
 
-	/*if ((*(s->known_const->child))->symbol != NULL) {
+	if ((*(s->known_const->child))->symbol != NULL) {
 		*(s->vtree->pnode->symbol) = *((*(s->known_const->child))->symbol);
 	} else {
 		*(s->vtree->pnode->symbol) = NULL;
@@ -528,7 +554,7 @@ unsigned short int sub_var(SUB* s)
 		*(s->vtree->pnode->right) = *((*(s->known_const->child))->right);
 	} else {
 		*(s->vtree->pnode->right) = NULL;
-	}*/
+	}
 }
 
 /* substitutes variable(s) by the next known constant/sub-tree */
@@ -569,12 +595,14 @@ void init_sub(Pnode* perspective, Variable* var, VTree* vtree, VFlags* vflags,
 	prev = *subd;
 
 	/* only substitute, if there is anything to substitute in */
-	if (/*vtree != NULL DEBUG &&*/ (!fwd && perspective->prev_const != NULL) 
+	if (vtree != NULL && vtree->pnode != NULL /*DEBUG*/ && (!fwd && perspective->prev_const != NULL) 
 			|| (fwd && perspective->prev_id != NULL)) {
 
 		do {
-			if (!HAS_VARFLAG_LOCK(var->flags)) {
-				SET_VARFLAG_LOCK(var->flags)
+			//if (!HAS_VARFLAG_LOCK(var->flags)) {
+			if (!HAS_VARFLAG_LOCK(vtree->flags) && vtree->pnode != NULL) {
+				//SET_VARFLAG_LOCK(var->flags)
+				SET_VARFLAG_LOCK(vtree->flags)
 
 				*subd = (SUB*) malloc(sizeof(SUB));
 				(*subd)->prev = prev;
@@ -582,17 +610,17 @@ void init_sub(Pnode* perspective, Variable* var, VTree* vtree, VFlags* vflags,
 
 				init_known_const(perspective, *subd, fwd);
 
-				(*subd)->sym = *(var->pnode->symbol);
-				//(*subd)->sym = *(vtree->pnode->symbol);
-				(*subd)->var = var;
+				//(*subd)->sym = *(var->pnode->symbol);
+				(*subd)->sym = *(vtree->pnode->symbol);
+				//(*subd)->var = var;
 				(*subd)->vtree = vtree;
 
 				sub_var(*subd);
 			}
-			var = var->next;
+			//var = var->next;
 			vtree = next_var(vtree);
-		} while (var != NULL);
-		//} while (vtree != NULL);
+		//} while (var != NULL);
+		} while (vtree != NULL);
 
 		/* reverse list */
 		prev = NULL;
@@ -624,11 +652,16 @@ void finish_sub(VFlags* vflags, SUB** subd)
 	do {
 		prev_sub = (*subd)->prev;
 
-		*((*subd)->var->pnode->symbol) = (*subd)->sym;
-		*((*subd)->var->pnode->child) = NULL;
-		*((*subd)->var->pnode->right) = NULL;
+		//*((*subd)->var->pnode->symbol) = (*subd)->sym;
+		//*((*subd)->var->pnode->child) = NULL;
+		//*((*subd)->var->pnode->right) = NULL;
 
-		UNSET_VARFLAG_LOCK(((*subd)->var->flags))
+		*((*subd)->vtree->pnode->symbol) = (*subd)->sym;
+		*((*subd)->vtree->pnode->child) = NULL;
+		*((*subd)->vtree->pnode->right) = NULL;
+
+		//UNSET_VARFLAG_LOCK(((*subd)->var->flags))
+		UNSET_VARFLAG_LOCK(((*subd)->vtree->flags))
 
 		free(*subd);
 		*subd = prev_sub;

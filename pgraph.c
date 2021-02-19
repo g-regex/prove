@@ -374,6 +374,7 @@ void move_and_sum_up(Pnode** pnode)
 			vtree->parent = NULL;
 			vtree->pnode = *((*pnode)->child);
 			vtree->right = oldvtree;
+			vtree->left = NULL;
 			if (oldvtree != NULL) {
 				oldvtree->parent = vtree;
 				SET_VARFLAG_RGHT(oldvtree->flags)
@@ -383,6 +384,7 @@ void move_and_sum_up(Pnode** pnode)
 		} else if ((*pnode)->vtree != NULL){
 			vtree = (VTree*) malloc(sizeof(VTree));
 			vtree->parent = NULL;
+			vtree->pnode = NULL;
 			vtree->left = (*pnode)->vtree;
 			SET_VARFLAG_LEFT((*pnode)->vtree->flags)
 			vtree->right = oldvtree;
@@ -399,6 +401,7 @@ void move_and_sum_up(Pnode** pnode)
 	if ((*pnode)->parent != NULL) {
 		*pnode = (*pnode)->parent;
 		(*pnode)->var = var;
+		(*pnode)->vtree = vtree;
 		DBG_GRAPH(
 			fprintf(stderr, "/%d:", (*pnode)->num);
 			for (;var != NULL; var = var->next)
@@ -431,21 +434,34 @@ VTree* init_vtree(VTree* vtree)
 
 VTree* next_var(VTree* vtree)
 {
-	if (vtree == NULL) {
+	if (vtree == NULL || vtree->parent == NULL) {
 		return NULL;
 	}
 
-	while (HAS_VARFLAG_LEFT(vtree->flags)) {
+	if (HAS_VARFLAG_LEFT(vtree->flags)) {
+		VTREE_MOVE_UP
+		return vtree;
+	} else {
+		VTREE_MOVE_UP
+		if (vtree->left != NULL) {
+			vtree = vtree->left;
+			while (vtree->right != NULL) {
+				vtree = vtree->right;
+			}
+		}
+	}
+
+	return vtree;
+
+	/*while (HAS_VARFLAG_LEFT(vtree->flags)) {
 		VTREE_MOVE_UP
 	} 
 
-	/* return FALSE, when root is reached */
+	// return FALSE, when root is reached
 	if (!HAS_VARFLAG_LEFT(vtree->flags) && !HAS_VARFLAG_RGHT(vtree->flags)) {
 		return NULL;
 	}
 
-	/* there will always be at least one left branch at the root so no infinite
-	 * loop should arise */
 	do {
 		VTREE_MOVE_UP
 	} while (vtree->left == NULL);
@@ -457,7 +473,7 @@ VTree* next_var(VTree* vtree)
 	while (vtree->left != NULL) {
 		vtree = vtree->left;
 	}
-	return vtree;
+	return vtree;*/
 }
 
 /* set the symbol field of a node (i.e. when encountering an identifier or
@@ -522,7 +538,10 @@ void print_flags(Pnode* pnode) {
 			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR7 TIKZ_FLAG_B(pnode->num, 6));
 		}
 	}
-	if (pnode->var != NULL) {
+	/*if (pnode->var != NULL) {
+		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR9 TIKZ_FLAG_B(pnode->num, 8));
+	}*/
+	if (pnode->vtree != NULL) {
 		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR9 TIKZ_FLAG_B(pnode->num, 8));
 	}
 }
