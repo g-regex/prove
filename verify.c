@@ -813,7 +813,7 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 			}
 
 			if ((HAS_NFLAG_FRST((*pexplorer))
-						/*|| HAS_VFLAG_FRST(*vflags)*/)) {
+						|| HAS_VFLAG_FRST(*vflags))) {
 				if (justfailed) {
 					/* pop through branch checkpoints until node is not part
 					 * of an assumption TODO: add a nice example here */
