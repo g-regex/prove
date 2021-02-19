@@ -754,7 +754,9 @@ unsigned short int branch_proceed(Pnode** pexplorer, Eqwrapper** eqwrapper,
 #define BRANCH_PROCEED \
 	if (!branch_proceed(pexplorer, eqwrapper, checkpoint, vflags)) {\
 		return FALSE;\
-	} else if (!HAS_SYMBOL((*pexplorer))) {\
+	} else if (!HAS_SYMBOL((*pexplorer)) &&\
+			!(HAS_NFLAG_FRST((*pexplorer))\
+						|| HAS_VFLAG_FRST(*vflags))) {\
 		return TRUE;\
 	} else {\
 		PROCEED\
@@ -783,6 +785,13 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 	do {
 		proceed = FALSE;
 
+		DBG_TMP(
+				if ((*pexplorer)->num >= 252 && (*pexplorer)->num < 260) {
+					fprintf(stderr, SHELL_BROWN "(%d)" SHELL_RESET1,
+							(*pexplorer)->num);
+				}
+			   )
+
 		/* skip formulators */
 		if (HAS_SYMBOL((*pexplorer))) {
 			if (HAS_NFLAG_IMPL((*pexplorer))) {
@@ -803,6 +812,14 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 		}
 
 		if (HAS_NFLAG_IMPL((*pexplorer))) {
+			DBG_TMP(
+					if ((*pexplorer)->num >= 252 && (*pexplorer)->num < 260) {
+					//if ((*pexplorer)->num == 259) {
+						fprintf(stderr, SHELL_MAGENTA "(%d)" SHELL_RESET1,
+								(*pexplorer)->num);
+					}
+				   )
+
 			/* if processing an assumption, verify it */
 			justfailed = FALSE;
 			/* don't check assumptions, when branching through claimed
@@ -824,9 +841,24 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 					 * node at a lower level */
 					BRANCH_PROCEED
 				} else {
+
+			DBG_TMP(
+					if ((*pexplorer)->num >= 252 && (*pexplorer)->num < 260) {
+						fprintf(stderr, SHELL_CYAN "(%d)" SHELL_RESET1,
+								(*pexplorer)->num);
+					}
+				   )
 					PROCEED
 				}
 			} else {
+				
+			DBG_TMP(
+					if ((*pexplorer)->num >= 252 && (*pexplorer)->num < 260) {
+						fprintf(stderr, SHELL_RED "(%d)" SHELL_RESET1,
+								(*pexplorer)->num);
+					}
+				   )
+
 				if (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {
 					PROCEED
 				} else {

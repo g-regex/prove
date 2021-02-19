@@ -31,6 +31,8 @@
 #define TRUE 1
 #define FALSE 0
 
+#define NOVERINUM 0
+
 char* toktype[] = {"TOK_EOF", "TOK_LBRACK", "TOK_RBRACK", "TOK_IMPLY",
 					"TOK_EQ", /*"TOK_NOT",*/ "TOK_SYM"};
 
@@ -95,6 +97,8 @@ int main(int argc, char *argv[])
 				SET_DBG_VERIFY
 				SET_DBG_EPATH
 				SET_DBG_EFAIL
+			} else if (strcmp(argv[i], "--dtmp") == 0) {
+				SET_DBG_TMP
 			} else if (strcmp(argv[i], "--dtikz") == 0) {
 #ifndef DTIKZ
 				NOSUPPORT
@@ -462,7 +466,8 @@ void parse_statement(void)
 		if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)
 				&& !HAS_GFLAG_VRFD && !HAS_GFLAG_PSTP) {
 			/* universal verification is triggered here */
-			if (do_veri && !verify_universal(pnode)) {
+			if (pnode->num > NOVERINUM && /* DEBUG!!!! */
+					do_veri && !verify_universal(pnode)) {
 				fprintf(stderr,
 						SHELL_RED
 						"verification failed on line %d, column %d"
@@ -494,7 +499,8 @@ void parse_statement(void)
 				/* FIXME: fix known_const for right-most pnode */
 				/* this is a quick work-around: */
 				create_right_dummy(pnode);
-				if (do_veri && !verify_existence(*(pnode->right), pexstart)) {
+				if (pnode->num > NOVERINUM && /* DEBUG!!!! */
+					do_veri && !verify_existence(*(pnode->right), pexstart)) {
 				//if (!verify_existence(pnode, pexstart)) {
 					fprintf(stderr,
 							SHELL_RED

@@ -32,6 +32,7 @@ typedef enum {
 	DBG_EQUAL = 64,
 	DBG_EPATH = 128,
 	DBG_EFAIL = 256,
+	DBG_TMP = 512,
 } DBGops;
 
 DBGops dbgops;
@@ -152,12 +153,23 @@ DBGops dbgops;
 
 #ifdef DEBUG
 #define DBG_NONE_IS_SET (dbgops == DBG_NONE)
+#define DTMP
 #else
 #define DBG_NONE_IS_SET 1
 /*#define DBG_COMPLETE_IS_SET 0
 #define DBG_FINISH_IS_SET 0
 #define SET_DBG_COMPLETE 
 #define SET_DBG_FINISH*/
+#endif
+
+#ifdef DTMP
+#define DBG_TMP_IS_SET (dbgops & DBG_TMP)
+#define SET_DBG_TMP dbgops |= DBG_TMP;
+#define DBG_TMP(cmd) \
+	if (DBG_TMP_IS_SET) { cmd }
+#else
+#define DBG_TMP(cmd)
+#define SET_DBG_TMP
 #endif
 
 #define DBG_COMPLETE_IS_SET (dbgops & DBG_COMPLETE)
