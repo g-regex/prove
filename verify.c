@@ -49,8 +49,8 @@ void bc_push(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 void bc_pop(Pnode** pnode, Eqwrapper** eqwrapper, BC** checkpoint,
 		VFlags* vflags);
 void print_sub(SUB** subd);
-void init_sub(Pnode* perspective, Variable* var, VFlags* vflags, SUB** subd,
-		unsigned short int fwd);
+void init_sub(Pnode* perspective, Variable* var, VTree* vtree, VFlags* vflags,
+		SUB** subd, unsigned short int fwd);
 unsigned short int next_known_const(Pnode* perspective, SUB* s,
 		unsigned short int fwd);
 void finish_sub(VFlags* vflags, SUB** subd);
@@ -450,9 +450,10 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 		DBG_VERIFY(fprintf(stderr, SHELL_BROWN "<not verified; "
 					"trying forward substitution>");)	
 
-		fw_vars = collect_forward_vars(pexstart);
+		//fw_vars = collect_forward_vars(pexstart);
+		fw_vars = NULL;
 		if (fw_vars != NULL) {
-			init_sub(pn, fw_vars, &vflags, subd, TRUE);
+			init_sub(pn, fw_vars, NULL, &vflags, subd, TRUE);
 			while (next_known_const(pn, *subd, TRUE)) {
 				print_sub(subd);
 				if (ve_recursion(pexstart, pn, pexplorer, &eqwrapper, checkpoint,
@@ -510,6 +511,24 @@ unsigned short int sub_var(SUB* s)
 	} else {
 		*(s->var->pnode->right) = NULL;
 	}
+
+	/*if ((*(s->known_const->child))->symbol != NULL) {
+		*(s->vtree->pnode->symbol) = *((*(s->known_const->child))->symbol);
+	} else {
+		*(s->vtree->pnode->symbol) = NULL;
+	}
+
+	if ((*(s->known_const->child))->child != NULL) {
+		*(s->vtree->pnode->child) = *((*(s->known_const->child))->child);
+	} else {
+		*(s->vtree->pnode->child) = NULL;
+	}
+
+	if ((*(s->known_const->child))->right != NULL) {
+		*(s->vtree->pnode->right) = *((*(s->known_const->child))->right);
+	} else {
+		*(s->vtree->pnode->right) = NULL;
+	}*/
 }
 
 /* substitutes variable(s) by the next known constant/sub-tree */
@@ -540,16 +559,17 @@ unsigned short int next_known_const(Pnode* perspective, SUB* s,
 }
 
 /* initialise substitution */
-void init_sub(Pnode* perspective, Variable* var, VFlags* vflags, SUB** subd,
-		unsigned short int fwd)
+void init_sub(Pnode* perspective, Variable* var, VTree* vtree, VFlags* vflags,
+		SUB** subd, unsigned short int fwd)
 {
 	SUB* prev;
 	SUB* next;
 
+	vtree = init_vtree(vtree);
 	prev = *subd;
 
 	/* only substitute, if there is anything to substitute in */
-	if ((!fwd && perspective->prev_const != NULL) 
+	if (/*vtree != NULL DEBUG &&*/ (!fwd && perspective->prev_const != NULL) 
 			|| (fwd && perspective->prev_id != NULL)) {
 
 		do {
@@ -563,12 +583,16 @@ void init_sub(Pnode* perspective, Variable* var, VFlags* vflags, SUB** subd,
 				init_known_const(perspective, *subd, fwd);
 
 				(*subd)->sym = *(var->pnode->symbol);
+				//(*subd)->sym = *(vtree->pnode->symbol);
 				(*subd)->var = var;
+				(*subd)->vtree = vtree;
 
 				sub_var(*subd);
 			}
 			var = var->next;
+			vtree = next_var(vtree);
 		} while (var != NULL);
+		//} while (vtree != NULL);
 
 		/* reverse list */
 		prev = NULL;
@@ -785,12 +809,12 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 	do {
 		proceed = FALSE;
 
-		DBG_TMP(
+		/*DBG_TMP(
 				if ((*pexplorer)->num >= 252 && (*pexplorer)->num < 260) {
 					fprintf(stderr, SHELL_BROWN "(%d)" SHELL_RESET1,
 							(*pexplorer)->num);
 				}
-			   )
+			   )*/
 
 		/* skip formulators */
 		if (HAS_SYMBOL((*pexplorer))) {
@@ -812,13 +836,13 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 		}
 
 		if (HAS_NFLAG_IMPL((*pexplorer))) {
-			DBG_TMP(
+			/*DBG_TMP(
 					if ((*pexplorer)->num >= 252 && (*pexplorer)->num < 260) {
 					//if ((*pexplorer)->num == 259) {
 						fprintf(stderr, SHELL_MAGENTA "(%d)" SHELL_RESET1,
 								(*pexplorer)->num);
 					}
-				   )
+				   )*/
 
 			/* if processing an assumption, verify it */
 			justfailed = FALSE;
@@ -842,22 +866,22 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 					BRANCH_PROCEED
 				} else {
 
-			DBG_TMP(
+			/*DBG_TMP(
 					if ((*pexplorer)->num >= 252 && (*pexplorer)->num < 260) {
 						fprintf(stderr, SHELL_CYAN "(%d)" SHELL_RESET1,
 								(*pexplorer)->num);
 					}
-				   )
+				   )*/
 					PROCEED
 				}
 			} else {
 				
-			DBG_TMP(
+			/*DBG_TMP(
 					if ((*pexplorer)->num >= 252 && (*pexplorer)->num < 260) {
 						fprintf(stderr, SHELL_RED "(%d)" SHELL_RESET1,
 								(*pexplorer)->num);
 					}
-				   )
+				   )*/
 
 				if (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {
 					PROCEED
@@ -1032,7 +1056,8 @@ unsigned short int next_reachable_const(Pnode* veri_perspec, Pnode* sub_perspec,
 			continue;
 		} else {
 			if ((*pexplorer)->var != NULL) {
-				init_sub(sub_perspec, (*pexplorer)->var, vflags, subd, FALSE);
+				init_sub(sub_perspec, (*pexplorer)->var, (*pexplorer)->vtree,
+						vflags, subd, FALSE);
 			}
 			return attempt_explore(veri_perspec, sub_perspec, pexplorer,
 					eqwrapper, checkpoint, vflags, subd);

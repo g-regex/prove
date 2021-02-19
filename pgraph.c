@@ -376,6 +376,7 @@ void move_and_sum_up(Pnode** pnode)
 			vtree->right = oldvtree;
 			if (oldvtree != NULL) {
 				oldvtree->parent = vtree;
+				SET_VARFLAG_RGHT(oldvtree->flags)
 			}
 			vtree->flags = VARFLAG_NONE;
 			oldvtree = vtree;
@@ -383,9 +384,11 @@ void move_and_sum_up(Pnode** pnode)
 			vtree = (VTree*) malloc(sizeof(VTree));
 			vtree->parent = NULL;
 			vtree->left = (*pnode)->vtree;
+			SET_VARFLAG_LEFT((*pnode)->vtree->flags)
 			vtree->right = oldvtree;
 			if (oldvtree != NULL) {
 				oldvtree->parent = vtree;
+				SET_VARFLAG_RGHT(oldvtree->flags)
 			}
 			vtree->flags = VARFLAG_NONE;
 			oldvtree = vtree;
@@ -405,8 +408,56 @@ void move_and_sum_up(Pnode** pnode)
 	}
 }
 
-unsigned short int next_var(VTree* vtree)
+#define VTREE_MOVE_UP \
+	if (vtree->parent != NULL) {\
+		vtree = vtree->parent;\
+	}
+#define VTREE_MOVE_LEFT \
+	if (vtree->left != NULL) {\
+		vtree = vtree->left;\
+	}
+
+VTree* init_vtree(VTree* vtree)
 {
+	if (vtree == NULL) {
+		return NULL;
+	}
+
+	while (vtree->right != NULL) {
+		vtree = vtree->right;
+	}
+	return vtree;
+}
+
+VTree* next_var(VTree* vtree)
+{
+	if (vtree == NULL) {
+		return NULL;
+	}
+
+	while (HAS_VARFLAG_LEFT(vtree->flags)) {
+		VTREE_MOVE_UP
+	} 
+
+	/* return FALSE, when root is reached */
+	if (!HAS_VARFLAG_LEFT(vtree->flags) && !HAS_VARFLAG_RGHT(vtree->flags)) {
+		return NULL;
+	}
+
+	/* there will always be at least one left branch at the root so no infinite
+	 * loop should arise */
+	do {
+		VTREE_MOVE_UP
+	} while (vtree->left == NULL);
+	VTREE_MOVE_LEFT
+	
+	while (vtree->right != NULL) {
+		vtree = vtree->right;
+	}
+	while (vtree->left != NULL) {
+		vtree = vtree->left;
+	}
+	return vtree;
 }
 
 /* set the symbol field of a node (i.e. when encountering an identifier or

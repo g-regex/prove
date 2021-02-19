@@ -176,7 +176,8 @@ void move_and_sum_up(Pnode** pnode);
 /* memory deallocation */
 void free_graph(Pnode* pnode);
 
-unsigned short int next_var(VTree* vtree);
+VTree* init_vtree(VTree* vtree);
+VTree* next_var(VTree* vtree);
 
 int get_node_count();
 

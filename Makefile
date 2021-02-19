@@ -62,11 +62,11 @@ cleandoc:
 clean: cleanbin cleandbg cleantex cleandoc
 
 debug: DFLAGS+=-DDPARSER -DDTIKZ -DDVERIFY -DDGRAPH -DDCOLOUR
-debug: proveparser
+debug: cleanbin proveparser
 
 check: CHECKARGS=--dtikz --dfinish --dverify
 check: debug runchecks
-noveri: CHECKARGS=--dtikz --dfinish --noveri
+noveri: CHECKARGS=--dtikz --dfinish --dcomplete --noveri
 noveri: debug runchecks
 checkcmplt: CHECKARGS=--dparser --dtikz --dcomplete --dfinish
 checkcmplt: debug runchecks
