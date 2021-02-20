@@ -533,20 +533,16 @@ void init_sub(Pnode* perspective, VTree* vtree, VFlags* vflags,
 		SUB** subd, unsigned short int fwd)
 {
 	SUB* prev;
-	SUB* next;
 
 	vtree = init_vtree(vtree);
 	prev = *subd;
 
 	/* only substitute, if there is anything to substitute in */
-	if (/*vtree != NULL && vtree->pnode != NULL*/ /*DEBUG*/ // &&
-			(!fwd && perspective->prev_const != NULL) 
+	if ((!fwd && perspective->prev_const != NULL) 
 				|| (fwd && perspective->prev_id != NULL)) {
 
 		do {
-			//if (!HAS_VARFLAG_LOCK(var->flags)) {
 			if (!HAS_VARFLAG_LOCK(vtree->flags) && vtree->pnode != NULL) {
-				//SET_VARFLAG_LOCK(var->flags)
 				SET_VARFLAG_LOCK(vtree->flags)
 
 				*subd = (SUB*) malloc(sizeof(SUB));
@@ -555,28 +551,14 @@ void init_sub(Pnode* perspective, VTree* vtree, VFlags* vflags,
 
 				init_known_const(perspective, *subd, fwd);
 
-				//(*subd)->sym = *(var->pnode->symbol);
 				(*subd)->sym = *(vtree->pnode->symbol);
 				(*subd)->vtree = vtree;
 
 				sub_var(*subd);
 			}
-			//var = var->next;
 			vtree = next_var(vtree);
-		//} while (var != NULL);
 		} while (vtree != NULL);
 
-		/* reverse list */
-		prev = NULL;
-		if (*subd != NULL) {
-			while ((*subd) != NULL) {
-				next = (*subd)->prev;
-				(*subd)->prev = prev;
-				prev = *subd;
-				*subd = next;
-			}
-			*subd = prev;
-		}
 		SET_VFLAG_SUBD(*vflags)
 	}
 }
