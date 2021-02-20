@@ -601,10 +601,8 @@ void bc_push(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 	bctos = (BC*) malloc(sizeof(BC));
 
 	bctos->pnode = *pexplorer;
-	//bctos->pnode = pexplorer;
 	bctos->wrap = HAS_VFLAG_WRAP(*vflags);
 	bctos->frst = HAS_VFLAG_FRST(*vflags);
-	//bctos->fail = HAS_VFLAG_FAIL(*vflags);
 	bctos->pwrapper = (*eqwrapper)->pwrapper;
 	bctos->pendwrap = (*eqwrapper)->pendwrap;
 	bctos->above = *checkpoint;
@@ -632,12 +630,6 @@ void bc_pop(Pnode** pnode, Eqwrapper** eqwrapper, BC** checkpoint,
 		UNSET_VFLAG_FRST(*vflags)
 	}
 
-	/*if ((*checkpoint)->fail) {
-		SET_VFLAG_FAIL(*vflags)
-	} else {
-		UNSET_VFLAG_FAIL(*vflags)
-	}*/
-
 	(*eqwrapper)->pwrapper = (*checkpoint)->pwrapper;
 	(*eqwrapper)->pendwrap = (*checkpoint)->pendwrap;
 
@@ -650,10 +642,6 @@ void bc_pop(Pnode** pnode, Eqwrapper** eqwrapper, BC** checkpoint,
 unsigned short int explore_branch(Pnode** pexplorer, Eqwrapper** eqwrapper,
 		BC** checkpoint, VFlags* vflags)
 {
-	/* OLD less restricted definition of EXPLORABLE:
-	 * if (HAS_NFLAG_IMPL((*(reachable->child)))
-	 *		|| HAS_NFLAG_EQTY((*(reachable->child)))) {
-	 */
 	if (EXPLORABLE) {
 		if (HAS_NFLAG_FRST((*pexplorer))) {
 			bc_push(pexplorer, eqwrapper, checkpoint, vflags);
@@ -663,7 +651,6 @@ unsigned short int explore_branch(Pnode** pexplorer, Eqwrapper** eqwrapper,
 			bc_push(pexplorer, eqwrapper, checkpoint, vflags);
 			*pexplorer = *((*pexplorer)->child);
 		}
-		//UNSET_VFLAG_FAIL(*vflags)
 		UNSET_VFLAG_WRAP(*vflags)
 		return TRUE;
 	} else {
@@ -713,11 +700,8 @@ unsigned short int attempt_explore(Pnode* veri_perspec, Pnode* sub_perspec,
 unsigned short int branch_proceed(Pnode** pexplorer, Eqwrapper** eqwrapper,
 		BC** checkpoint, VFlags* vflags)
 {
-	/* FIXME: check, whether GFLAG_FRST is set properly */
 	while (!wrap_right(pexplorer, eqwrapper, vflags)) {
-		//DBG_EPATH(fprintf(stderr, SHELL_BROWN ">" SHELL_RESET1);)
 		POP
-		//DBG_EPATH(fprintf(stderr, SHELL_CYAN ">" SHELL_RESET1);)
 		if (wrap_right(pexplorer, eqwrapper, vflags)) {
 			break;
 		}
@@ -745,7 +729,7 @@ unsigned short int branch_proceed(Pnode** pexplorer, Eqwrapper** eqwrapper,
 		POP\
 	} while (HAS_NFLAG_IMPL((*pexplorer))\
 				&& HAS_NFLAG_FRST((*pexplorer)));\
-	BRANCH_PROCEED\
+	BRANCH_PROCEED
 
 #define SKIP_FORMULATORS \
 	do {\
@@ -766,7 +750,6 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 		/* skip formulators */
 		if (HAS_SYMBOL((*pexplorer))) {
 			if (HAS_NFLAG_IMPL((*pexplorer))) {
-				//UNSET_VFLAG_FAIL((*vflags))
 				if (HAS_VFLAG_FAIL((*vflags))) {
 					POP_PROCEED
 				} else {
@@ -943,7 +926,6 @@ unsigned short int next_reachable_const(Pnode* veri_perspec, Pnode* sub_perspec,
 			if (next_sub(sub_perspec, *subd, FALSE)) {
 				return attempt_explore(veri_perspec, sub_perspec, pexplorer,
 						eqwrapper, checkpoint, vflags, subd);
-				/* TODO: remove recursion */
 			} else {
 				finish_sub(vflags, subd);
 				proceed = TRUE;
@@ -970,7 +952,6 @@ unsigned short int next_reachable_const(Pnode* veri_perspec, Pnode* sub_perspec,
 			}
 			return attempt_explore(veri_perspec, sub_perspec, pexplorer,
 					eqwrapper, checkpoint, vflags, subd);
-			/* TODO: remove recursion */
 		}
 	} while (proceed);
 
