@@ -377,6 +377,17 @@ void parse_statement(void)
 			prev_node = pnode->left->left; 
 		}
 
+		/* postpone verification for existence */
+		/* FIXME: put this at a better place */
+		if (pnode->left != NULL && HAS_SYMBOL(pnode->left) && !HAS_GFLAG_VRFD &&
+				HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)
+					&& !HAS_GFLAG_PSTP) {
+			SET_GFLAG_PSTP
+			pexstart = pnode;
+			DBG_VERIFY(fprintf(stderr, SHELL_BOLD "{%d}>"
+						SHELL_RESET2, pnode->num);)
+		}
+
 		/* check whether a new identifier was introduced */
 		if (CONTAINS_ID(pnode)) {
 
@@ -389,9 +400,6 @@ void parse_statement(void)
 						equate(ptmp, pnode);
 						free(*((*(pnode->child))->symbol));
 						free((*(pnode->child))->symbol);
-						/*free((*(pnode->child))->equalto);
-						(*(pnode->child))->equalto =
-							(*(ptmp->child))->equalto;*/
 						(*(pnode->child))->symbol =
 							(*(ptmp->child))->symbol;
 						(*(pnode->child))->child =
@@ -404,37 +412,8 @@ void parse_statement(void)
 				ptmp = ptmp->prev_const;
 			}
 
-			/*init_backtrack(pnode);
-			while (next_reachable_const(pnode)) {
-				if(verify(pnode)) {
-					found = TRUE;
-
-					free(*((*(pnode->child))->symbol));
-					free((*(pnode->child))->symbol);
-
-					(*(pnode->child))->symbol =
-						(*(reachable->child))->symbol;
-					(*(pnode->child))->child =
-						(*(reachable->child))->child;
-					(*(pnode->child))->right =
-						(*(reachable->child))->right;
-
-					finish_verify();
-					break;
-				}
-			}*/
-
 			if (found == FALSE) {
 				DBG_PARSER(fprintf(stderr, SHELL_MAGENTA "*" SHELL_RESET1);)
-
-				/* postpone verification for existence */
-				if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)
-							&& !HAS_GFLAG_PSTP) {
-					SET_GFLAG_PSTP
-					pexstart = pnode;
-					DBG_VERIFY(fprintf(stderr, SHELL_BOLD "{%d}>"
-								SHELL_RESET2, pnode->num);)
-				}
 
 				SET_NFLAG_NEWC(pnode)
 

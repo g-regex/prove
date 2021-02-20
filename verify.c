@@ -393,7 +393,7 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 	*checkpoint = NULL;
 	*subd = NULL;
 	vflags = VFLAG_NONE;
-	
+
 	bc_push(pexplorer, &eqwrapper, checkpoint, &vflags);
 
 	if (ve_recursion(pexstart, pn, pexplorer, &eqwrapper, checkpoint,
@@ -426,7 +426,7 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 	free(checkpoint);
 	free(subd);
 
-	return TRUE;
+	return HAS_GFLAG_VRFD;
 }
 
 /* --- substitution --------------------------------------------------------- */
