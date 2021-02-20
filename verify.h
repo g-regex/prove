@@ -84,7 +84,7 @@ unsigned short int verify(Pnode* pnode, Pnode** pexplorer);
 /* for backtracking */
 unsigned short int next_reachable_const(Pnode* veri_perspec, Pnode* sub_perspec,
 		Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
-		VFlags* vflags, SUB** subd);
+		VFlags* vflags, SUB** subd, unsigned short int exst, int exnum);
 
 mpz_t comp_count;
 #endif
