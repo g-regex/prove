@@ -55,8 +55,6 @@ unsigned short int next_sub(Pnode* perspective, SUB* s,
 		unsigned short int fwd);
 void finish_sub(VFlags* vflags, SUB** subd);
 
-//static Pnode* eqendwrap; /*temporarily holds node at which to stop wrapping*/
-
 /* --- verification specific movement functions ----------------------------- */
 
 /* move right; if already at the right-most node, move to the left-most node */ 
@@ -173,11 +171,6 @@ void print_sub(SUB** subd)
 
 unsigned short int verify_universal(Pnode* pn)
 {
-	/*if (IS_EMPTY(pn) || (HAS_CHILD(pn) && IS_EMPTY((*(pn->child))))) {
-		return HAS_NFLAG_TRUE(pn);
-	}*/
-	//init_backtrack(pn);
-	
 	//TODO: pack these in one struct
 	Eqwrapper* eqwrapper;
 	Pnode** pexplorer;
@@ -279,8 +272,7 @@ unsigned short int ve_recursion(Pnode* pexstart,
 			)
 
 			expl_cp = *p_pexplorer;
-			/* FIXME: fail if this returns FALSE - but first find out, why it
-			 * fails in the first place */
+
 			if (!next_existence(p_perspective, p_pexplorer, p_eqwrapper,
 					p_checkpoint, p_vflags)) {
 
@@ -300,12 +292,6 @@ unsigned short int ve_recursion(Pnode* pexstart,
 			/* if the dummy node has been reached, verification has been
 			 * successful */
 			if ((*p_pexplorer)->num == -1) {
-				//SET_GFLAG_VRFD
-
-				/*DBG_VERIFY(
-						fprintf(stderr, SHELL_GREEN "<dummy>" SHELL_RESET1);
-				)*/
-
 				fprintf(stderr, SHELL_GREEN "<%d:#%d",
 						expl_cp->num, (*pexplorer)->num);
 				print_sub(subd);
@@ -347,9 +333,7 @@ unsigned short int ve_recursion(Pnode* pexstart,
 				(*p_pexplorer)->num, (*pexplorer)->num);
 		print_sub(subd);
 		fprintf(stderr, ">" SHELL_RESET1);
-	} /*else {
-		fprintf(stderr, SHELL_RED "<%d>" SHELL_RESET1, (*p_pexplorer)->num);
-	}*/)
+	})
 
 	finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
 		subd);
@@ -361,31 +345,6 @@ unsigned short int ve_recursion(Pnode* pexstart,
 
 	return success;
 }
-
-#if 0
-Variable* collect_forward_vars(Pnode* pcollector)
-{
-	Variable* var;
-	Variable* newvar;
-
-	var = NULL;
-
-	/* TODO: think about how to handle _variables_ during forward substitution*/
-	while (pcollector->num != -1) {
-		if (HAS_NFLAG_NEWC(pcollector)) {
-			//DBG_VERIFY(fprintf(stderr, SHELL_RED "." SHELL_RESET1);)	
-			newvar = (Variable*) malloc(sizeof(Variable));
-			newvar->pnode = *(pcollector->child);
-			newvar->next = var;
-			newvar->flags = VARFLAG_NONE;
-			var = newvar;
-		}
-		pcollector = *(pcollector->right);
-	}
-
-	return var;
-}
-#endif
 
 VTree* collect_forward_vars(Pnode* pcollector)
 {
@@ -795,12 +754,10 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 				if (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {
 					PROCEED
 				} else {
-					//BRANCH_PROCEED
 					if (!branch_proceed(pexplorer, eqwrapper, checkpoint, vflags)) {
 						return FALSE;
 					} else if (explore_branch(pexplorer, eqwrapper, checkpoint,
 								vflags)) {
-						//return TRUE;
 						PROCEED
 					} else if (!HAS_SYMBOL((*pexplorer))) {\
 						return TRUE;\
