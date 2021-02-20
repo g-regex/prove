@@ -67,6 +67,7 @@ typedef struct branch_checkpoint { /* stack for jumping back to parent levels */
 typedef struct substitution_status {
 	Pnode* known_const;	/* currently used constant sub-tree for substitution  */
 	char* sym;			/* symbol of substituted variable */
+	int num;			/* node number of substituted variable */
 	VTree* vtree;		/* substituted variable */
 	struct substitution_status* prev;
 	struct substitution_status* next;

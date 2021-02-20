@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
 
 	fclose(file);
 
-	printf(SHELL_CYAN "Nodes in tree: %d\nSubtrees compared: ",
+	printf(SHELL_CYAN "Nodes in tree:\t%d\nNodes compared:\t",
 			get_node_count());
 	mpz_out_str(stdout, 10, comp_count);
 	mpz_clear(comp_count);

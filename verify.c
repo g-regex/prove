@@ -236,7 +236,7 @@ unsigned short int verify_universal(Pnode* pn)
 unsigned short int ve_recursion(Pnode* pexstart,
 		/* parent: */
 		Pnode* p_perspective, Pnode** p_pexplorer, Eqwrapper** p_eqwrapper,
-		BC** p_checkpoint, VFlags* p_vflags, unsigned short int dbg)
+		BC** p_checkpoint, VFlags* p_vflags, unsigned short int dbg, int exnum)
 {
 	unsigned short int success;
 	Pnode* expl_cp; /* checkpoint for parent explorer */
@@ -265,7 +265,7 @@ unsigned short int ve_recursion(Pnode* pexstart,
 
 	while (next_reachable_const(*p_pexplorer /*perspective*/, perspective,
 		pexplorer, &eqwrapper, checkpoint, &vflags, subd, TRUE,
-		pexstart->num)) {
+		exnum)) {
 		if (verify(*p_pexplorer, pexplorer)) {	
 
 			DBG_EPATH(
@@ -296,10 +296,10 @@ unsigned short int ve_recursion(Pnode* pexstart,
 			/* if the dummy node has been reached, verification has been
 			 * successful */
 			if ((*p_pexplorer)->num == -1) {
-				fprintf(stderr, SHELL_GREEN "<%d:#%d",
+				DBG_VERIFY(fprintf(stderr, SHELL_GREEN "<%d:#%d",
 						expl_cp->num, (*pexplorer)->num);
 				print_sub(subd);
-				fprintf(stderr, ">" SHELL_RESET1);
+				fprintf(stderr, ">" SHELL_RESET1);)
 
 				finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
 									subd);
@@ -314,7 +314,7 @@ unsigned short int ve_recursion(Pnode* pexstart,
 
 			if (ve_recursion(pexstart, p_perspective,
 					p_pexplorer, p_eqwrapper, p_checkpoint, p_vflags,
-					FALSE)) {
+					FALSE, exnum)) {
 				success = TRUE;
 				*p_pexplorer = expl_cp;
 				break;
@@ -376,6 +376,8 @@ VTree* collect_forward_vars(Pnode* pcollector)
 
 unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 {
+	int exnum;
+
 	//TODO: pack these in one struct
 	Eqwrapper* eqwrapper;
 	Pnode** pexplorer;
@@ -393,11 +395,12 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 	*checkpoint = NULL;
 	*subd = NULL;
 	vflags = VFLAG_NONE;
+	exnum = pexstart->num;
 
 	bc_push(pexplorer, &eqwrapper, checkpoint, &vflags);
 
 	if (ve_recursion(pexstart, pn, pexplorer, &eqwrapper, checkpoint,
-			&vflags, TRUE)) {
+			&vflags, TRUE, exnum)) {
 		SET_GFLAG_VRFD
 	} else {
 		DBG_VERIFY(fprintf(stderr, SHELL_BROWN "<not verified; "
@@ -407,9 +410,9 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 		if (fw_vtree != NULL) {
 			init_sub(pn, fw_vtree, &vflags, subd, TRUE);
 			while (next_sub(pn, *subd, TRUE, FALSE, 0)) {
-				print_sub(subd);
+				DBG_VERIFY(print_sub(subd);)
 				if (ve_recursion(pexstart, pn, pexplorer, &eqwrapper, checkpoint,
-						&vflags, TRUE)) {
+						&vflags, TRUE, exnum)) {
 					SET_GFLAG_VRFD
 					break;
 				}
@@ -462,6 +465,8 @@ unsigned short int sub_var(SUB* s)
 	} else {
 		*(s->vtree->pnode->right) = NULL;
 	}
+
+	s->vtree->pnode->parent->num = s->known_const->num;
 }
 
 /* substitutes variable(s) by the next known constant/sub-tree */
@@ -521,6 +526,7 @@ void init_sub(Pnode* perspective, VTree* vtree, VFlags* vflags,
 				init_known_const(perspective, *subd, fwd);
 
 				(*subd)->sym = *(vtree->pnode->symbol);
+				(*subd)->num = vtree->pnode->parent->num;
 				(*subd)->vtree = vtree;
 
 				sub_var(*subd);
@@ -548,6 +554,7 @@ void finish_sub(VFlags* vflags, SUB** subd)
 		prev_sub = (*subd)->prev;
 
 		*((*subd)->vtree->pnode->symbol) = (*subd)->sym;
+		(*subd)->vtree->pnode->parent->num = (*subd)->num;
 		*((*subd)->vtree->pnode->child) = NULL;
 		*((*subd)->vtree->pnode->right) = NULL;
 
