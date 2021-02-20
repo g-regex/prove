@@ -51,7 +51,7 @@ void bc_pop(Pnode** pnode, Eqwrapper** eqwrapper, BC** checkpoint,
 void print_sub(SUB** subd);
 void init_sub(Pnode* perspective, VTree* vtree, VFlags* vflags,
 		SUB** subd, unsigned short int fwd);
-unsigned short int next_known_const(Pnode* perspective, SUB* s,
+unsigned short int next_sub(Pnode* perspective, SUB* s,
 		unsigned short int fwd);
 void finish_sub(VFlags* vflags, SUB** subd);
 
@@ -443,7 +443,7 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 		fw_vtree = collect_forward_vars(pexstart);
 		if (fw_vtree != NULL) {
 			init_sub(pn, fw_vtree, &vflags, subd, TRUE);
-			while (next_known_const(pn, *subd, TRUE)) {
+			while (next_sub(pn, *subd, TRUE)) {
 				print_sub(subd);
 				if (ve_recursion(pexstart, pn, pexplorer, &eqwrapper, checkpoint,
 						&vflags, TRUE)) {
@@ -502,7 +502,7 @@ unsigned short int sub_var(SUB* s)
 }
 
 /* substitutes variable(s) by the next known constant/sub-tree */
-unsigned short int next_known_const(Pnode* perspective, SUB* s,
+unsigned short int next_sub(Pnode* perspective, SUB* s,
 		unsigned short int fwd)
 {
 	SUB* s_iter;
@@ -958,7 +958,7 @@ unsigned short int next_reachable_const(Pnode* veri_perspec, Pnode* sub_perspec,
 		/* substitution */
 		if (HAS_VFLAG_SUBD(*vflags)) {
 
-			if (next_known_const(sub_perspec, *subd, FALSE)) {
+			if (next_sub(sub_perspec, *subd, FALSE)) {
 				return attempt_explore(veri_perspec, sub_perspec, pexplorer,
 						eqwrapper, checkpoint, vflags, subd);
 				/* TODO: remove recursion */
