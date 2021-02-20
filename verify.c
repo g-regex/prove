@@ -116,17 +116,11 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 			 *
 			 * Instead of:*/
 
-			 /*if (are_equal(p1->parent, p2->parent)) {
-				return TRUE;
-			  } else if (are_equal(p2, p1)) { FIXME: SCOPING
-				return TRUE;
-			 } else */if (*(p1->symbol) != *(p2->symbol)) {
+			 if (*(p1->symbol) != *(p2->symbol)) {
 				return (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
 			 } else {
 				return TRUE;
 			 }
-			/******************************************************************/
-			/* equal = (*(p1->symbol) == *(p2->symbol)); */
 		} else {
 			return FALSE;
 		}
@@ -1028,23 +1022,6 @@ void finish_verify(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 		finish_sub(vflags, subd);
 	}
 }
-
-#define ATTEMPT_EXPLORE \
-	if (EXPLORABLE) {\
-		bc_push(pexplorer, eqwrapper, checkpoint, vflags);\
-		*pexplorer = *((*pexplorer)->child);\
-		SET_VFLAG_BRCH(*vflags)\
-		UNSET_VFLAG_FAIL(*vflags)\
-		if (!next_in_branch(veri_perspec, pexplorer, eqwrapper, checkpoint,\
-					vflags)) {\
-			exit_branch(pexplorer, eqwrapper, checkpoint, vflags);\
-			return next_reachable_const(veri_perspec, sub_perspec,\
-					pexplorer, eqwrapper, checkpoint, vflags, subd);\
-		}\
-	} else {\
-		UNSET_VFLAG_BRCH(*vflags)\
-	}\
-	return TRUE;\
 
 unsigned short int next_reachable_const(Pnode* veri_perspec, Pnode* sub_perspec,
 		Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
