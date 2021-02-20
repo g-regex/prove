@@ -27,7 +27,7 @@
 	[ [[p2]=[p3]]=> [[]False] ]
 	[ [[p2]=[p4]]=> [[]False] ]
 	[ [[p3]=[p4]]=> [[]False] ]
-	=>
+	
 	[ 
 	[
 	[pln]
@@ -63,15 +63,33 @@
 [ [[p1]=[p3]]=> [[]False] ]
 [ [[p2]=[p3]]=> [[]False] ]
 
-[not[
+[[
 =>[y][[y]:line]
 [[p1]in[y]]
 [[p2]in[y]]
 [[p3]in[y]]
-]]
+]=>[[]False]]
+
+[ [[p1]in[l]]
+[[p2]in[l]]
+[[p3]in[l]] => 
+[
+=>[y][[y]:line]
+[[p1]in[y]]
+[[p2]in[y]]
+[[p3]in[y]]
+]
+=> [[]False] ]
+
+[ [[p1]in[l]]
+[[p2]in[l]]
+[[p3]in[l]]
+=> [[]False] ]
 
 [ [[[p1]in[l]]=>[[]False]]=> [p][[p]:point] [[[p]in[l]]=>[[]False]] ]
 [ [[[p2]in[l]]=>[[]False]]=> [p][[p]:point] [[[p]in[l]]=>[[]False]] ]
 [ [[[p3]in[l]]=>[[]False]]=> [p][[p]:point] [[[p]in[l]]=>[[]False]] ]
 #--------------------------------- END PROOF ----------------------------------#
 [p][[p]:point][ [[p]in[l]]=>[[]False] ]
+
+
