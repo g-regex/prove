@@ -839,13 +839,6 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 	do {
 		proceed = FALSE;
 
-		/*DBG_TMP(
-				if ((*pexplorer)->num >= 252 && (*pexplorer)->num < 260) {
-					fprintf(stderr, SHELL_BROWN "(%d)" SHELL_RESET1,
-							(*pexplorer)->num);
-				}
-			   )*/
-
 		/* skip formulators */
 		if (HAS_SYMBOL((*pexplorer))) {
 			if (HAS_NFLAG_IMPL((*pexplorer))) {
@@ -866,13 +859,6 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 		}
 
 		if (HAS_NFLAG_IMPL((*pexplorer))) {
-			/*DBG_TMP(
-					if ((*pexplorer)->num >= 252 && (*pexplorer)->num < 260) {
-					//if ((*pexplorer)->num == 259) {
-						fprintf(stderr, SHELL_MAGENTA "(%d)" SHELL_RESET1,
-								(*pexplorer)->num);
-					}
-				   )*/
 
 			/* if processing an assumption, verify it */
 			justfailed = FALSE;
@@ -895,24 +881,10 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 					 * node at a lower level */
 					BRANCH_PROCEED
 				} else {
-
-			/*DBG_TMP(
-					if ((*pexplorer)->num >= 252 && (*pexplorer)->num < 260) {
-						fprintf(stderr, SHELL_CYAN "(%d)" SHELL_RESET1,
-								(*pexplorer)->num);
-					}
-				   )*/
 					PROCEED
 				}
 			} else {
 				
-			/*DBG_TMP(
-					if ((*pexplorer)->num >= 252 && (*pexplorer)->num < 260) {
-						fprintf(stderr, SHELL_RED "(%d)" SHELL_RESET1,
-								(*pexplorer)->num);
-					}
-				   )*/
-
 				if (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {
 					PROCEED
 				} else {
