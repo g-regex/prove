@@ -102,13 +102,6 @@ typedef enum {
 #define UNSET_VARFLAG_LEFT(flags) flags &= ~VARFLAG_LEFT;
 #define UNSET_VARFLAG_RGHT(flags) flags &= ~VARFLAG_RGHT;
 
-/* TODO: change name "Variable" */
-typedef struct Variable {
-	struct Pnode* pnode;
-	struct Variable* next;
-	VarFlags flags;
-} Variable;
-
 typedef struct VTree {
 	struct Pnode* pnode;
 	struct VTree* left;
@@ -117,11 +110,6 @@ typedef struct VTree {
 	VarFlags flags;
 } VTree;
 
-typedef struct Equalities {
-	Variable* eqcircle;
-	struct Equalities* next;
-} Equalities;
-
 typedef struct Pnode {
 	struct Pnode* parent;
 	/*struct Pnode* above;*//*pointing to the parent of the leftmost node in the
@@ -129,18 +117,21 @@ typedef struct Pnode {
 	struct Pnode** child;
 	struct Pnode* left;
 	struct Pnode** right;
-	struct Pnode* prev_const; /* link to previous constant sub-tree */
-	struct Pnode* prev_id; /* link to previous constant id */
 	char** symbol; /* using a double pointer to let known identifiers
 					  point to the same char* in memory */
 	NFlags flags;
-	int num; /* number of the current node in pre-order traversal of the tree */
-	Variable* var; /* link to the first variable in
-					  sub-tree (for substitution) */
-	VTree* vtree;
 
-	//Variable** equalto;
-	//Equalities* prev_eq;
+	struct Pnode* prev_const; /* link to previous constant sub-tree */
+	struct Pnode* prev_id; /* link to previous constant id */
+
+	struct Pnode* vleft;
+	struct Pnode* vright;
+	struct Pnode* vparent;
+	VarFlags varflags;
+
+	int num; /* number of the current node in pre-order traversal of the tree */
+
+	VTree* vtree;
 } Pnode;
 
 #define CONTAINS_ID(pnode) \

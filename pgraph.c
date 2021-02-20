@@ -93,7 +93,6 @@ void init_pgraph(Pnode** root)
 	(*root)->child = (*root)->right = NULL;
 	(*root)->symbol = NULL;
 	(*root)->flags = NFLAG_FRST | NFLAG_TRUE;
-	(*root)->var = NULL;
 	(*root)->vtree = NULL;
 	
 	/*
@@ -126,7 +125,6 @@ void create_child(Pnode* pnode)
 	child->child = child->right = NULL;
 	child->parent = pnode;
 	//child->above = pnode;
-	child->var = NULL;
 	child->vtree = NULL;
 	child->symbol = NULL;
 
@@ -175,7 +173,6 @@ void create_right(Pnode* pnode)
 	right->child = right->right = NULL;
 	right->left = pnode;
 	right->symbol = NULL;
-	right->var = NULL;
 	right->vtree = NULL;
 
 	/*
@@ -197,7 +194,7 @@ void create_right(Pnode* pnode)
 
 	/* If the current node has no variable children and is no formulator,
 	 * let it be the "previous constant" for the next node (linked list). */
-	if (pnode->var == NULL && !HAS_SYMBOL(pnode)) {
+	if (pnode->vtree == NULL && !HAS_SYMBOL(pnode)) {
 		/* This will result in duplicates, but we are lazy.
 		 * It also enables us to "hint" the software, which substitutions
 		 * to do first. */
@@ -268,7 +265,6 @@ void create_right_dummy(Pnode* pnode)
 	right->child = right->right = NULL;
 	right->left = pnode;
 	right->symbol = NULL;
-	right->var = NULL;
 	right->vtree = NULL;
 
 	/* flags are carried over to the right hand side */
@@ -283,7 +279,7 @@ void create_right_dummy(Pnode* pnode)
 
 	/* If the current node has no variable children and is no formulator,
 	 * let it be the "previous constant" for the next node (linked list). */
-	if (pnode->var == NULL && !HAS_SYMBOL(pnode)) {
+	if (pnode->vtree == NULL && !HAS_SYMBOL(pnode)) {
 		/* This will result in duplicates, but we are lazy.
 		 * It also enables us to "hint" the software, which substitutions
 		 * to do first. */
@@ -328,8 +324,6 @@ void create_right_dummy(Pnode* pnode)
  * to the parent level */
 void move_and_sum_up(Pnode** pnode)
 {
-	Variable* var;
-	Variable* oldvar;
 	VTree* vtree;
 	VTree* oldvtree;
 	
@@ -339,8 +333,6 @@ void move_and_sum_up(Pnode** pnode)
 	}
 	cur_depth--;)
 
-	oldvar = (*pnode)->var;
-	var = oldvar;
 	oldvtree =  (*pnode)->vtree;
 	vtree = oldvtree;
 
@@ -352,21 +344,6 @@ void move_and_sum_up(Pnode** pnode)
 		if (!HAS_NFLAG_LOCK((*pnode)) && !HAS_NFLAG_IMPL((*pnode)) && 
 				!HAS_NFLAG_EQTY((*pnode))) {
 			UNSET_NFLAG_ASMP((*pnode))
-		}
-
-		if (HAS_NFLAG_NEWC((*pnode))) {
-			var = (Variable*) malloc(sizeof(Variable));
-			var->pnode = *((*pnode)->child);
-			var->next = oldvar;
-			var->flags = VARFLAG_NONE;
-			oldvar = var;
-			DBG_GRAPH(fprintf(stderr, "/VAR\\");)
-		} else if ((*pnode)->var != NULL){
-			var = (Variable*) malloc(sizeof(Variable));
-			var->pnode = (*pnode)->var->pnode;
-			var->next = (*pnode)->var->next;
-			var->flags = VARFLAG_NONE;
-			oldvar = var;
 		}
 
 		if (HAS_NFLAG_NEWC((*pnode))) {
@@ -400,14 +377,7 @@ void move_and_sum_up(Pnode** pnode)
 
 	if ((*pnode)->parent != NULL) {
 		*pnode = (*pnode)->parent;
-		(*pnode)->var = var;
 		(*pnode)->vtree = vtree;
-		DBG_GRAPH(
-			fprintf(stderr, "/%d:", (*pnode)->num);
-			for (;var != NULL; var = var->next)
-				fprintf(stderr, "%s,", *(var->pnode->symbol));
-			fprintf(stderr, "\\");
-		)
 	}
 }
 
@@ -538,9 +508,6 @@ void print_flags(Pnode* pnode) {
 			fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR7 TIKZ_FLAG_B(pnode->num, 6));
 		}
 	}
-	/*if (pnode->var != NULL) {
-		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR9 TIKZ_FLAG_B(pnode->num, 8));
-	}*/
 	if (pnode->vtree != NULL) {
 		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR9 TIKZ_FLAG_B(pnode->num, 8));
 	}

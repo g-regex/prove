@@ -75,26 +75,6 @@ unsigned short int wrap_right(Pnode** pexplorer, Eqwrapper** eqwrapper,
 
 /* --- verification --------------------------------------------------------- */
 
-/* checking circular linked list of equal nodes */
-unsigned short int are_equal(Pnode* p1, Pnode* p2)
-{
-	/*Variable* firsteq;
-	Variable* eq_iter;
-
-	firsteq = *(p2->equalto);
-	for (eq_iter = firsteq->next; eq_iter != firsteq; eq_iter = eq_iter->next) {
-		if (eq_iter == *(p1->equalto)) {
-			return TRUE;
-		//} else if (IS_ID(eq_iter->pnode) && IS_ID(p1)) { FIXME: SCOPING
-		//	if (strcmp(*(eq_iter->pnode->symbol),
-		//						*(p1->symbol)) == 0) {
-		//		return TRUE;
-		//	}
-		}
-	}*/
-	return FALSE;
-}
-
 /* compares two constant sub-trees;
  * must be given the top left node of the subtrees to compare */
 unsigned short int const_equal(Pnode* p1, Pnode* p2)
@@ -431,16 +411,6 @@ VTree* collect_forward_vars(Pnode* pcollector)
 	return vtree;
 }
 
-void free_forward_vars(Variable* var)
-{
-	Variable *v_iter;
-	while (var != NULL) {
-		v_iter = var->next;
-		free(var);
-		var = v_iter;
-	}
-}
-
 unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 {
 	//TODO: pack these in one struct
@@ -449,7 +419,6 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 	BC** checkpoint;
 	SUB** subd;
 	VFlags vflags;
-	//Variable* fw_vars;
 	VTree* fw_vtree;
 
 	eqwrapper = (Eqwrapper*) malloc(sizeof(Eqwrapper));
@@ -471,10 +440,8 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 		DBG_VERIFY(fprintf(stderr, SHELL_BROWN "<not verified; "
 					"trying forward substitution>");)	
 
-		//fw_vars = collect_forward_vars(pexstart);
-		//fw_vars = NULL;
 		fw_vtree = collect_forward_vars(pexstart);
-		//if (fw_vars != NULL) {
+		if (fw_vtree != NULL) {
 			init_sub(pn, fw_vtree, &vflags, subd, TRUE);
 			while (next_known_const(pn, *subd, TRUE)) {
 				print_sub(subd);
@@ -485,8 +452,7 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 				}
 			}
 			finish_sub(&vflags, subd);
-		//}
-		//free_forward_vars(fw_vars);
+		}
 	}
 	DBG_VERIFY(fprintf(stderr, SHELL_RESET1);)	
 	
@@ -516,24 +482,6 @@ unsigned short int sub_var(SUB* s)
 {
 	/* ATTENTION: This approach to substitution relies on the fact that we only
 	 * move rightwards and downwards, while the substitution is in place. */
-	/*if ((*(s->known_const->child))->symbol != NULL) {
-		*(s->var->pnode->symbol) = *((*(s->known_const->child))->symbol);
-	} else {
-		*(s->var->pnode->symbol) = NULL;
-	}
-
-	if ((*(s->known_const->child))->child != NULL) {
-		*(s->var->pnode->child) = *((*(s->known_const->child))->child);
-	} else {
-		*(s->var->pnode->child) = NULL;
-	}
-
-	if ((*(s->known_const->child))->right != NULL) {
-		*(s->var->pnode->right) = *((*(s->known_const->child))->right);
-	} else {
-		*(s->var->pnode->right) = NULL;
-	}*/
-
 	if ((*(s->known_const->child))->symbol != NULL) {
 		*(s->vtree->pnode->symbol) = *((*(s->known_const->child))->symbol);
 	} else {
@@ -609,7 +557,6 @@ void init_sub(Pnode* perspective, VTree* vtree, VFlags* vflags,
 
 				//(*subd)->sym = *(var->pnode->symbol);
 				(*subd)->sym = *(vtree->pnode->symbol);
-				//(*subd)->var = var;
 				(*subd)->vtree = vtree;
 
 				sub_var(*subd);
@@ -649,15 +596,10 @@ void finish_sub(VFlags* vflags, SUB** subd)
 	do {
 		prev_sub = (*subd)->prev;
 
-		//*((*subd)->var->pnode->symbol) = (*subd)->sym;
-		//*((*subd)->var->pnode->child) = NULL;
-		//*((*subd)->var->pnode->right) = NULL;
-
 		*((*subd)->vtree->pnode->symbol) = (*subd)->sym;
 		*((*subd)->vtree->pnode->child) = NULL;
 		*((*subd)->vtree->pnode->right) = NULL;
 
-		//UNSET_VARFLAG_LOCK(((*subd)->var->flags))
 		UNSET_VARFLAG_LOCK(((*subd)->vtree->flags))
 
 		free(*subd);
@@ -1040,7 +982,7 @@ unsigned short int next_reachable_const(Pnode* veri_perspec, Pnode* sub_perspec,
 			proceed = TRUE;
 			continue;
 		} else {
-			if ((*pexplorer)->var != NULL) {
+			if ((*pexplorer)->vtree != NULL) {
 				init_sub(sub_perspec, (*pexplorer)->vtree,
 						vflags, subd, FALSE);
 			}
