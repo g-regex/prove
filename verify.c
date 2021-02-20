@@ -49,7 +49,7 @@ void bc_push(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 void bc_pop(Pnode** pnode, Eqwrapper** eqwrapper, BC** checkpoint,
 		VFlags* vflags);
 void print_sub(SUB** subd);
-void init_sub(Pnode* perspective, Variable* var, VTree* vtree, VFlags* vflags,
+void init_sub(Pnode* perspective, VTree* vtree, VFlags* vflags,
 		SUB** subd, unsigned short int fwd);
 unsigned short int next_known_const(Pnode* perspective, SUB* s,
 		unsigned short int fwd);
@@ -455,7 +455,8 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 	BC** checkpoint;
 	SUB** subd;
 	VFlags vflags;
-	Variable* fw_vars;
+	//Variable* fw_vars;
+	VTree* fw_vtree;
 
 	eqwrapper = (Eqwrapper*) malloc(sizeof(Eqwrapper));
 	pexplorer = (Pnode**) malloc(sizeof(Pnode*));
@@ -477,9 +478,10 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 					"trying forward substitution>");)	
 
 		//fw_vars = collect_forward_vars(pexstart);
-		fw_vars = NULL;
-		if (fw_vars != NULL) {
-			init_sub(pn, fw_vars, NULL, &vflags, subd, TRUE);
+		//fw_vars = NULL;
+		fw_vtree = collect_forward_vars(pexstart);
+		//if (fw_vars != NULL) {
+			init_sub(pn, fw_vtree, &vflags, subd, TRUE);
 			while (next_known_const(pn, *subd, TRUE)) {
 				print_sub(subd);
 				if (ve_recursion(pexstart, pn, pexplorer, &eqwrapper, checkpoint,
@@ -489,8 +491,8 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 				}
 			}
 			finish_sub(&vflags, subd);
-		}
-		free_forward_vars(fw_vars);
+		//}
+		//free_forward_vars(fw_vars);
 	}
 	DBG_VERIFY(fprintf(stderr, SHELL_RESET1);)	
 	
@@ -585,7 +587,7 @@ unsigned short int next_known_const(Pnode* perspective, SUB* s,
 }
 
 /* initialise substitution */
-void init_sub(Pnode* perspective, Variable* var, VTree* vtree, VFlags* vflags,
+void init_sub(Pnode* perspective, VTree* vtree, VFlags* vflags,
 		SUB** subd, unsigned short int fwd)
 {
 	SUB* prev;
@@ -595,8 +597,9 @@ void init_sub(Pnode* perspective, Variable* var, VTree* vtree, VFlags* vflags,
 	prev = *subd;
 
 	/* only substitute, if there is anything to substitute in */
-	if (vtree != NULL && vtree->pnode != NULL /*DEBUG*/ && (!fwd && perspective->prev_const != NULL) 
-			|| (fwd && perspective->prev_id != NULL)) {
+	if (/*vtree != NULL && vtree->pnode != NULL*/ /*DEBUG*/ // &&
+			(!fwd && perspective->prev_const != NULL) 
+				|| (fwd && perspective->prev_id != NULL)) {
 
 		do {
 			//if (!HAS_VARFLAG_LOCK(var->flags)) {
@@ -1089,7 +1092,7 @@ unsigned short int next_reachable_const(Pnode* veri_perspec, Pnode* sub_perspec,
 			continue;
 		} else {
 			if ((*pexplorer)->var != NULL) {
-				init_sub(sub_perspec, (*pexplorer)->var, (*pexplorer)->vtree,
+				init_sub(sub_perspec, (*pexplorer)->vtree,
 						vflags, subd, FALSE);
 			}
 			return attempt_explore(veri_perspec, sub_perspec, pexplorer,
