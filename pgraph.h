@@ -88,19 +88,23 @@ typedef enum {
 	VARFLAG_LOCK = 1,
 	VARFLAG_LEFT = 2,
 	VARFLAG_RGHT = 4,
+	VARFLAG_FRST = 8,
 } VarFlags;
 
 #define HAS_VARFLAG_LOCK(flags) (flags & VARFLAG_LOCK)
 #define HAS_VARFLAG_LEFT(flags) (flags & VARFLAG_LEFT)
 #define HAS_VARFLAG_RGHT(flags) (flags & VARFLAG_RGHT)
+#define HAS_VARFLAG_FRST(flags) (flags & VARFLAG_FRST)
 
 #define SET_VARFLAG_LOCK(flags) flags |= VARFLAG_LOCK;
 #define SET_VARFLAG_LEFT(flags) flags |= VARFLAG_LEFT;
 #define SET_VARFLAG_RGHT(flags) flags |= VARFLAG_RGHT;
+#define SET_VARFLAG_FRST(flags) flags |= VARFLAG_FRST;
 
 #define UNSET_VARFLAG_LOCK(flags) flags &= ~VARFLAG_LOCK;
 #define UNSET_VARFLAG_LEFT(flags) flags &= ~VARFLAG_LEFT;
 #define UNSET_VARFLAG_RGHT(flags) flags &= ~VARFLAG_RGHT;
+#define UNSET_VARFLAG_FRST(flags) flags &= ~VARFLAG_FRST;
 
 typedef struct VTree {
 	struct Pnode* pnode;
@@ -112,8 +116,6 @@ typedef struct VTree {
 
 typedef struct Pnode {
 	struct Pnode* parent;
-	/*struct Pnode* above;*//*pointing to the parent of the leftmost node in the
-							current statement */
 	struct Pnode** child;
 	struct Pnode* left;
 	struct Pnode** right;
@@ -124,14 +126,9 @@ typedef struct Pnode {
 	struct Pnode* prev_const; /* link to previous constant sub-tree */
 	struct Pnode* prev_id; /* link to previous constant id */
 
-	struct Pnode* vleft;
-	struct Pnode* vright;
-	struct Pnode* vparent;
-	VarFlags varflags;
+	VTree* vtree;
 
 	int num; /* number of the current node in pre-order traversal of the tree */
-
-	VTree* vtree;
 } Pnode;
 
 #define CONTAINS_ID(pnode) \

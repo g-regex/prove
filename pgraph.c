@@ -271,11 +271,6 @@ void create_right_dummy(Pnode* pnode)
 	right->flags = pnode->flags; /* | NFLAG_TRUE; */
 	UNSET_NFLAG_NEWC(right)
 	UNSET_NFLAG_FRST(right) /* TODO this can be done better */
-	if (!HAS_FFLAGS(pnode)) {
-		SET_NFLAG_FRST(pnode) /* FRST flag is not set for identifiers (i.e. when
-								 no right node is created, but it is not needed
-								 for them anyway. */
-	}
 
 	/* If the current node has no variable children and is no formulator,
 	 * let it be the "previous constant" for the next node (linked list). */
@@ -288,27 +283,7 @@ void create_right_dummy(Pnode* pnode)
 		right->prev_const = pnode->prev_const;
 	}
 
-	if (HAS_NFLAG_NEWC(pnode)) {
-		/* This will result in duplicates, but we are lazy.
-		 * It also enables us to "hint" the software, which substitutions
-		 * to do first. */
-		right->prev_id = pnode;
-	} else {
-		right->prev_id = pnode->prev_id;
-	}
-
-	/* All nodes in a subtree before the first implication formulator carry the
-	 * ASMP flag. That is because all statements before that formulator are
-	 * assumptions, when the formula is an implication, and because the ASMP
-	 * flag is ignored if the formula is no implication. */
-	if (!HAS_NFLAG_IMPL(pnode)) {
-		SET_NFLAG_ASMP(pnode)
-	}
-
-	/* All nodes in equalities and ordinary formulae are assumptions. */
-	if (HAS_NFLAG_EQTY(pnode) || HAS_NFLAG_FMLA(pnode)) {
-		SET_NFLAG_ASMP(right)
-	}
+	right->prev_id = pnode->prev_id;
 
 	/* All nodes are assumptions in "locked" subtrees. */
 	if (HAS_NFLAG_LOCK(pnode)) {
@@ -357,6 +332,9 @@ void move_and_sum_up(Pnode** pnode)
 				SET_VARFLAG_RGHT(oldvtree->flags)
 			}
 			vtree->flags = VARFLAG_NONE;
+			if (HAS_NFLAG_FRST((*pnode))) {
+				SET_VARFLAG_FRST(vtree->flags)
+			}
 			oldvtree = vtree;
 		} else if ((*pnode)->vtree != NULL){
 			vtree = (VTree*) malloc(sizeof(VTree));
@@ -422,28 +400,6 @@ VTree* next_var(VTree* vtree)
 	}
 
 	return vtree;
-
-	/*while (HAS_VARFLAG_LEFT(vtree->flags)) {
-		VTREE_MOVE_UP
-	} 
-
-	// return FALSE, when root is reached
-	if (!HAS_VARFLAG_LEFT(vtree->flags) && !HAS_VARFLAG_RGHT(vtree->flags)) {
-		return NULL;
-	}
-
-	do {
-		VTREE_MOVE_UP
-	} while (vtree->left == NULL);
-	VTREE_MOVE_LEFT
-	
-	while (vtree->right != NULL) {
-		vtree = vtree->right;
-	}
-	while (vtree->left != NULL) {
-		vtree = vtree->left;
-	}
-	return vtree;*/
 }
 
 /* set the symbol field of a node (i.e. when encountering an identifier or
