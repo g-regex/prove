@@ -26,6 +26,7 @@ typedef struct {
 /* representation of reserved keywords */
 Reserved reserved[] = {
 	{ "=>",		TOK_IMPLY   },
+	{ "ref=>",	TOK_REF     },
 	{ "=",		TOK_EQ		},
 };
 

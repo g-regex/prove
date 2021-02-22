@@ -145,7 +145,7 @@ unsigned short int check_asmp(Pnode* perspective, Pnode** pexplorer,
 		if (verify(pconst, pexplorer)) {
 			if (exst) {
 				DBG_VERIFY(fprintf(stderr, SHELL_MAGENTA "<%d:#%d>",
-							(*pexplorer)->num, pconst->num);)
+							(*pexplorer)->num_c, pconst->num_c);)
 			}
 			return TRUE;
 		}
@@ -162,7 +162,7 @@ void print_sub(SUB** subd)
 
 	while (sub_iter != NULL) {
 		fprintf(stderr,
-			"(%s=%d)", sub_iter->sym, sub_iter->known_const->num);
+			"(%s=%d)", sub_iter->sym, sub_iter->known_const->num_c);
 		if (HAS_VARFLAG_FRST(sub_iter->vtree->flags)) {
 			fprintf(stderr, "*");
 		}
@@ -191,14 +191,14 @@ unsigned short int verify_universal(Pnode* pn)
 	*subd = NULL;
 	vflags = VFLAG_NONE;
 
-	DBG_PARSER(fprintf(stderr, SHELL_BOLD "{%d}" SHELL_RESET2, pn->num);)	
+	DBG_PARSER(fprintf(stderr, SHELL_BOLD "{%d}" SHELL_RESET2, pn->num_c);)	
 	DBG_PARSER(if (HAS_GFLAG_VRFD) fprintf(stderr, "*");)
 	if (!HAS_GFLAG_VRFD || DBG_COMPLETE_IS_SET) {
 		while (next_reachable_const(pn, pn, pexplorer, &eqwrapper, checkpoint,
 					&vflags, subd, FALSE, 0)) {
 			if (verify(pn, pexplorer)) {
 				DBG_PARSER(fprintf(stderr, SHELL_GREEN "<#%d",
-							(*pexplorer)->num);)
+							(*pexplorer)->num_c);)
 				SET_GFLAG_VRFD
 
 				DBG_VERIFY(print_sub(subd);)
@@ -269,8 +269,8 @@ unsigned short int ve_recursion(Pnode* pexstart,
 		if (verify(*p_pexplorer, pexplorer)) {	
 
 			DBG_EPATH(
-					fprintf(stderr, SHELL_BROWN "<%d:%d",
-						(*p_pexplorer)->num, (*pexplorer)->num);
+					fprintf(stderr, SHELL_MAGENTA "<%d:%d",
+						(*p_pexplorer)->num_c, (*pexplorer)->num_c);
 					print_sub(subd);
 					fprintf(stderr, ">" SHELL_RESET1);
 			)
@@ -297,7 +297,7 @@ unsigned short int ve_recursion(Pnode* pexstart,
 			 * successful */
 			if ((*p_pexplorer)->num == -1) {
 				DBG_VERIFY(fprintf(stderr, SHELL_GREEN "<%d:#%d",
-						expl_cp->num, (*pexplorer)->num);
+						expl_cp->num_c, (*pexplorer)->num_c);
 				print_sub(subd);
 				fprintf(stderr, ">" SHELL_RESET1);)
 
@@ -325,7 +325,7 @@ unsigned short int ve_recursion(Pnode* pexstart,
 		} else {
 			DBG_EFAIL(
 				fprintf(stderr, SHELL_RED "<%d:%d",
-						(*p_pexplorer)->num, (*pexplorer)->num);
+						(*p_pexplorer)->num_c, (*pexplorer)->num_c);
 				print_sub(subd);
 				fprintf(stderr, ">" SHELL_RESET1);
 			)
@@ -334,7 +334,7 @@ unsigned short int ve_recursion(Pnode* pexstart,
 
 	DBG_VERIFY(if (success) {
 		fprintf(stderr, SHELL_GREEN "<%d:#%d",
-				(*p_pexplorer)->num, (*pexplorer)->num);
+				(*p_pexplorer)->num_c, (*pexplorer)->num_c);
 		print_sub(subd);
 		fprintf(stderr, ">" SHELL_RESET1);
 	})
@@ -366,6 +366,10 @@ VTree* collect_forward_vars(Pnode* pcollector)
 			newvtree->right = vtree;
 			newvtree->left = NULL;
 			newvtree->flags = VARFLAG_NONE;
+			if (vtree != NULL) {
+				vtree->parent = newvtree;
+				SET_VARFLAG_RGHT(vtree->flags)
+			}
 			vtree = newvtree;
 		}
 		pcollector = *(pcollector->right);
@@ -408,15 +412,20 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 
 		fw_vtree = collect_forward_vars(pexstart);
 		if (fw_vtree != NULL) {
-			init_sub(pn, fw_vtree, &vflags, subd, TRUE);
-			while (next_sub(pn, *subd, TRUE, FALSE, 0)) {
-				DBG_VERIFY(print_sub(subd);)
+			//init_sub(pn, fw_vtree, &vflags, subd, TRUE);
+			init_sub(pexstart, fw_vtree, &vflags, subd, TRUE);
+			do {
+				DBG_VERIFY(
+						fprintf(stderr, SHELL_BROWN "<");
+						print_sub(subd);
+						fprintf(stderr, ">" SHELL_RESET1);
+						)
 				if (ve_recursion(pexstart, pn, pexplorer, &eqwrapper, checkpoint,
 						&vflags, TRUE, exnum)) {
 					SET_GFLAG_VRFD
 					break;
 				}
-			}
+			} while (next_sub(pn, *subd, TRUE, FALSE, 0));
 			finish_sub(&vflags, subd);
 		}
 	}
@@ -466,6 +475,8 @@ unsigned short int sub_var(SUB* s)
 		*(s->vtree->pnode->right) = NULL;
 	}
 
+	/* number has to be substituted to ensure correct handling of existential
+	 * quantifiers */
 	s->vtree->pnode->parent->num = s->known_const->num;
 }
 
@@ -827,7 +838,6 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 
 	return FALSE;
 }
-
 
 unsigned short int next_existence(Pnode* perspective, Pnode** pexplorer,
 		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags)

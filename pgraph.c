@@ -108,7 +108,8 @@ void init_pgraph(Pnode** root)
 	max_depth = 1;)
 
 //#ifdef DNUM
-	(*root)->num = n; /* DEBUG */
+	(*root)->num = n;
+	(*root)->num_c = n;
 	n++;
 //#endif
 }
@@ -156,6 +157,7 @@ void create_child(Pnode* pnode)
 
 //#ifdef DNUM
 	child->num = n; /* DEBUG: pre-order numbering of the nodes */
+	child->num_c = n;
 	n++;
 //#endif
 }
@@ -241,6 +243,7 @@ void create_right(Pnode* pnode)
 
 //#ifdef DNUM
 	right->num = n; /* DEBUG: pre-order numbering of the nodes */
+	right->num_c = n;
 	n++;
 //#endif
 }
@@ -292,6 +295,7 @@ void create_right_dummy(Pnode* pnode)
 	}
 
 	right->num = -1;
+	right->num_c = -1;
 }
 
 /* move leftwards through the subtree and create a linked list of all
@@ -303,10 +307,12 @@ void move_and_sum_up(Pnode** pnode)
 	VTree* oldvtree;
 	
 	/* only update rightmost child, if a new right node was created before */
-	TIKZ(if (rightmost_child == 0) {
+	TIKZ(
+	if (rightmost_child == 0) {
 		rightmost_child = (*pnode)->num;
 	}
-	cur_depth--;)
+	cur_depth--;
+	)
 
 	oldvtree =  (*pnode)->vtree;
 	vtree = oldvtree;

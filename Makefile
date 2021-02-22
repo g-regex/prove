@@ -27,7 +27,7 @@ docc: doc.c tikz.h | $(BINDIR)
 $(BINDIR):
 	mkdir $(BINDIR)
 
-.PHONY: all clean check checknd checkcmplt pdf runchecks safecheck debug docgen doc
+.PHONY: all clean check checknd checkcmplt pdf runchecks safecheck debug docgen doc types
 
 all: proveparser
 
@@ -178,3 +178,22 @@ pdflatex:
 			printf "%-50s[\033[0;31m failure \033[0;0m]\n" $$T
 		fi
 	done
+
+types: types.vim
+types.vim: *.[ch]
+	ctags --c-kinds=t -o- *.[ch] |\
+		awk 'BEGIN{printf("syntax keyword cType\t")}\
+		{printf("%s ", $$1)}\
+		END{if(!NR){print "XXX_placeholder"}else{print ""}}' > $@
+	ctags --c-kinds=gsu -o- *.[ch] |\
+		awk 'BEGIN{printf("syntax keyword cStorageClass\t")}\
+		{printf("%s ", $$1)}\
+		END{if(!NR){print "XXX_placeholder"}else{print ""}}' >> $@
+	ctags --c-kinds=e -o- *.[ch] |\
+		awk 'BEGIN{printf("syntax keyword cConstant\t")}\
+		{printf("%s ", $$1)}\
+		END{if(!NR){print "XXX_placeholder"}else{print ""}}' >> $@
+	ctags --c-kinds=d -o- *.[ch] |\
+		awk 'BEGIN{printf("syntax keyword cDefine\t")}\
+		{printf("%s ", $$1)}\
+		END{if(!NR){print "XXX_placeholder"}else{print ""}}' >> $@

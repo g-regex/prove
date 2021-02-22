@@ -21,7 +21,9 @@
 #define MAX_ID_LENGTH 32
 
 #define IS_FORMULATOR(type) \
-	(type == TOK_SYM || type == TOK_IMPLY || type == TOK_EQ)
+	(type == TOK_SYM || type == TOK_IMPLY || type == TOK_EQ || type == TOK_REF)
+#define IS_IMPL_TYPE_TOK(type) \
+	(type == TOK_IMPLY || type == TOK_REF)
 
 /* recognisable tokens */
 typedef enum {
@@ -31,6 +33,8 @@ typedef enum {
 	TOK_RBRACK,  /* right bracket */
 
 	TOK_IMPLY,   /* implication ("=>") */
+	TOK_REF,     /* reference implication ("ref=>") */
+
 	TOK_EQ,		 /* equality ("=") */
 	/*TOK_NOT,*/ /* not ("!") */
 	TOK_SYM      /* symbol */

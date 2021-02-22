@@ -34,7 +34,7 @@
 #define NOVERINUM 0
 
 char* toktype[] = {"TOK_EOF", "TOK_LBRACK", "TOK_RBRACK", "TOK_IMPLY",
-					"TOK_EQ", /*"TOK_NOT",*/ "TOK_SYM"};
+	"TOK_REF", "TOK_EQ", /*"TOK_NOT",*/ "TOK_SYM"};
 
 Token    token;                     /* current token						*/
 Pnode*   pnode;                     /* current node in graph				*/
@@ -233,7 +233,7 @@ void parse_formula(void)
 			/* ERROR */
 			return;
 		}
-	} else if (token.type == TOK_IMPLY) {
+	} else if (IS_IMPL_TYPE_TOK(token.type)) {
 		set_symbol(pnode, token.id);	
 		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1, recall_chars());)
 		//DBG_PARSER(fprintf(stderr, "%s", recall_chars());)
@@ -442,6 +442,7 @@ void parse_statement(void)
 			prev_node = pnode;
 		}
 
+		/* FIXME: Has this become redundant? */
 		if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)
 				&& !HAS_GFLAG_VRFD && !HAS_GFLAG_PSTP) {
 			/* universal verification is triggered here */
@@ -461,11 +462,8 @@ void parse_statement(void)
 			}
 		}
 
-		/*if (HAS_GFLAG_PSTP && pexstart != NULL) {
-			DBG_PARSER(fprintf(stderr, SHELL_MAGENTA "%d" SHELL_RESET1,
-					pexstart->num);)	
-		}*/
-
+		/* TODO: Introduce precedence for verification functions. Implement this
+		 * through an array of function pointers */
 		if (token.type != TOK_LBRACK /*&& token.type != TOK_NOT*/) {
 			proceed = FALSE;
 
@@ -474,23 +472,32 @@ void parse_statement(void)
 					&& HAS_GFLAG_PSTP && pexstart != NULL) {
 				DBG_VERIFY(fprintf(stderr, SHELL_BOLD "<{%d}" SHELL_RESET2,
 							pnode->num);)
-
-				/* FIXME: fix known_const for right-most pnode */
-				/* this is a quick work-around: */
 				create_right_dummy(pnode);
 				if (pnode->num > NOVERINUM && /* DEBUG!!!! */
 					do_veri && !verify_existence(*(pnode->right), pexstart)) {
-				//if (!verify_existence(pnode, pexstart)) {
-					fprintf(stderr,
-							SHELL_RED
-							"verification failed on line %d, column %d"
-							SHELL_RESET1
-							"\n",
-							 cursor.line, cursor.col);
-					if (!DBG_FINISH_IS_SET) {
-						exit(EXIT_FAILURE);
+					if (lvl != 0) {
+						fprintf(stderr,
+								SHELL_BROWN
+								"<verification postponed to parent level>"
+								SHELL_RESET1
+								"\n",
+								cursor.line, cursor.col);
 					} else {
-						success = EXIT_FAILURE;
+						/* TODO: Try different verification strategies here.
+						 * Next strategy to implement: Consideration of cases.
+						 **/
+
+						fprintf(stderr,
+								SHELL_RED
+								"verification failed on line %d, column %d"
+								SHELL_RESET1
+								"\n",
+								cursor.line, cursor.col);
+						if (!DBG_FINISH_IS_SET) {
+							exit(EXIT_FAILURE);
+						} else {
+							success = EXIT_FAILURE;
+						}
 					}
 				}	
 				free_right_dummy(pnode);
@@ -514,8 +521,9 @@ void expect(TType type)
 		next_token(&token);
 	} else {
 		/* ERROR */
-		fprintf(stderr, "unexpected token on line %d, column %d; expected %s\n",
-				 cursor.line, cursor.col, toktype[type]);
+		fprintf(stderr, "unexpected token on line %d, column %d; expected %s, "
+				"but found %s\n",
+				 cursor.line, cursor.col, toktype[type], toktype[token.type]);
 		exit(EXIT_FAILURE);
 	}
 }
@@ -526,7 +534,7 @@ void expect(TType type)
  */
 void check_conflict(Pnode* pnode, TType ttype)
 {
-	if (ttype == TOK_IMPLY) {
+	if (IS_IMPL_TYPE_TOK(ttype)) {
 		/* indent assumptions in debugging output to improve readability */
 		/* OUTPUT DBG_PARSER(if (!HAS_NFLAG_ASMP(pnode)) {
 			fprintf(stderr, "\n");
@@ -540,7 +548,7 @@ void check_conflict(Pnode* pnode, TType ttype)
 		} else if (HAS_NFLAG_IMPL(pnode)) {
 			return;
 		} else {
-			fprintf(stderr, "unexpected TOK_IMPLY "
+			fprintf(stderr, "unexpected IMPL_TYPE_TOK "
 				"on line %d, column %d\n", cursor.line, cursor.col);
 			exit(EXIT_FAILURE);
 		}
@@ -572,5 +580,3 @@ void check_conflict(Pnode* pnode, TType ttype)
 		exit(EXIT_FAILURE);
 	}
 }
-
-

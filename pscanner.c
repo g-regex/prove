@@ -159,7 +159,9 @@ void process_string(Token *token)
 	cursor.col = col;
 	next_char();
 
-	for (i = 1; i != MAX_ID_LENGTH && (isalpha(ch) || isdigit(ch) || isspecial(ch)); i++) {
+	for (i = 1; i != MAX_ID_LENGTH
+			&& (isalpha(ch) || isdigit(ch) || isspecial(ch) || ch == '='
+				|| ch == '>'); i++) {
 		string[i] = ch;
 		next_char();
 	}
@@ -172,6 +174,7 @@ void process_string(Token *token)
 	} else {
 		/* is the string reserved? */
 		cmp = search(string);
+		//DBG_TMP(fprintf(stderr, SHELL_RED "{%s}" SHELL_RESET1, string);)
 
 		/* if the string is not reserved, it is an operator */
 		if (cmp == -1) {

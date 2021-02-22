@@ -180,15 +180,16 @@ $\{\dots\}$ & indicates zero or more repetitions\tabularnewline\
 Using this notation the \name\ language can be described by the EBNF shown in
 figure~\ref{fig:ebnf}.  Every EBNF needs to have an initial production as a
 starting point.  It is convention that this distinguished production is to be
-listed first, so in this case, $\langle\texttt{expression}\rangle$ is the initial
-production. As one might notice a valid \name\ file might contain either a
-statement or a formula. This design choice has been made in order to account for
-axioms and theorems that might be given in the human readable form of statements
-in the \name\ language.  Proofs on the other hand will be given in the form of a
-formula, having only \m{=>} formulators at its outermost level. We could easily
-think of other formulas, which will not satisfy this requirement and thereby
-neither constitute an axiom/theorem nor a proof. A \name\ file containing such a
-formula would be syntactically correct but would not have any meaning.
+listed first, so in this case, $\langle\texttt{expression}\rangle$ is the
+initial production. As one might notice a valid \name\ file might contain either
+a statement or a formula. This design choice has been made in order to account
+for axioms and theorems that might be given in the human readable form of
+statements in the \name\ language.  Proofs on the other hand will be given in
+the form of a formula, having only \m{=>} formulators at its outermost level. We
+could easily think of other formulas, which will not satisfy this requirement
+and thereby neither constitute an axiom/theorem nor a proof. A \name\ file
+containing such a formula would be syntactically correct but would not have any
+meaning.
 
 \pagebreak{}
 
@@ -293,9 +294,9 @@ creating it. This position will be referred to as the \emph{current} node. In
 the beginning the root is the current node.
 
 Every node can have a number of properties, some of which exclude others. For
-example, every node can have a child or carry a formulator, but not both. Processing
-the code bracket by bracket and formulator by formulator, we now perform the following
-steps:
+example, every node can have a child or carry a formulator, but not both.
+Processing the code bracket by bracket and formulator by formulator, we now
+perform the following steps:
 
 \begin{itemize}
 	\item 
@@ -305,8 +306,8 @@ steps:
 		node to the right and a child to that node. That node then becomes
 		the current node.
 	\item
-		When encountering a formulator, the formulator property of the current node is
-		set.
+		When encountering a formulator, the formulator property of the current
+		node is set.
 	\item
 		When encountering a \m{]}, we move from one node to another leftwards
 		until we encouter the leftmost node, which has a parent. Then we move to
@@ -336,10 +337,10 @@ they have been created, which corresponds to a pre-order traversal numbering of
 the tree. The flags drawn on the righthand side of each node encode information,
 which has been gathered during the creation of the graph.  E.g.\ the
 \texttt{NEWC} flag indicates that the statement contained by a node introduces a
-new constant (see Subsection~\ref{sec:var}). These flags correspond to single bits in the
-structure corresponding to each node in memory. Using these flags simplifies
-later tasks by storing already gained information and thereby avoiding repeated
-computation of frequently performed steps.\newline
+new constant (see Subsection~\ref{sec:var}). These flags correspond to single
+bits in the structure corresponding to each node in memory. Using these flags
+simplifies later tasks by storing already gained information and thereby
+avoiding repeated computation of frequently performed steps.\newline
 
 Remark: Some of these flags are set for nodes, which they are not applicable to
 and some flags are not set, where they could be.
@@ -496,8 +497,8 @@ a verification step after processing the last statement. As
 figure~\ref{fig:impl1} shows, node~7 has the \texttt{IMPL}~flag set and the
 \texttt{JUST}~flag unset. Thus node~7 requires verification.\newline
 
-Source~Code~\ref{code:impl1out} shows the verification information, which has to be
-interpreted as follows:
+Source~Code~\ref{code:impl1out} shows the verification information, which has to
+be interpreted as follows:
 
 \textcolor{dartmouthgreen}{\begin{itemize}
 	\item
@@ -527,12 +528,12 @@ interpreted as follows:
 %In source~code~\ref{code:impl1} we make three assumptions: We state that there
 %are three identifiers \m{a}, \m{b} and \m{c}. Note the flags in the graph
 %telling us that the appearance of the nodes 0, 2 and 4 at their respective
-%positions is justified.
-%After the \m{=>} formulator, we have another expression stating that there is an
-%\m{a}.  This node is not justified and part of an implication, so it requires
-%verification. In order to verify statement~7, we check the similarity of the
-%sub-tree with node~8 (node~7's child) as its root against the sub-trees with the
-%nodes 1, 3 and 5 as their roots respectively.
+%positions is justified.  After the \m{=>} formulator, we have another
+%expression stating that there is an \m{a}.  This node is not justified and part
+%of an implication, so it requires verification. In order to verify statement~7,
+%we check the similarity of the sub-tree with node~8 (node~7's child) as its
+%root against the sub-trees with the nodes 1, 3 and 5 as their roots
+%respectively.
 
 \pagebreak{}
 
@@ -552,8 +553,8 @@ compared sub-trees are found to be similar, when the following conditions hold:
 	\item
 		If one of the nodes has a child, the corresponding node does so as well.
 	\item
-		If one of the nodes carries a formulator, the other node must carry the same
-		formulator.
+		If one of the nodes carries a formulator, the other node must carry the
+		same formulator.
 \end{itemize}
 
 In the example of source~code~\ref{code:impl1} the compared sub-trees consist of

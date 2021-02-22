@@ -128,7 +128,9 @@ typedef struct Pnode {
 
 	VTree* vtree;
 
+	/*FIXME: improve substitution, such that the tree itself is not modified */
 	int num; /* number of the current node in pre-order traversal of the tree */
+	int num_c; /* immutable node number, not affected by substitution */
 } Pnode;
 
 #define CONTAINS_ID(pnode) \
