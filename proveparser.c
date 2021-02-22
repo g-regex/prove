@@ -28,10 +28,13 @@
 #include "pgraph.h"
 #include "error.h"
 
+/* --- preprocessor directives -------------------------------------------{{{ */
 #define TRUE 1
 #define FALSE 0
 
 #define NOVERINUM 0
+/* }}} */
+/* --- global variables --------------------------------------------------{{{ */
 
 char* toktype[] = {"TOK_EOF", "TOK_LBRACK", "TOK_RBRACK", "TOK_IMPLY",
 	"TOK_REF", "TOK_EQ", /*"TOK_NOT",*/ "TOK_SYM"};
@@ -43,21 +46,25 @@ FILE*    file;                      /* [prove] source file					*/
 
 static unsigned short int lvl;      /* level/depth of current node in tree	*/
 
+/* }}} */
+/* --- function prototypes -----------------------------------------------{{{ */
 void parse_expr(void);
 void parse_formula(void);
-void parse_statement(void);
+void parse_statement(unsigned short int veri_ref);
 
 void expect(TType type);
 void check_conflict(Pnode* pnode, TType ttype);
 
 unsigned short int success = EXIT_SUCCESS;
 unsigned short int do_veri = TRUE;
+/* }}} */
 
-int main(int argc, char *argv[])
+int main(int argc, char *argv[]) /* {{{ */
 {
 	struct stat st = {0};			/* for checking directory existence */
 	unsigned short int i;
 
+	/* {{{ */
 	dbgops = DBG_NONE;
 #ifdef DTIKZ
 	char* tikzfile;
@@ -194,27 +201,29 @@ int main(int argc, char *argv[])
 			get_node_count());
 	mpz_out_str(stdout, 10, comp_count);
 	mpz_clear(comp_count);
-	printf("\n" SHELL_RESET1);
+	printf("\n" SHELL_RESET1); /* }}} */
 
 	if (!do_veri) {
 		return EXIT_SUCCESS;
 	} else {
 		return success;
 	}
-}
+} /* }}} */
 
-/* --- parser functions ------------------------------------------------------*/
-
-void parse_expr(void)
+/* --- parser functions ----------------------------------------------------- */
+void parse_expr(void) /* {{{ */
 {
 	/* maybe the EBNF should be altered a bit,
 	 * this seems to be a bit non-sensical */
 	parse_formula();
 }
-
-void parse_formula(void)
+/* }}} */
+void parse_formula(void) /* {{{ */
 {
 	int proceed;
+	unsigned short int veri_ref;
+
+	veri_ref = FALSE;
 	
 	if (token.type == TOK_SYM) {
 		set_symbol(pnode, token.id);	
@@ -236,19 +245,17 @@ void parse_formula(void)
 	} else if (IS_IMPL_TYPE_TOK(token.type)) {
 		set_symbol(pnode, token.id);	
 		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1, recall_chars());)
-		//DBG_PARSER(fprintf(stderr, "%s", recall_chars());)
 		DBG_PARSER(fprintf(stderr, "%s", token.id);)
 		/* token is an implication symbol */
+		veri_ref = (token.type == TOK_REF);
 		next_token(&token);
 		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1, recall_chars());)
-		//DBG_PARSER(fprintf(stderr, "%s", recall_chars());)
 		if (token.type == TOK_RBRACK) {
 			/* statements must not contain only an implication symbol */
 			/* ERROR */
 			return;
 		} else if (token.type == TOK_LBRACK /*|| token.type == TOK_NOT*/) {
 			/* only valid option */
-			//FIXME:
 			SET_NFLAG_IMPL(pnode)
 			UNSET_NFLAG_FRST(pnode)
 			/* continue */
@@ -282,13 +289,16 @@ void parse_formula(void)
 			set_symbol(pnode, token.id);
 			check_conflict(pnode, token.type);
 
+			veri_ref = (token.type == TOK_REF);
 			next_token(&token);
-			parse_statement();
+			parse_statement(veri_ref);
+			veri_ref = FALSE;
 			if (!IS_FORMULATOR(token.type)) {
 				proceed = FALSE;
 			}
 		} else {
-			parse_statement();
+			parse_statement(veri_ref);
+			veri_ref = FALSE;
 			if (!IS_FORMULATOR(token.type)) {
 				return;
 			} else {
@@ -300,6 +310,7 @@ void parse_formula(void)
 				check_conflict(pnode, token.type);
 				set_symbol(pnode, token.id);
 
+				veri_ref = (token.type == TOK_REF);
 				next_token(&token);
 				if (token.type != TOK_LBRACK /*&& token.type != TOK_NOT*/) {
 					proceed = FALSE;
@@ -309,8 +320,8 @@ void parse_formula(void)
 	}
 	prev_node = NULL;
 }
-
-void parse_statement(void)
+/* }}} */
+void parse_statement(unsigned short int veri_ref) /* {{{ */
 {
 	Pnode* ptmp;
 	Pnode* pexstart;				/* to remember first node for verifying
@@ -333,7 +344,6 @@ void parse_statement(void)
 		lvl++;
 		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1,
 					recall_chars());)
-		//DBG_PARSER(fprintf(stderr, "%s", recall_chars());)
 		DBG_PARSER(fprintf(stderr, "%s", token.id);)
 
 		/*neg = FALSE;
@@ -346,7 +356,6 @@ void parse_statement(void)
 		expect(TOK_LBRACK);
 		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1,
 					recall_chars());)
-		//DBG_PARSER(fprintf(stderr, "%s", recall_chars());)
 		if (HAS_GFLAG_VRFD) {
 			UNSET_GFLAG_VRFD
 		}
@@ -365,7 +374,6 @@ void parse_statement(void)
 
 		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1,
 					recall_chars());)
-		//DBG_PARSER(fprintf(stderr, "%s", recall_chars());)
 		DBG_PARSER(fprintf(stderr, "%s", token.id);)
 		expect(TOK_RBRACK);
 		lvl--;
@@ -473,6 +481,12 @@ void parse_statement(void)
 				DBG_VERIFY(fprintf(stderr, SHELL_BOLD "<{%d}" SHELL_RESET2,
 							pnode->num);)
 				create_right_dummy(pnode);
+
+				if (veri_ref) {
+					DBG_PARSER(fprintf(stderr, SHELL_MAGENTA "<REF>"
+								SHELL_RESET1);)
+				}
+
 				if (pnode->num > NOVERINUM && /* DEBUG!!!! */
 					do_veri && !verify_existence(*(pnode->right), pexstart)) {
 					if (lvl != 0) {
@@ -506,12 +520,13 @@ void parse_statement(void)
 			}
 		}
 		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1,
-					recall_chars());) }
+					recall_chars());) 
+	}
 }
+/* }}} */
 
-/* --- helpers ---------------------------------------------------------------*/
-
-/*
+/* --- helpers -------------------------------------------------------------- */
+/* void expect(TType type) {{{
  * checks, whether the current token is of desired type and reports an
  * error otherwise
  */
@@ -527,8 +542,8 @@ void expect(TType type)
 		exit(EXIT_FAILURE);
 	}
 }
-
-/*
+/* }}} */
+/* void check_conflict(Pnode* pnode, TType ttype) {{{
  * checks, whether the current formulator type is conflicting with other
  * formulators in the current formula
  */
@@ -580,3 +595,4 @@ void check_conflict(Pnode* pnode, TType ttype)
 		exit(EXIT_FAILURE);
 	}
 }
+/* }}} */

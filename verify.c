@@ -17,14 +17,16 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include "pgraph.h"
 #include "verify.h"
 #include "debug.h"
-#include <stdio.h>
 
 #ifdef DVERIFY
 #include "stdio.h"
 #endif
+
+/* --- preprocessor directives -------------------------------------------{{{ */
 
 #define TRUE 1
 #define FALSE 0
@@ -32,30 +34,17 @@
 /* explorable are branches, which contain either an implication or an equality,
  * which is not an assumption
  * TODO: verify equalities, which are assumptions - but not by exploration */
-
 #define EXPLORABLE \
 	(HAS_CHILD((*pexplorer)) && (HAS_NFLAG_IMPL((*((*pexplorer)->child)))\
 			|| (!HAS_NFLAG_FRST((*pexplorer))\
 				&& HAS_NFLAG_EQTY((*((*pexplorer)->child))))))
+/* }}} */
+/* --- function prototypes -----------------------------------------------{{{ */
+unsigned short int check_asmp(Pnode* perspective, Pnode** pexplorer,
+		unsigned short int exst);
+/* }}} */
 
-unsigned short int next_in_branch(Pnode* pnode, Pnode** pexplorer,
-		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags);
-
-unsigned short int next_existence(Pnode* perspective, Pnode** pexplorer,
-		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags);
-
-void bc_push(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
-		VFlags* vflags);
-void bc_pop(Pnode** pnode, Eqwrapper** eqwrapper, BC** checkpoint,
-		VFlags* vflags);
-void print_sub(SUB** subd);
-void init_sub(Pnode* perspective, VTree* vtree, VFlags* vflags,
-		SUB** subd, unsigned short int fwd);
-unsigned short int next_sub(Pnode* perspective, SUB* s,
-		unsigned short int fwd, unsigned short int exst, int exnum);
-void finish_sub(VFlags* vflags, SUB** subd);
-
-/* --- verification specific movement functions ----------------------------- */
+/* --- verification specific movement functions --------------------------{{{ */
 
 /* move right; if already at the right-most node, move to the left-most node */ 
 unsigned short int wrap_right(Pnode** pexplorer, Eqwrapper** eqwrapper,
@@ -70,378 +59,8 @@ unsigned short int wrap_right(Pnode** pexplorer, Eqwrapper** eqwrapper,
 	}
 	return TRUE;
 }
-
-/* --- verification --------------------------------------------------------- */
-
-/* compares two constant sub-trees;
- * must be given the top left node of the subtrees to compare */
-unsigned short int const_equal(Pnode* p1, Pnode* p2)
-{
-	/* FIXME: segfaulting because of call stack overflow;
-	 * use less recursion  */
-	unsigned short int equal;
-
-	equal = TRUE;
-	mpz_add_ui(comp_count, comp_count, 1);
-
-	if (IS_ID(p1)) {
-		if (IS_ID(p2)) {
-
-			/******************************************************************/
-			/* BIG TODO!!! We have to decide on how identifiers may be
-			 * introduced. Ideally we'd just have one line here:
-			 * return (*(p1->symbol) == *(p2->symbol));	
-			 *
-			 * Instead of:*/
-
-			 if (*(p1->symbol) != *(p2->symbol)) {
-				return (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
-			 } else {
-				return TRUE;
-			 }
-		} else {
-			return FALSE;
-		}
-	} else if (HAS_SYMBOL(p1)) { /* this is for formulators */
-		if (HAS_SYMBOL(p2)) {
-			equal = (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
-		} else {
-			return FALSE;
-		}
-	}
-
-	if (equal && HAS_CHILD(p1)) {
-		equal = HAS_CHILD(p2) ? const_equal(*(p1->child), *(p2->child)) : FALSE;
-	}
-	if (equal && HAS_RIGHT(p1)) {
-		equal = HAS_RIGHT(p2) ? const_equal(*(p1->right), *(p2->right)) : FALSE;
-	}
-
-	equal &= (IS_EMPTY(p1) == IS_EMPTY(p2));
-	
-	return equal;
-}
-
-/* checks pnode against pexplorer node; this function is basically a safety net,
- * if pnode or pexplorer have no children, which should not happen anyway */
-unsigned short int verify(Pnode* pnode, Pnode** pexplorer)
-{
-	if (!HAS_CHILD(pnode) && !HAS_CHILD((*pexplorer))) {
-		/* FATAL ERROR: function should not have been called, if this is true */
-		return FALSE;
-	}
-	return const_equal(*((*pexplorer)->child), *(pnode->child));
-	/* TODO: only when other verification fails, take equalities into account */
-}
-
-/* checks assumption in pexplorer from the perspective of 'perspective' */
-unsigned short int check_asmp(Pnode* perspective, Pnode** pexplorer,
-		unsigned short int exst)
-{
-	Pnode* pconst;
-
-	for (pconst = perspective->prev_const; pconst != NULL;
-			pconst = pconst->prev_const) {
-		if (verify(pconst, pexplorer)) {
-			if (exst) {
-				DBG_VERIFY(fprintf(stderr, SHELL_MAGENTA "<%d:#%d>",
-							(*pexplorer)->num_c, pconst->num_c);)
-			}
-			return TRUE;
-		}
-	}
-	return FALSE;
-}
-
-#ifdef DVERIFY
-void print_sub(SUB** subd)
-{
-	SUB* sub_iter;
-
-	sub_iter = *subd;
-
-	while (sub_iter != NULL) {
-		fprintf(stderr,
-			"(%s=%d)", sub_iter->sym, sub_iter->known_const->num_c);
-		if (HAS_VARFLAG_FRST(sub_iter->vtree->flags)) {
-			fprintf(stderr, "*");
-		}
-
-		sub_iter = sub_iter->prev;
-	}
-}
-#endif
-
-unsigned short int verify_universal(Pnode* pn)
-{
-	//TODO: pack these in one struct
-	Eqwrapper* eqwrapper;
-	Pnode** pexplorer;
-	BC** checkpoint;
-	SUB** subd;
-	VFlags vflags;
-
-	eqwrapper = (Eqwrapper*) malloc(sizeof(Eqwrapper));
-	pexplorer = (Pnode**) malloc(sizeof(Pnode*));
-	checkpoint = (BC**) malloc(sizeof(BC*));
-	subd = (SUB**) malloc(sizeof(SUB*));
-	
-	*pexplorer = pn;
-	*checkpoint = NULL;
-	*subd = NULL;
-	vflags = VFLAG_NONE;
-
-	DBG_PARSER(fprintf(stderr, SHELL_BOLD "{%d}" SHELL_RESET2, pn->num_c);)	
-	DBG_PARSER(if (HAS_GFLAG_VRFD) fprintf(stderr, "*");)
-	if (!HAS_GFLAG_VRFD || DBG_COMPLETE_IS_SET) {
-		while (next_reachable_const(pn, pn, pexplorer, &eqwrapper, checkpoint,
-					&vflags, subd, FALSE, 0)) {
-			if (verify(pn, pexplorer)) {
-				DBG_PARSER(fprintf(stderr, SHELL_GREEN "<#%d",
-							(*pexplorer)->num_c);)
-				SET_GFLAG_VRFD
-
-				DBG_VERIFY(print_sub(subd);)
-				
-				/* if no debugging options are selected and not
-				 * explicitly requested, skip unnecessary compares */
-				if (DBG_NONE_IS_SET || !DBG_COMPLETE_IS_SET) {
-					finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
-							subd);
-					DBG_PARSER(fprintf(stderr, ">" SHELL_RESET1);) 
-					break;
-				}
-				DBG_PARSER(fprintf(stderr, ">" SHELL_RESET1);) 
-			}
-			/* DBG_PARSER(fprintf(stderr, "<%d>", rn());) */
-		}
-	}
-
-	free(eqwrapper);
-	free(pexplorer);
-	free(checkpoint);
-	free(subd);
-
-	if (!HAS_GFLAG_VRFD) {	
-		/*TOGGLE_NFLAG_TRUE(pn)
-		if (!HAS_NFLAG_TRUE(pn)) {*/
-			return FALSE;
-		/*} else {
-			SET_GFLAG_VRFD
-		}*/
-	}
-	return TRUE;
-}
-
-unsigned short int ve_recursion(Pnode* pexstart,
-		/* parent: */
-		Pnode* p_perspective, Pnode** p_pexplorer, Eqwrapper** p_eqwrapper,
-		BC** p_checkpoint, VFlags* p_vflags, unsigned short int dbg, int exnum)
-{
-	unsigned short int success;
-	Pnode* expl_cp; /* checkpoint for parent explorer */
-	Pnode* perspective; /* perspective for validation of next_reachable */
-
-	Eqwrapper* eqwrapper;
-	Pnode** pexplorer;
-	BC** checkpoint;
-	SUB** subd;
-	VFlags vflags;
-
-	eqwrapper = (Eqwrapper*) malloc(sizeof(Eqwrapper));
-	pexplorer = (Pnode**) malloc(sizeof(Pnode*));
-	checkpoint = (BC**) malloc(sizeof(BC*));
-	subd = (SUB**) malloc(sizeof(SUB*));
-	
-	*pexplorer = pexstart;
-	*checkpoint = NULL;
-	*subd = NULL;
-
-	vflags = VFLAG_NONE;
-	success = FALSE;
-	perspective = *p_pexplorer;
-
-	move_rightmost(&perspective);
-
-	while (next_reachable_const(*p_pexplorer /*perspective*/, perspective,
-		pexplorer, &eqwrapper, checkpoint, &vflags, subd, TRUE,
-		exnum)) {
-		if (verify(*p_pexplorer, pexplorer)) {	
-
-			DBG_EPATH(
-					fprintf(stderr, SHELL_MAGENTA "<%d:%d",
-						(*p_pexplorer)->num_c, (*pexplorer)->num_c);
-					print_sub(subd);
-					fprintf(stderr, ">" SHELL_RESET1);
-			)
-
-			expl_cp = *p_pexplorer;
-
-			if (!next_existence(p_perspective, p_pexplorer, p_eqwrapper,
-					p_checkpoint, p_vflags)) {
-
-				*p_pexplorer = expl_cp;
-
-				finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
-									subd);
-
-				free(eqwrapper);
-				free(pexplorer);
-				free(checkpoint);
-				free(subd);
-				
-				return FALSE;
-			}
-
-			/* if the dummy node has been reached, verification has been
-			 * successful */
-			if ((*p_pexplorer)->num == -1) {
-				DBG_VERIFY(fprintf(stderr, SHELL_GREEN "<%d:#%d",
-						expl_cp->num_c, (*pexplorer)->num_c);
-				print_sub(subd);
-				fprintf(stderr, ">" SHELL_RESET1);)
-
-				finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
-									subd);
-
-				free(eqwrapper);
-				free(pexplorer);
-				free(checkpoint);
-				free(subd);
-				
-				return TRUE;
-			}
-
-			if (ve_recursion(pexstart, p_perspective,
-					p_pexplorer, p_eqwrapper, p_checkpoint, p_vflags,
-					FALSE, exnum)) {
-				success = TRUE;
-				*p_pexplorer = expl_cp;
-				break;
-			} else {
-				*p_pexplorer = expl_cp;
-			}
-
-		} else {
-			DBG_EFAIL(
-				fprintf(stderr, SHELL_RED "<%d:%d",
-						(*p_pexplorer)->num_c, (*pexplorer)->num_c);
-				print_sub(subd);
-				fprintf(stderr, ">" SHELL_RESET1);
-			)
-		}
-	}
-
-	DBG_VERIFY(if (success) {
-		fprintf(stderr, SHELL_GREEN "<%d:#%d",
-				(*p_pexplorer)->num_c, (*pexplorer)->num_c);
-		print_sub(subd);
-		fprintf(stderr, ">" SHELL_RESET1);
-	})
-
-	finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
-		subd);
-
-	free(eqwrapper);
-	free(pexplorer);
-	free(checkpoint);
-	free(subd);
-
-	return success;
-}
-
-VTree* collect_forward_vars(Pnode* pcollector)
-{
-	VTree* vtree;
-	VTree* newvtree;
-
-	vtree = NULL;
-
-	/* TODO: think about how to handle _variables_ during forward substitution*/
-	while (pcollector->num != -1) {
-		if (HAS_NFLAG_NEWC(pcollector)) {
-			//DBG_VERIFY(fprintf(stderr, SHELL_RED "." SHELL_RESET1);)	
-			newvtree = (VTree*) malloc(sizeof(VTree));
-			newvtree->pnode = *(pcollector->child);
-			newvtree->right = vtree;
-			newvtree->left = NULL;
-			newvtree->flags = VARFLAG_NONE;
-			if (vtree != NULL) {
-				vtree->parent = newvtree;
-				SET_VARFLAG_RGHT(vtree->flags)
-			}
-			vtree = newvtree;
-		}
-		pcollector = *(pcollector->right);
-	}
-
-	return vtree;
-}
-
-unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
-{
-	int exnum;
-
-	//TODO: pack these in one struct
-	Eqwrapper* eqwrapper;
-	Pnode** pexplorer;
-	BC** checkpoint;
-	SUB** subd;
-	VFlags vflags;
-	VTree* fw_vtree;
-
-	eqwrapper = (Eqwrapper*) malloc(sizeof(Eqwrapper));
-	pexplorer = (Pnode**) malloc(sizeof(Pnode*));
-	checkpoint = (BC**) malloc(sizeof(BC*));
-	subd = (SUB**) malloc(sizeof(SUB*));
-	
-	*pexplorer = pexstart;
-	*checkpoint = NULL;
-	*subd = NULL;
-	vflags = VFLAG_NONE;
-	exnum = pexstart->num;
-
-	bc_push(pexplorer, &eqwrapper, checkpoint, &vflags);
-
-	if (ve_recursion(pexstart, pn, pexplorer, &eqwrapper, checkpoint,
-			&vflags, TRUE, exnum)) {
-		SET_GFLAG_VRFD
-	} else {
-		DBG_VERIFY(fprintf(stderr, SHELL_BROWN "<not verified; "
-					"trying forward substitution>");)	
-
-		fw_vtree = collect_forward_vars(pexstart);
-		if (fw_vtree != NULL) {
-			//init_sub(pn, fw_vtree, &vflags, subd, TRUE);
-			init_sub(pexstart, fw_vtree, &vflags, subd, TRUE);
-			do {
-				DBG_VERIFY(
-						fprintf(stderr, SHELL_BROWN "<");
-						print_sub(subd);
-						fprintf(stderr, ">" SHELL_RESET1);
-						)
-				if (ve_recursion(pexstart, pn, pexplorer, &eqwrapper, checkpoint,
-						&vflags, TRUE, exnum)) {
-					SET_GFLAG_VRFD
-					break;
-				}
-			} while (next_sub(pn, *subd, TRUE, FALSE, 0));
-			finish_sub(&vflags, subd);
-		}
-	}
-	DBG_VERIFY(fprintf(stderr, SHELL_RESET1);)	
-	
-	bc_pop(pexplorer, &eqwrapper, checkpoint, &vflags);
-
-	free(eqwrapper);
-	free(pexplorer);
-	free(checkpoint);
-	free(subd);
-
-	return HAS_GFLAG_VRFD;
-}
-
-/* --- substitution --------------------------------------------------------- */
+/* }}} */
+/* --- substitution ------------------------------------------------------{{{ */
 
 void init_known_const(Pnode* perspective, SUB* s, unsigned short int fwd)
 {
@@ -576,7 +195,27 @@ void finish_sub(VFlags* vflags, SUB** subd)
 	} while (*subd != NULL);
 }
 
-/* --- branching ------------------------------------------------------------ */
+#ifdef DVERIFY
+void print_sub(SUB** subd)
+{
+	SUB* sub_iter;
+
+	sub_iter = *subd;
+
+	while (sub_iter != NULL) {
+		fprintf(stderr,
+			"(%s=%d)", sub_iter->sym, sub_iter->known_const->num_c);
+		if (HAS_VARFLAG_FRST(sub_iter->vtree->flags)) {
+			fprintf(stderr, "*");
+		}
+
+		sub_iter = sub_iter->prev;
+	}
+}
+#endif
+
+/* }}} */
+/* --- branching ---------------------------------------------------------{{{ */
 
 /* implementation of a "branch checkpoint" stack to easily find the next
  * parent node of the current level to jump back to */
@@ -653,28 +292,6 @@ void exit_branch(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 	}
 	UNSET_VFLAG_BRCH(*vflags)
 	UNSET_VFLAG_FRST(*vflags)
-}
-
-unsigned short int attempt_explore(Pnode* veri_perspec, Pnode* sub_perspec,
-		Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
-		VFlags* vflags, SUB** subd, unsigned short int exst, int exnum)
-{
-	if (EXPLORABLE) {
-		bc_push(pexplorer, eqwrapper, checkpoint, vflags);
-		*pexplorer = *((*pexplorer)->child);
-		SET_VFLAG_BRCH(*vflags)
-		UNSET_VFLAG_FAIL(*vflags)
-		if (!next_in_branch(veri_perspec, pexplorer, eqwrapper, checkpoint,
-					vflags)) {
-			exit_branch(pexplorer, eqwrapper, checkpoint, vflags);
-			return next_reachable_const(veri_perspec, sub_perspec,
-					pexplorer, eqwrapper, checkpoint, vflags, subd, exst,
-					exnum);
-		}
-	} else {
-		UNSET_VFLAG_BRCH(*vflags)
-	}
-	return TRUE;
 }
 
 #define POP \
@@ -839,7 +456,7 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 	return FALSE;
 }
 
-unsigned short int next_existence(Pnode* perspective, Pnode** pexplorer,
+unsigned short int next_unverified(Pnode* perspective, Pnode** pexplorer,
 		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags)
 {
 	unsigned short int proceed;
@@ -873,19 +490,29 @@ unsigned short int next_existence(Pnode* perspective, Pnode** pexplorer,
 	return TRUE;
 }
 
-/* --- backtracking --------------------------------------------------------- */
-
-/* finish verification of current node cleanly */
-void finish_verify(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
-		VFlags* vflags, SUB** subd)
+unsigned short int attempt_explore(Pnode* veri_perspec, Pnode* sub_perspec,
+		Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
+		VFlags* vflags, SUB** subd, unsigned short int exst, int exnum)
 {
-	if (HAS_VFLAG_BRCH(*vflags)) {
-		exit_branch(pexplorer, eqwrapper, checkpoint, vflags);
+	if (EXPLORABLE) {
+		bc_push(pexplorer, eqwrapper, checkpoint, vflags);
+		*pexplorer = *((*pexplorer)->child);
+		SET_VFLAG_BRCH(*vflags)
+		UNSET_VFLAG_FAIL(*vflags)
+		if (!next_in_branch(veri_perspec, pexplorer, eqwrapper, checkpoint,
+					vflags)) {
+			exit_branch(pexplorer, eqwrapper, checkpoint, vflags);
+			return next_reachable_const(veri_perspec, sub_perspec,
+					pexplorer, eqwrapper, checkpoint, vflags, subd, exst,
+					exnum);
+		}
+	} else {
+		UNSET_VFLAG_BRCH(*vflags)
 	}
-	if (HAS_VFLAG_SUBD(*vflags)) {
-		finish_sub(vflags, subd);
-	}
+	return TRUE;
 }
+/* }}} */
+/* --- backtracking ------------------------------------------------------{{{ */
 
 unsigned short int next_reachable_const(Pnode* veri_perspec, Pnode* sub_perspec,
 		Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
@@ -942,3 +569,367 @@ unsigned short int next_reachable_const(Pnode* veri_perspec, Pnode* sub_perspec,
 
 	return FALSE;
 }
+/* }}} */
+/* --- verification ------------------------------------------------------{{{ */
+
+/* compares two constant sub-trees;
+ * must be given the top left node of the subtrees to compare */
+unsigned short int const_equal(Pnode* p1, Pnode* p2)
+{
+	/* FIXME: segfaulting because of call stack overflow;
+	 * use less recursion  */
+	unsigned short int equal;
+
+	equal = TRUE;
+	mpz_add_ui(comp_count, comp_count, 1);
+
+	if (IS_ID(p1)) {
+		if (IS_ID(p2)) {
+
+			/******************************************************************/
+			/* BIG TODO!!! We have to decide on how identifiers may be
+			 * introduced. Ideally we'd just have one line here:
+			 * return (*(p1->symbol) == *(p2->symbol));	
+			 *
+			 * Instead of:*/
+
+			 if (*(p1->symbol) != *(p2->symbol)) {
+				return (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
+			 } else {
+				return TRUE;
+			 }
+		} else {
+			return FALSE;
+		}
+	} else if (HAS_SYMBOL(p1)) { /* this is for formulators */
+		if (HAS_SYMBOL(p2)) {
+			equal = (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
+		} else {
+			return FALSE;
+		}
+	}
+
+	if (equal && HAS_CHILD(p1)) {
+		equal = HAS_CHILD(p2) ? const_equal(*(p1->child), *(p2->child)) : FALSE;
+	}
+	if (equal && HAS_RIGHT(p1)) {
+		equal = HAS_RIGHT(p2) ? const_equal(*(p1->right), *(p2->right)) : FALSE;
+	}
+
+	equal &= (IS_EMPTY(p1) == IS_EMPTY(p2));
+	
+	return equal;
+}
+
+/* checks pnode against pexplorer node; this function is basically a safety net,
+ * if pnode or pexplorer have no children, which should not happen anyway */
+unsigned short int verify(Pnode* pnode, Pnode** pexplorer)
+{
+	if (!HAS_CHILD(pnode) && !HAS_CHILD((*pexplorer))) {
+		/* FATAL ERROR: function should not have been called, if this is true */
+		return FALSE;
+	}
+	return const_equal(*((*pexplorer)->child), *(pnode->child));
+	/* TODO: only when other verification fails, take equalities into account */
+}
+
+/* checks assumption in pexplorer from the perspective of 'perspective' */
+unsigned short int check_asmp(Pnode* perspective, Pnode** pexplorer,
+		unsigned short int exst)
+{
+	Pnode* pconst;
+
+	for (pconst = perspective->prev_const; pconst != NULL;
+			pconst = pconst->prev_const) {
+		if (verify(pconst, pexplorer)) {
+			if (exst) {
+				DBG_VERIFY(fprintf(stderr, SHELL_MAGENTA "<%d:#%d>",
+							(*pexplorer)->num_c, pconst->num_c);)
+			}
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+unsigned short int verify_universal(Pnode* pn)
+{
+	//TODO: pack these in one struct
+	Eqwrapper* eqwrapper;
+	Pnode** pexplorer;
+	BC** checkpoint;
+	SUB** subd;
+	VFlags vflags;
+
+	eqwrapper = (Eqwrapper*) malloc(sizeof(Eqwrapper));
+	pexplorer = (Pnode**) malloc(sizeof(Pnode*));
+	checkpoint = (BC**) malloc(sizeof(BC*));
+	subd = (SUB**) malloc(sizeof(SUB*));
+	
+	*pexplorer = pn;
+	*checkpoint = NULL;
+	*subd = NULL;
+	vflags = VFLAG_NONE;
+
+	DBG_PARSER(fprintf(stderr, SHELL_BOLD "{%d}" SHELL_RESET2, pn->num_c);)	
+	DBG_PARSER(if (HAS_GFLAG_VRFD) fprintf(stderr, "*");)
+	if (!HAS_GFLAG_VRFD || DBG_COMPLETE_IS_SET) {
+		while (next_reachable_const(pn, pn, pexplorer, &eqwrapper, checkpoint,
+					&vflags, subd, FALSE, 0)) {
+			if (verify(pn, pexplorer)) {
+				DBG_PARSER(fprintf(stderr, SHELL_GREEN "<#%d",
+							(*pexplorer)->num_c);)
+				SET_GFLAG_VRFD
+
+				DBG_VERIFY(print_sub(subd);)
+				
+				/* if no debugging options are selected and not
+				 * explicitly requested, skip unnecessary compares */
+				if (DBG_NONE_IS_SET || !DBG_COMPLETE_IS_SET) {
+					finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
+							subd);
+					DBG_PARSER(fprintf(stderr, ">" SHELL_RESET1);) 
+					break;
+				}
+				DBG_PARSER(fprintf(stderr, ">" SHELL_RESET1);) 
+			}
+			/* DBG_PARSER(fprintf(stderr, "<%d>", rn());) */
+		}
+	}
+
+	free(eqwrapper);
+	free(pexplorer);
+	free(checkpoint);
+	free(subd);
+
+	if (!HAS_GFLAG_VRFD) {	
+		/*TOGGLE_NFLAG_TRUE(pn)
+		if (!HAS_NFLAG_TRUE(pn)) {*/
+			return FALSE;
+		/*} else {
+			SET_GFLAG_VRFD
+		}*/
+	}
+	return TRUE;
+}
+
+unsigned short int ve_recursion(Pnode* pexstart,
+		/* parent: */
+		Pnode* p_perspective, Pnode** p_pexplorer, Eqwrapper** p_eqwrapper,
+		BC** p_checkpoint, VFlags* p_vflags, unsigned short int dbg, int exnum)
+{
+	unsigned short int success;
+	Pnode* expl_cp; /* checkpoint for parent explorer */
+	Pnode* perspective; /* perspective for validation of next_reachable */
+
+	Eqwrapper* eqwrapper;
+	Pnode** pexplorer;
+	BC** checkpoint;
+	SUB** subd;
+	VFlags vflags;
+
+	eqwrapper = (Eqwrapper*) malloc(sizeof(Eqwrapper));
+	pexplorer = (Pnode**) malloc(sizeof(Pnode*));
+	checkpoint = (BC**) malloc(sizeof(BC*));
+	subd = (SUB**) malloc(sizeof(SUB*));
+	
+	*pexplorer = pexstart;
+	*checkpoint = NULL;
+	*subd = NULL;
+
+	vflags = VFLAG_NONE;
+	success = FALSE;
+	perspective = *p_pexplorer;
+
+	move_rightmost(&perspective);
+
+	while (next_reachable_const(*p_pexplorer /*perspective*/, perspective,
+		pexplorer, &eqwrapper, checkpoint, &vflags, subd, TRUE,
+		exnum)) {
+		if (verify(*p_pexplorer, pexplorer)) {	
+
+			DBG_EPATH(
+					fprintf(stderr, SHELL_MAGENTA "<%d:%d",
+						(*p_pexplorer)->num_c, (*pexplorer)->num_c);
+					print_sub(subd);
+					fprintf(stderr, ">" SHELL_RESET1);
+			)
+
+			expl_cp = *p_pexplorer;
+
+			if (!next_unverified(p_perspective, p_pexplorer, p_eqwrapper,
+					p_checkpoint, p_vflags)) {
+
+				*p_pexplorer = expl_cp;
+
+				finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
+									subd);
+
+				free(eqwrapper);
+				free(pexplorer);
+				free(checkpoint);
+				free(subd);
+				
+				return FALSE;
+			}
+
+			/* if the dummy node has been reached, verification has been
+			 * successful */
+			if ((*p_pexplorer)->num == -1) {
+				DBG_VERIFY(fprintf(stderr, SHELL_GREEN "<%d:#%d",
+						expl_cp->num_c, (*pexplorer)->num_c);
+				print_sub(subd);
+				fprintf(stderr, ">" SHELL_RESET1);)
+
+				finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
+									subd);
+
+				free(eqwrapper);
+				free(pexplorer);
+				free(checkpoint);
+				free(subd);
+				
+				return TRUE;
+			}
+
+			if (ve_recursion(pexstart, p_perspective,
+					p_pexplorer, p_eqwrapper, p_checkpoint, p_vflags,
+					FALSE, exnum)) {
+				success = TRUE;
+				*p_pexplorer = expl_cp;
+				break;
+			} else {
+				*p_pexplorer = expl_cp;
+			}
+
+		} else {
+			DBG_EFAIL(
+				fprintf(stderr, SHELL_RED "<%d:%d",
+						(*p_pexplorer)->num_c, (*pexplorer)->num_c);
+				print_sub(subd);
+				fprintf(stderr, ">" SHELL_RESET1);
+			)
+		}
+	}
+
+	DBG_VERIFY(if (success) {
+		fprintf(stderr, SHELL_GREEN "<%d:#%d",
+				(*p_pexplorer)->num_c, (*pexplorer)->num_c);
+		print_sub(subd);
+		fprintf(stderr, ">" SHELL_RESET1);
+	})
+
+	finish_verify(pexplorer, &eqwrapper, checkpoint, &vflags,
+		subd);
+
+	free(eqwrapper);
+	free(pexplorer);
+	free(checkpoint);
+	free(subd);
+
+	return success;
+}
+
+VTree* collect_forward_vars(Pnode* pcollector)
+{
+	VTree* vtree;
+	VTree* newvtree;
+
+	vtree = NULL;
+
+	/* TODO: think about how to handle _variables_ during forward substitution*/
+	while (pcollector->num != -1) {
+		if (HAS_NFLAG_NEWC(pcollector)) {
+			//DBG_VERIFY(fprintf(stderr, SHELL_RED "." SHELL_RESET1);)	
+			newvtree = (VTree*) malloc(sizeof(VTree));
+			newvtree->pnode = *(pcollector->child);
+			newvtree->right = vtree;
+			newvtree->left = NULL;
+			newvtree->flags = VARFLAG_NONE;
+			if (vtree != NULL) {
+				vtree->parent = newvtree;
+				SET_VARFLAG_RGHT(vtree->flags)
+			}
+			vtree = newvtree;
+		}
+		pcollector = *(pcollector->right);
+	}
+
+	return vtree;
+}
+
+unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
+{
+	int exnum;
+
+	//TODO: pack these in one struct
+	Eqwrapper* eqwrapper;
+	Pnode** pexplorer;
+	BC** checkpoint;
+	SUB** subd;
+	VFlags vflags;
+	VTree* fw_vtree;
+
+	eqwrapper = (Eqwrapper*) malloc(sizeof(Eqwrapper));
+	pexplorer = (Pnode**) malloc(sizeof(Pnode*));
+	checkpoint = (BC**) malloc(sizeof(BC*));
+	subd = (SUB**) malloc(sizeof(SUB*));
+	
+	*pexplorer = pexstart;
+	*checkpoint = NULL;
+	*subd = NULL;
+	vflags = VFLAG_NONE;
+	exnum = pexstart->num;
+
+	bc_push(pexplorer, &eqwrapper, checkpoint, &vflags);
+
+	if (ve_recursion(pexstart, pn, pexplorer, &eqwrapper, checkpoint,
+			&vflags, TRUE, exnum)) {
+		SET_GFLAG_VRFD
+	} else {
+		DBG_VERIFY(fprintf(stderr, SHELL_BROWN "<not verified; "
+					"trying forward substitution>");)	
+
+		fw_vtree = collect_forward_vars(pexstart);
+		if (fw_vtree != NULL) {
+			//init_sub(pn, fw_vtree, &vflags, subd, TRUE);
+			init_sub(pexstart, fw_vtree, &vflags, subd, TRUE);
+			do {
+				DBG_VERIFY(
+						fprintf(stderr, SHELL_BROWN "<");
+						print_sub(subd);
+						fprintf(stderr, ">" SHELL_RESET1);
+						)
+				if (ve_recursion(pexstart, pn, pexplorer, &eqwrapper, checkpoint,
+						&vflags, TRUE, exnum)) {
+					SET_GFLAG_VRFD
+					break;
+				}
+			} while (next_sub(pn, *subd, TRUE, FALSE, 0));
+			finish_sub(&vflags, subd);
+		}
+	}
+	DBG_VERIFY(fprintf(stderr, SHELL_RESET1);)	
+	
+	bc_pop(pexplorer, &eqwrapper, checkpoint, &vflags);
+
+	free(eqwrapper);
+	free(pexplorer);
+	free(checkpoint);
+	free(subd);
+
+	return HAS_GFLAG_VRFD;
+}
+
+/* finish verification of current node cleanly */
+void finish_verify(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
+		VFlags* vflags, SUB** subd)
+{
+	if (HAS_VFLAG_BRCH(*vflags)) {
+		exit_branch(pexplorer, eqwrapper, checkpoint, vflags);
+	}
+	if (HAS_VFLAG_SUBD(*vflags)) {
+		finish_sub(vflags, subd);
+	}
+}
+/* }}} */

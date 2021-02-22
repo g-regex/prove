@@ -24,16 +24,17 @@
 #include <string.h>
 #include <stdio.h>
 
+/* --- preprocessor directives -------------------------------------------{{{ */
 #define TRUE 1
 #define FALSE 0
 
 #define DO(x) ((x) || TRUE)
 
-//#ifdef DNUM
 static short int n = 0;		/* node counter */
-//#endif
 
-/* --- navigation through graph --------------------------------------------- */
+/* }}} */
+
+/* --- navigation through graph ------------------------------------------{{{ */
 
 unsigned short int move_right(Pnode** pnode)
 {
@@ -81,7 +82,8 @@ void move_rightmost(Pnode** pnode)
 	while (move_right(pnode));
 }
 
-/* --- graph creation ------------------------------------------------------- */
+/* }}} */
+/* --- graph creation ----------------------------------------------------{{{ */
 
 void init_pgraph(Pnode** root)
 {
@@ -439,8 +441,8 @@ void equate(Pnode* p1, Pnode* p2)
 				p2->num);)
 }
 
-
-/* --- debugging ------------------------------------------------------------ */
+/* }}} */
+/* --- debugging ---------------------------------------------------------{{{ */
 
 #ifdef DTIKZ
 void print_flags(Pnode* pnode) {
@@ -476,62 +478,41 @@ void print_flags(Pnode* pnode) {
 }
 #endif
 
-/* --- memory deallocation -------------------------------------------------- */
+int get_node_count() {
+	return n;
+}
+
+/* }}} */
+/* --- memory deallocation -----------------------------------------------{{{ */
 
 void free_graph(Pnode* pnode)
 {
-	/* function would be able to start at the root,
-	 * but since the graph creation finishes at the bottom rightmost node,
-	 * we can start there */
+/* function would be able to start at the root,
+ * but since the graph creation finishes at the bottom rightmost node,
+ * we can start there */
 
-	TIKZ(fprintf(tikz, TIKZ_SYMSCOPE(max_depth));)
+TIKZ(fprintf(tikz, TIKZ_SYMSCOPE(max_depth));)
 
-	while (pnode->left != NULL || pnode->parent != NULL
-			|| HAS_CHILD(pnode)) {
-		while (HAS_RIGHT(pnode) || HAS_CHILD(pnode)) {
-			move_down(&pnode);
-			move_rightmost(&pnode);
-		}
-
-		TIKZ(print_flags(pnode);
-		if (HAS_SYMBOL(pnode)) {
-			fprintf(tikz, TIKZ_SYMNODE(pnode->num, *(pnode->symbol)));	
-			fprintf(tikz, TIKZ_SYMARROW(pnode->num));
-		})
-
-		if (pnode->parent != NULL && HAS_NFLAG_NEWC(pnode->parent)) {
-			free(*(pnode->symbol));
-			free(pnode->symbol);
-
-			free(pnode->child);
-			free(pnode->right);
-		}
-
-		//TODO: free linked list of variables
-		/*if (pnode->var != NULL) {
-			free(pnode->var);
-		}*/
-
-		//redundant
-		/*if (pnode->num == (*(pnode->equalto))->pnode->num) {
-			free(*(pnode->equalto));
-			free(pnode->equalto);
-		}*/
-
-		if (pnode->left != NULL) {
-			move_left(&pnode);
-			free(*(pnode->right));
-			free(pnode->right);
-			pnode->right = NULL;
-		} else if (pnode->parent != NULL) {
-			move_up(&pnode);
-			free(*(pnode->child));
-			free(pnode->child);
-			pnode->child = NULL;
-		}
+while (pnode->left != NULL || pnode->parent != NULL
+		|| HAS_CHILD(pnode)) {
+	while (HAS_RIGHT(pnode) || HAS_CHILD(pnode)) {
+		move_down(&pnode);
+		move_rightmost(&pnode);
 	}
 
-	TIKZ(print_flags(pnode);)
+	TIKZ(print_flags(pnode);
+	if (HAS_SYMBOL(pnode)) {
+		fprintf(tikz, TIKZ_SYMNODE(pnode->num, *(pnode->symbol)));	
+		fprintf(tikz, TIKZ_SYMARROW(pnode->num));
+	})
+
+	if (pnode->parent != NULL && HAS_NFLAG_NEWC(pnode->parent)) {
+		free(*(pnode->symbol));
+		free(pnode->symbol);
+
+		free(pnode->child);
+		free(pnode->right);
+	}
 
 	//TODO: free linked list of variables
 	/*if (pnode->var != NULL) {
@@ -544,11 +525,34 @@ void free_graph(Pnode* pnode)
 		free(pnode->equalto);
 	}*/
 
-	free(pnode);
-
-	TIKZ(fprintf(tikz, TIKZ_ENDSCOPE);)
+	if (pnode->left != NULL) {
+		move_left(&pnode);
+		free(*(pnode->right));
+		free(pnode->right);
+		pnode->right = NULL;
+	} else if (pnode->parent != NULL) {
+		move_up(&pnode);
+		free(*(pnode->child));
+		free(pnode->child);
+		pnode->child = NULL;
+	}
 }
 
-int get_node_count() {
-	return n;
+TIKZ(print_flags(pnode);)
+
+//TODO: free linked list of variables
+/*if (pnode->var != NULL) {
+	free(pnode->var);
+}*/
+
+//redundant
+/*if (pnode->num == (*(pnode->equalto))->pnode->num) {
+	free(*(pnode->equalto));
+	free(pnode->equalto);
+}*/
+
+free(pnode);
+
+TIKZ(fprintf(tikz, TIKZ_ENDSCOPE);)
 }
+/* }}} */

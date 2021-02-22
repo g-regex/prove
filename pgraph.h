@@ -14,8 +14,66 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 #ifndef PGRAPH_H
 #define PGRAPH_H
+
+/* ----------------------------- GLOBAL FLAGS ----------------------------{{{ */
+
+/* global flags needed for verification status and hints */
+typedef enum {
+	GFLAG_NONE = 0,
+	GFLAG_VRFD = 1,
+	GFLAG_PSTP = 2,
+} GFlags;
+
+GFlags gflags;  /* accessed by verify.c and proveparser.c */
+
+#define HAS_GFLAG_VRFD (gflags & GFLAG_VRFD)
+#define HAS_GFLAG_PSTP (gflags & GFLAG_PSTP)
+
+#define SET_GFLAG_VRFD gflags |= GFLAG_VRFD;
+#define SET_GFLAG_PSTP gflags |= GFLAG_PSTP;
+
+#define UNSET_GFLAG_VRFD gflags &= ~GFLAG_VRFD;
+#define UNSET_GFLAG_PSTP gflags &= ~GFLAG_PSTP;
+
+/* }}} */
+/* ------------------------------- VARIABLES -----------------------------{{{ */
+
+typedef enum {
+	VARFLAG_NONE = 0,
+	VARFLAG_LOCK = 1,
+	VARFLAG_LEFT = 2,
+	VARFLAG_RGHT = 4,
+	VARFLAG_FRST = 8,
+} VarFlags;
+
+#define HAS_VARFLAG_LOCK(flags) (flags & VARFLAG_LOCK)
+#define HAS_VARFLAG_LEFT(flags) (flags & VARFLAG_LEFT)
+#define HAS_VARFLAG_RGHT(flags) (flags & VARFLAG_RGHT)
+#define HAS_VARFLAG_FRST(flags) (flags & VARFLAG_FRST)
+
+#define SET_VARFLAG_LOCK(flags) flags |= VARFLAG_LOCK;
+#define SET_VARFLAG_LEFT(flags) flags |= VARFLAG_LEFT;
+#define SET_VARFLAG_RGHT(flags) flags |= VARFLAG_RGHT;
+#define SET_VARFLAG_FRST(flags) flags |= VARFLAG_FRST;
+
+#define UNSET_VARFLAG_LOCK(flags) flags &= ~VARFLAG_LOCK;
+#define UNSET_VARFLAG_LEFT(flags) flags &= ~VARFLAG_LEFT;
+#define UNSET_VARFLAG_RGHT(flags) flags &= ~VARFLAG_RGHT;
+#define UNSET_VARFLAG_FRST(flags) flags &= ~VARFLAG_FRST;
+
+typedef struct VTree {
+	struct Pnode* pnode;
+	struct VTree* left;
+	struct VTree* right;
+	struct VTree* parent;
+	VarFlags flags;
+} VTree;
+
+/* }}} */
+/* --------------------------------- NODES -------------------------------{{{ */
 
 typedef enum {
 	NFLAG_NONE = 0,
@@ -57,62 +115,11 @@ typedef enum {
 	if (HAS_NFLAG_TRUE(pnode)) UNSET_NFLAG_TRUE(pnode)\
 	else SET_NFLAG_TRUE(pnode)
 
+/* Has the node any formulator flags (IMPL, EQTY, FMLA)? */
 #define HAS_FFLAGS(pnode) (HAS_NFLAG_IMPL(pnode) || HAS_NFLAG_EQTY(pnode) \
 		|| HAS_NFLAG_FMLA(pnode))
 /* bitmasking the NFFLAGS */
 #define GET_NFFLAGS(pnode) (pnode->flags & 7)
-
-typedef enum {
-	GFLAG_NONE = 0,
-	GFLAG_VRFD = 1,
-	GFLAG_PSTP = 2,
-} GFlags;
-
-GFlags gflags;  /* accessed by verify.c and proveparser.c */
-
-#define HAS_GFLAG_VRFD (gflags & GFLAG_VRFD)
-#define HAS_GFLAG_PSTP (gflags & GFLAG_PSTP)
-
-#define HAS_CHILD(pnode) (pnode->child != NULL && *(pnode->child) != NULL)
-#define HAS_RIGHT(pnode) (pnode->right != NULL && *(pnode->right) != NULL)
-#define HAS_SYMBOL(pnode) (pnode->symbol != NULL && *(pnode->symbol) != NULL)
-
-#define SET_GFLAG_VRFD gflags |= GFLAG_VRFD;
-#define SET_GFLAG_PSTP gflags |= GFLAG_PSTP;
-
-#define UNSET_GFLAG_VRFD gflags &= ~GFLAG_VRFD;
-#define UNSET_GFLAG_PSTP gflags &= ~GFLAG_PSTP;
-
-typedef enum {
-	VARFLAG_NONE = 0,
-	VARFLAG_LOCK = 1,
-	VARFLAG_LEFT = 2,
-	VARFLAG_RGHT = 4,
-	VARFLAG_FRST = 8,
-} VarFlags;
-
-#define HAS_VARFLAG_LOCK(flags) (flags & VARFLAG_LOCK)
-#define HAS_VARFLAG_LEFT(flags) (flags & VARFLAG_LEFT)
-#define HAS_VARFLAG_RGHT(flags) (flags & VARFLAG_RGHT)
-#define HAS_VARFLAG_FRST(flags) (flags & VARFLAG_FRST)
-
-#define SET_VARFLAG_LOCK(flags) flags |= VARFLAG_LOCK;
-#define SET_VARFLAG_LEFT(flags) flags |= VARFLAG_LEFT;
-#define SET_VARFLAG_RGHT(flags) flags |= VARFLAG_RGHT;
-#define SET_VARFLAG_FRST(flags) flags |= VARFLAG_FRST;
-
-#define UNSET_VARFLAG_LOCK(flags) flags &= ~VARFLAG_LOCK;
-#define UNSET_VARFLAG_LEFT(flags) flags &= ~VARFLAG_LEFT;
-#define UNSET_VARFLAG_RGHT(flags) flags &= ~VARFLAG_RGHT;
-#define UNSET_VARFLAG_FRST(flags) flags &= ~VARFLAG_FRST;
-
-typedef struct VTree {
-	struct Pnode* pnode;
-	struct VTree* left;
-	struct VTree* right;
-	struct VTree* parent;
-	VarFlags flags;
-} VTree;
 
 typedef struct Pnode {
 	struct Pnode* parent;
@@ -133,6 +140,9 @@ typedef struct Pnode {
 	int num_c; /* immutable node number, not affected by substitution */
 } Pnode;
 
+#define HAS_CHILD(pnode) (pnode->child != NULL && *(pnode->child) != NULL)
+#define HAS_RIGHT(pnode) (pnode->right != NULL && *(pnode->right) != NULL)
+#define HAS_SYMBOL(pnode) (pnode->symbol != NULL && *(pnode->symbol) != NULL)
 #define CONTAINS_ID(pnode) \
 	(HAS_CHILD(pnode) && HAS_SYMBOL((*(pnode->child))) \
 	 && !HAS_RIGHT((*(pnode->child))))
@@ -141,8 +151,10 @@ typedef struct Pnode {
 	 && !HAS_RIGHT(pnode))
 #define IS_EMPTY(pnode) \
 	(!HAS_CHILD(pnode) && !HAS_SYMBOL(pnode))
-
 #define IS_INTERNAL(pnode) (pnode->symbol == NULL)
+
+/* }}} */
+/* ------------------------------- FUNCTIONS -----------------------------{{{ */
 
 /* graph creation */
 void init_pgraph(Pnode** root);
@@ -172,3 +184,5 @@ VTree* next_var(VTree* vtree);
 int get_node_count();
 
 #endif
+
+/* }}} */

@@ -180,6 +180,7 @@ void process_string(Token *token)
 		if (cmp == -1) {
 			strcpy(token->id, string);
 		} else {
+			strcpy(token->id, string); /* FIXME */
 			token->type = get_token_type(cmp);
 		}
 	}
