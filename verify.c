@@ -26,8 +26,7 @@
 #include "stdio.h"
 #endif
 
-/* --- preprocessor directives -------------------------------------------{{{ */
-
+/* --- preprocessor directives ---------------------------------------------- */
 #define TRUE 1
 #define FALSE 0
 
@@ -38,15 +37,24 @@
 	(HAS_CHILD((*pexplorer)) && (HAS_NFLAG_IMPL((*((*pexplorer)->child)))\
 			|| (!HAS_NFLAG_FRST((*pexplorer))\
 				&& HAS_NFLAG_EQTY((*((*pexplorer)->child))))))
-/* }}} */
-/* --- function prototypes -----------------------------------------------{{{ */
+
+/* --- function prototypes -------------------------------------------------- */
 unsigned short int check_asmp(Pnode* perspective, Pnode** pexplorer,
 		unsigned short int exst);
-/* }}} */
+void finish_sub(VFlags* vflags, SUB** subd);
 
-/* --- verification specific movement functions --------------------------{{{ */
-
-/* move right; if already at the right-most node, move to the left-most node */ 
+/* --- verification specific movement functions ----------------------------- */
+/* move right; if already at the right-most node, move to the left-most node */
+/*{{{*/
+/**
+ * @brief 
+ *
+ * @param pexplorer
+ * @param eqwrapper
+ * @param vflags
+ *
+ * @return 
+ */
 unsigned short int wrap_right(Pnode** pexplorer, Eqwrapper** eqwrapper,
 		VFlags* vflags)
 {
@@ -58,17 +66,30 @@ unsigned short int wrap_right(Pnode** pexplorer, Eqwrapper** eqwrapper,
 		}
 	}
 	return TRUE;
-}
-/* }}} */
-/* --- substitution ------------------------------------------------------{{{ */
+}/*}}}*/
 
-void init_known_const(Pnode* perspective, SUB* s, unsigned short int fwd)
+/* --- substitution --------------------------------------------------------- */
+
+unsigned short int init_known_const(Pnode* perspective, SUB* s, unsigned short int idonly,
+		unsigned short int exst, int exnum)
 {
-	if (fwd) {
+	if (idonly) {
 		s->known_const = perspective->prev_id;
 	} else {
 		s->known_const = perspective->prev_const;
 	}
+
+	while (s->known_const != NULL && (exst && 
+				!HAS_VARFLAG_FRST(s->vtree->flags) &&
+				s->known_const->num < exnum)) {
+		if (idonly) {
+			s->known_const = s->known_const->prev_id;
+		} else {
+			s->known_const = s->known_const->prev_const;
+		}
+	}
+
+	return (s->known_const != NULL);
 }
 
 /* substitute variable */
@@ -101,24 +122,50 @@ unsigned short int sub_var(SUB* s)
 
 /* substitutes variable(s) by the next known constant/sub-tree */
 unsigned short int next_sub(Pnode* perspective, SUB* s,
-		unsigned short int fwd, unsigned short int exst, int exnum)
+		unsigned short int idonly, unsigned short int exst, int exnum)
 {
 	SUB* s_iter;
+	unsigned short int failed_once;
+
+	//failed_once = FALSE; /* FIXME: This can be done more beautifully. */
 
 	s_iter = s;
 
 	while (s_iter != NULL) {
-			if (fwd) {
-				s_iter->known_const = s_iter->known_const->prev_id;
-			} else {
-				s_iter->known_const = s_iter->known_const->prev_const;
-			}
+
+			DBG_TMP(
+					fprintf(stderr, "x(%d,%d)", s_iter->vtree->pnode->num_c,
+						s_iter->known_const->num);
+					if (exst && !HAS_VARFLAG_FRST(s_iter->vtree->flags)) {
+						fprintf(stderr, "y");
+					} else {
+						fprintf(stderr, "*");
+					}
+			)
+
+			//do {
+				if (idonly) {
+					s_iter->known_const = s_iter->known_const->prev_id;
+				} else {
+					s_iter->known_const = s_iter->known_const->prev_const;
+				}
+			//} while (s_iter->known_const != NULL && (exst && 
+			//			!HAS_VARFLAG_FRST(s_iter->vtree->flags) &&
+			//			s_iter->known_const->num < exnum));
 
 			if (s_iter->known_const == NULL || (exst && 
 						!HAS_VARFLAG_FRST(s_iter->vtree->flags) &&
-						s_iter->known_const->num < exnum)) {
-				init_known_const(perspective, s_iter, fwd);
+						s_iter->known_const->num_c < exnum)) {
+				init_known_const(perspective, s_iter, idonly, exst, exnum);
 				sub_var(s_iter);
+				//if (!failed_once && (exst && 
+				//		!HAS_VARFLAG_FRST(s_iter->vtree->flags) &&
+				//		s_iter->known_const->num < exnum)) {
+				//	failed_once = TRUE;
+				//	continue;
+				//} else {
+				//	failed_once = FALSE;
+				//}
 				s_iter = s_iter->prev;
 			} else {
 				sub_var(s_iter);
@@ -129,23 +176,26 @@ unsigned short int next_sub(Pnode* perspective, SUB* s,
 }
 
 /* initialise substitution */
-void init_sub(Pnode* perspective, VTree* vtree, VFlags* vflags,
-		SUB** subd, unsigned short int fwd)
+unsigned short int init_sub(Pnode* perspective, VTree* vtree, VFlags* vflags,
+		SUB** subd, unsigned short int idonly, unsigned short int exst,
+		int exnum)
 {
 	SUB* prev;
 
 	vtree = init_vtree(vtree);
 	prev = *subd;
 
+	DBG_TMP(fprintf(stderr, SHELL_RED ">" SHELL_RESET1);)
 	/* only substitute, if there is anything to substitute in */
-	if ((!fwd && perspective->prev_const != NULL) 
-				|| (fwd && perspective->prev_id != NULL)) {
+	if ((!idonly && perspective->prev_const != NULL) 
+				|| (idonly && perspective->prev_id != NULL)) {
 
 		do {
 			/* - do not substitute locked variables
 			 * - do not attempt to substitute if node in vtree is holding a
 			 *   branch
 			 */
+
 			if (!HAS_VARFLAG_LOCK(vtree->flags) && vtree->pnode != NULL) {
 				SET_VARFLAG_LOCK(vtree->flags)
 
@@ -153,11 +203,15 @@ void init_sub(Pnode* perspective, VTree* vtree, VFlags* vflags,
 				(*subd)->prev = prev;
 				prev = *subd;
 
-				init_known_const(perspective, *subd, fwd);
-
 				(*subd)->sym = *(vtree->pnode->symbol);
 				(*subd)->num = vtree->pnode->parent->num;
 				(*subd)->vtree = vtree;
+
+				if (!init_known_const(perspective, *subd, idonly, exst,
+							exnum)) {
+					finish_sub(vflags, subd);
+					return FALSE;
+				}
 
 				sub_var(*subd);
 			}
@@ -166,12 +220,15 @@ void init_sub(Pnode* perspective, VTree* vtree, VFlags* vflags,
 
 		SET_VFLAG_SUBD(*vflags)
 	}
+	return TRUE;
 }
 
 /* substitute original variable symbols back in */
 void finish_sub(VFlags* vflags, SUB** subd)
 {
 	SUB* prev_sub;
+
+	DBG_TMP(fprintf(stderr, SHELL_RED "<" SHELL_RESET1);)
 
 	UNSET_VFLAG_SUBD(*vflags)
 
@@ -204,7 +261,8 @@ void print_sub(SUB** subd)
 
 	while (sub_iter != NULL) {
 		fprintf(stderr,
-			"(%s=%d)", sub_iter->sym, sub_iter->known_const->num_c);
+			"(%s=%d<-%d)", sub_iter->sym, sub_iter->known_const->num_c,
+			sub_iter->known_const->num);
 		if (HAS_VARFLAG_FRST(sub_iter->vtree->flags)) {
 			fprintf(stderr, "*");
 		}
@@ -214,8 +272,7 @@ void print_sub(SUB** subd)
 }
 #endif
 
-/* }}} */
-/* --- branching ---------------------------------------------------------{{{ */
+/* --- branching ------------------------------------------------------------ */
 
 /* implementation of a "branch checkpoint" stack to easily find the next
  * parent node of the current level to jump back to */
@@ -492,7 +549,8 @@ unsigned short int next_unverified(Pnode* perspective, Pnode** pexplorer,
 
 unsigned short int attempt_explore(Pnode* veri_perspec, Pnode* sub_perspec,
 		Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
-		VFlags* vflags, SUB** subd, unsigned short int exst, int exnum)
+		VFlags* vflags, SUB** subd, unsigned short int idonly,
+		unsigned short int exst, int exnum)
 {
 	if (EXPLORABLE) {
 		bc_push(pexplorer, eqwrapper, checkpoint, vflags);
@@ -503,20 +561,21 @@ unsigned short int attempt_explore(Pnode* veri_perspec, Pnode* sub_perspec,
 					vflags)) {
 			exit_branch(pexplorer, eqwrapper, checkpoint, vflags);
 			return next_reachable_const(veri_perspec, sub_perspec,
-					pexplorer, eqwrapper, checkpoint, vflags, subd, exst,
-					exnum);
+					pexplorer, eqwrapper, checkpoint, vflags, subd, idonly,
+					exst, exnum);
 		}
 	} else {
 		UNSET_VFLAG_BRCH(*vflags)
 	}
 	return TRUE;
 }
-/* }}} */
-/* --- backtracking ------------------------------------------------------{{{ */
+
+/* --- backtracking --------------------------------------------------------- */
 
 unsigned short int next_reachable_const(Pnode* veri_perspec, Pnode* sub_perspec,
 		Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
-		VFlags* vflags, SUB** subd, unsigned short int exst, int exnum)
+		VFlags* vflags, SUB** subd, unsigned short int idonly,
+		unsigned short int exst, int exnum)
 {
 	unsigned short int proceed;
 
@@ -535,9 +594,10 @@ unsigned short int next_reachable_const(Pnode* veri_perspec, Pnode* sub_perspec,
 		/* substitution */
 		if (HAS_VFLAG_SUBD(*vflags)) {
 
-			if (next_sub(sub_perspec, *subd, FALSE, exst, exnum)) {
+			if (next_sub(sub_perspec, *subd, idonly, exst, exnum)) {
 				return attempt_explore(veri_perspec, sub_perspec, pexplorer,
-						eqwrapper, checkpoint, vflags, subd, exst, exnum);
+						eqwrapper, checkpoint, vflags, subd, idonly, exst,
+						exnum);
 			} else {
 				finish_sub(vflags, subd);
 				proceed = TRUE;
@@ -560,17 +620,18 @@ unsigned short int next_reachable_const(Pnode* veri_perspec, Pnode* sub_perspec,
 		} else {
 			if ((*pexplorer)->vtree != NULL) {
 				init_sub(sub_perspec, (*pexplorer)->vtree,
-						vflags, subd, FALSE);
+						vflags, subd, idonly, exst, exnum);
 			}
 			return attempt_explore(veri_perspec, sub_perspec, pexplorer,
-					eqwrapper, checkpoint, vflags, subd, exst, exnum);
+					eqwrapper, checkpoint, vflags, subd, idonly,
+					exst, exnum);
 		}
 	} while (proceed);
 
 	return FALSE;
 }
-/* }}} */
-/* --- verification ------------------------------------------------------{{{ */
+
+/* --- verification --------------------------------------------------------- */
 
 /* compares two constant sub-trees;
  * must be given the top left node of the subtrees to compare */
@@ -675,7 +736,7 @@ unsigned short int verify_universal(Pnode* pn)
 	DBG_PARSER(if (HAS_GFLAG_VRFD) fprintf(stderr, "*");)
 	if (!HAS_GFLAG_VRFD || DBG_COMPLETE_IS_SET) {
 		while (next_reachable_const(pn, pn, pexplorer, &eqwrapper, checkpoint,
-					&vflags, subd, FALSE, 0)) {
+					&vflags, subd, FALSE, FALSE, 0)) {
 			if (verify(pn, pexplorer)) {
 				DBG_PARSER(fprintf(stderr, SHELL_GREEN "<#%d",
 							(*pexplorer)->num_c);)
@@ -716,7 +777,8 @@ unsigned short int verify_universal(Pnode* pn)
 unsigned short int ve_recursion(Pnode* pexstart,
 		/* parent: */
 		Pnode* p_perspective, Pnode** p_pexplorer, Eqwrapper** p_eqwrapper,
-		BC** p_checkpoint, VFlags* p_vflags, unsigned short int dbg, int exnum)
+		BC** p_checkpoint, VFlags* p_vflags, unsigned short int dbg,
+		unsigned short int idonly, int exnum)
 {
 	unsigned short int success;
 	Pnode* expl_cp; /* checkpoint for parent explorer */
@@ -744,7 +806,7 @@ unsigned short int ve_recursion(Pnode* pexstart,
 	move_rightmost(&perspective);
 
 	while (next_reachable_const(*p_pexplorer /*perspective*/, perspective,
-		pexplorer, &eqwrapper, checkpoint, &vflags, subd, TRUE,
+		pexplorer, &eqwrapper, checkpoint, &vflags, subd, idonly, TRUE,
 		exnum)) {
 		if (verify(*p_pexplorer, pexplorer)) {	
 
@@ -794,7 +856,7 @@ unsigned short int ve_recursion(Pnode* pexstart,
 
 			if (ve_recursion(pexstart, p_perspective,
 					p_pexplorer, p_eqwrapper, p_checkpoint, p_vflags,
-					FALSE, exnum)) {
+					FALSE, idonly, exnum)) {
 				success = TRUE;
 				*p_pexplorer = expl_cp;
 				break;
@@ -858,7 +920,8 @@ VTree* collect_forward_vars(Pnode* pcollector)
 	return vtree;
 }
 
-unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
+unsigned short int verify_existence(Pnode* pn, Pnode* pexstart,
+		unsigned short int idonly)
 {
 	int exnum;
 
@@ -884,7 +947,7 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 	bc_push(pexplorer, &eqwrapper, checkpoint, &vflags);
 
 	if (ve_recursion(pexstart, pn, pexplorer, &eqwrapper, checkpoint,
-			&vflags, TRUE, exnum)) {
+			&vflags, TRUE, idonly, exnum)) {
 		SET_GFLAG_VRFD
 	} else {
 		DBG_VERIFY(fprintf(stderr, SHELL_BROWN "<not verified; "
@@ -893,20 +956,22 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart)
 		fw_vtree = collect_forward_vars(pexstart);
 		if (fw_vtree != NULL) {
 			//init_sub(pn, fw_vtree, &vflags, subd, TRUE);
-			init_sub(pexstart, fw_vtree, &vflags, subd, TRUE);
-			do {
-				DBG_VERIFY(
-						fprintf(stderr, SHELL_BROWN "<");
-						print_sub(subd);
-						fprintf(stderr, ">" SHELL_RESET1);
-						)
-				if (ve_recursion(pexstart, pn, pexplorer, &eqwrapper, checkpoint,
-						&vflags, TRUE, exnum)) {
-					SET_GFLAG_VRFD
-					break;
-				}
-			} while (next_sub(pn, *subd, TRUE, FALSE, 0));
-			finish_sub(&vflags, subd);
+			if (init_sub(pexstart, fw_vtree, &vflags, subd, TRUE, FALSE,
+						exnum)) {
+				do {
+					DBG_VERIFY(
+							fprintf(stderr, SHELL_BROWN "<");
+							print_sub(subd);
+							fprintf(stderr, ">" SHELL_RESET1);
+							)
+					if (ve_recursion(pexstart, pn, pexplorer, &eqwrapper,
+								checkpoint, &vflags, TRUE, idonly, exnum)) {
+						SET_GFLAG_VRFD
+						break;
+					}
+				} while (next_sub(pn, *subd, TRUE, FALSE, 0));
+				finish_sub(&vflags, subd);
+			}
 		}
 	}
 	DBG_VERIFY(fprintf(stderr, SHELL_RESET1);)	
@@ -932,4 +997,3 @@ void finish_verify(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 		finish_sub(vflags, subd);
 	}
 }
-/* }}} */

@@ -488,7 +488,8 @@ void parse_statement(unsigned short int veri_ref) /* {{{ */
 				}
 
 				if (pnode->num > NOVERINUM && /* DEBUG!!!! */
-					do_veri && !verify_existence(*(pnode->right), pexstart)) {
+					do_veri && !verify_existence(*(pnode->right), pexstart,
+						veri_ref)) {
 					if (lvl != 0) {
 						fprintf(stderr,
 								SHELL_BROWN
