@@ -204,7 +204,7 @@ unsigned short int init_sub(Pnode* perspective, VTree* vtree, VFlags* vflags,
 {
 	SUB* prev;
 
-	vtree = init_vtree(vtree);
+	vtree = pos_in_vtree(vtree);
 	prev = *subd;
 
 	/* only substitute, if there is anything to substitute in */

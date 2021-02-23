@@ -36,6 +36,14 @@ static short int n = 0;		/* node counter */
 
 /* --- navigation through graph ------------------------------------------{{{ */
 
+/*{{{*/
+/**
+ * @brief Moves Pnode pointer to the right.
+ *
+ * @param pnode Pnode pointer to be moved
+ *
+ * @return TRUE on success
+ */
 unsigned short int move_right(Pnode** pnode)
 {
 	if (!HAS_RIGHT((*pnode))) {
@@ -44,8 +52,16 @@ unsigned short int move_right(Pnode** pnode)
 		*pnode = *((*pnode)->right);
 		return TRUE;
 	}
-}
+}/*}}}*/
 
+/*{{{*/
+/**
+ * @brief Moves Pnode pointer down.
+ *
+ * @param pnode Pnode pointer to be moved
+ *
+ * @return TRUE on success
+ */
 unsigned short int move_down(Pnode** pnode)
 {
 	if (!HAS_CHILD((*pnode))) {
@@ -54,8 +70,16 @@ unsigned short int move_down(Pnode** pnode)
 		*pnode = *((*pnode)->child);
 		return TRUE;
 	}
-}
+}/*}}}*/
 
+/*{{{*/
+/**
+ * @brief Moves Pnode pointer to the left.
+ *
+ * @param pnode Pnode pointer to be moved
+ *
+ * @return TRUE on success
+ */
 unsigned short int move_left(Pnode** pnode)
 {
 	if ((*pnode)->left == NULL) {
@@ -64,8 +88,16 @@ unsigned short int move_left(Pnode** pnode)
 		*pnode = (*pnode)->left;
 		return TRUE;
 	}
-}
+}/*}}}*/
 
+/*{{{*/
+/**
+ * @brief Moves Pnode pointer up.
+ *
+ * @param pnode Pnode pointer to be moved
+ *
+ * @return TRUE on success
+ */
 unsigned short int move_up(Pnode** pnode)
 {
 	if ((*pnode)->parent == NULL) {
@@ -74,17 +106,29 @@ unsigned short int move_up(Pnode** pnode)
 		*pnode = (*pnode)->parent;
 		return TRUE;
 	}
-}
+}/*}}}*/
 
 /* move to the right-most node in the current subtree */
+/*{{{*/
+/**
+ * @brief Move Pnode pointer to the right-most node of current level.
+ *
+ * @param pnode Pnode pointer to be moved
+ */
 void move_rightmost(Pnode** pnode)
 {
 	while (move_right(pnode));
-}
+}/*}}}*/
 
 /* }}} */
-/* --- graph creation ----------------------------------------------------{{{ */
 
+/* --- graph creation ----------------------------------------------------{{{ */
+/*{{{*/
+/**
+ * @brief Initialises a graph of Pnodes.
+ *
+ * @param root double pointer for returning address of alloced memory for root
+ */
 void init_pgraph(Pnode** root)
 {
 	gflags = GFLAG_NONE;
@@ -97,13 +141,6 @@ void init_pgraph(Pnode** root)
 	(*root)->flags = NFLAG_FRST | NFLAG_TRUE;
 	(*root)->vtree = NULL;
 	
-	/*
-	(*root)->equalto = (Variable**) malloc(sizeof(Variable*));
-	*((*root)->equalto) = (Variable*) malloc(sizeof(Variable));
-	(*((*root)->equalto))->pnode = *root;
-	(*((*root)->equalto))->next = *((*root)->equalto);
-	*/
-
 	TIKZ(fprintf(tikz, TIKZ_STARTNODE);
 	rightmost_child = 0;
 	cur_depth = 1;
@@ -114,8 +151,13 @@ void init_pgraph(Pnode** root)
 	(*root)->num_c = n;
 	n++;
 //#endif
-}
-
+}/*}}}*/
+/*{{{*/
+/**
+ * @brief Creates a child for the current node.
+ *
+ * @param pnode pointer to the current node
+ */
 void create_child(Pnode* pnode)
 {
 	Pnode* child;
@@ -127,16 +169,8 @@ void create_child(Pnode* pnode)
 	child->left = NULL;
 	child->child = child->right = NULL;
 	child->parent = pnode;
-	//child->above = pnode;
 	child->vtree = NULL;
 	child->symbol = NULL;
-
-	/*
-	child->equalto = (Variable**) malloc(sizeof(Variable*));
-	*(child->equalto) = (Variable*) malloc(sizeof(Variable));
-	(*(child->equalto))->pnode = child;
-	(*(child->equalto))->next = *(child->equalto);
-	*/
 
 	/* a newly created child will always be the first (i.e. left-most)
 	 * in the current subtree */
@@ -157,13 +191,16 @@ void create_child(Pnode* pnode)
 		max_depth = cur_depth;
 	})
 
-//#ifdef DNUM
-	child->num = n; /* DEBUG: pre-order numbering of the nodes */
+	child->num = n;
 	child->num_c = n;
 	n++;
-//#endif
-}
-
+}/*}}}*/
+/*{{{*/
+/**
+ * @brief Creates a node to the right of the current node.
+ *
+ * @param pnode pointer to the current node
+ */
 void create_right(Pnode* pnode)
 {
 	Pnode* right;
@@ -248,16 +285,14 @@ void create_right(Pnode* pnode)
 	right->num_c = n;
 	n++;
 //#endif
-}
-
-void free_right_dummy(Pnode* pnode)
-{
-	free(*(pnode->right));
-	free(pnode->right);
-	pnode->right = NULL;
-}
-
-/* TODO: currently this is just c/p from above; remove unnecessary code */
+}/*}}}*/
+/*{{{*/
+/**
+ * @brief Creates a dummy node (i.e. temporary ) to the right of the current
+ * node to provide a substitution perspective for existence verification.
+ *
+ * @param pnode pointer to current node
+ */
 void create_right_dummy(Pnode* pnode)
 {
 	Pnode* right;
@@ -298,11 +333,27 @@ void create_right_dummy(Pnode* pnode)
 
 	right->num = -1;
 	right->num_c = -1;
-}
-
-/* move leftwards through the subtree and create a linked list of all
- * identifiers, which are variables at the parent level; then move up
- * to the parent level */
+}/*}}}*/
+/*{{{*/
+/**
+ * @brief Frees the temporary dummy Pnode.
+ *
+ * @param pnode pointer to dummy Pnode
+ */
+void free_right_dummy(Pnode* pnode)
+{
+	free(*(pnode->right));
+	free(pnode->right);
+	pnode->right = NULL;
+}/*}}}*/
+/*{{{*/
+/**
+ * @brief Moves leftwards through the sub-tree, copying over formulator NFLAGS
+ * from right to left and creating a VTree for quick retrieval of variables;
+ * then moves up to the parent level.
+ *
+ * @param pnode pointer to current Pnode
+ */
 void move_and_sum_up(Pnode** pnode)
 {
 	VTree* vtree;
@@ -365,8 +416,25 @@ void move_and_sum_up(Pnode** pnode)
 		*pnode = (*pnode)->parent;
 		(*pnode)->vtree = vtree;
 	}
-}
+}/*}}}*/
+/*{{{*/
+/**
+ * @brief Sets the symbol field of a Pnode (i.e. when encountering an id or a
+ * formualtor)
+ *
+ * @param pnode pointer to current Pnode
+ * @param symbol symbol to be set
+ */
+void set_symbol(Pnode* pnode, char* symbol)
+{
+	pnode->symbol = (char**) malloc(sizeof(char*));
+	*(pnode->symbol) = (char*) malloc(sizeof(char) * MAX_ID_LENGTH);
+	strcpy(*(pnode->symbol), symbol);
+}/*}}}*/
+/*}}}*/
 
+/* --- VTree creation ----------------------------------------------------{{{ */
+/* ------ PREPROCESSOR DIRECTIVES for VTree ------------------------------{{{ */
 #define VTREE_MOVE_UP \
 	if (vtree->parent != NULL) {\
 		vtree = vtree->parent;\
@@ -375,8 +443,17 @@ void move_and_sum_up(Pnode** pnode)
 	if (vtree->left != NULL) {\
 		vtree = vtree->left;\
 	}
-
-VTree* init_vtree(VTree* vtree)
+/*}}}*/
+/*{{{*/
+/**
+ * @brief Move to the right-most position in VTree to prepare for reverser
+ * post-order traversal (optimal for substitution).
+ *
+ * @param vtree pointer to current position in VTree
+ *
+ * @return pointer to new position in VTree
+ */
+VTree* pos_in_vtree(VTree* vtree)
 {
 	if (vtree == NULL) {
 		return NULL;
@@ -386,8 +463,15 @@ VTree* init_vtree(VTree* vtree)
 		vtree = vtree->right;
 	}
 	return vtree;
-}
-
+}/*}}}*/
+/*{{{*/
+/**
+ * @brief Moves to next position in VTree reverse post-order traversal.
+ *
+ * @param vtree pointer to current position in VTree
+ *
+ * @return new position in VTree or NULL, when done
+ */
 VTree* next_var(VTree* vtree)
 {
 	if (vtree == NULL || vtree->parent == NULL) {
@@ -408,43 +492,27 @@ VTree* next_var(VTree* vtree)
 	}
 
 	return vtree;
-}
+}/*}}}*/
+/*}}}*/
 
-/* set the symbol field of a node (i.e. when encountering an identifier or
- * a formulator) */
-void set_symbol(Pnode* pnode, char* symbol)
-{
-	pnode->symbol = (char**) malloc(sizeof(char*));
-	*(pnode->symbol) = (char*) malloc(sizeof(char) * MAX_ID_LENGTH);
-	strcpy(*(pnode->symbol), symbol);
-}
-
-/* integrate pnodes in each others equality circle */
-void equate(Pnode* p1, Pnode* p2)
-{
-	/*Variable* firsteq1;
-	Variable* eq_iter1;
-	Variable* firsteq2;
-	Variable* eq_iter2;
-
-	// move to last equalto in circle
-	firsteq1 = *(p1->equalto);
-	for (eq_iter1 = firsteq1; eq_iter1->next != firsteq1; eq_iter1 = eq_iter1->next);
-	firsteq2 = *(p2->equalto);
-	for (eq_iter2 = firsteq2; eq_iter2->next != firsteq2; eq_iter2 = eq_iter2->next);
-
-	eq_iter1->next = *(p2->equalto);
-	eq_iter2->next = *(p1->equalto);*/
-
-	DBG_EQUAL(fprintf(stderr, SHELL_BROWN "(%d=%d)" SHELL_RESET1,
-				p1->num,
-				p2->num);)
-}
-
-/* }}} */
 /* --- debugging ---------------------------------------------------------{{{ */
+/*{{{*/
+/**
+ * @brief Returns current value of node counter.
+ *
+ * @return current value of node counter
+ */
+int get_node_count() {
+	return n;
+}/*}}}*/
 
 #ifdef DTIKZ
+/*{{{*/
+/**
+ * @brief Add flags to TIKZ graph; to be called when freeing the graph.
+ *
+ * @param pnode current Pnode
+ */
 void print_flags(Pnode* pnode) {
 	if (HAS_NFLAG_IMPL(pnode)) {
 		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR1 TIKZ_FLAG_B(pnode->num, 0));
@@ -475,84 +543,74 @@ void print_flags(Pnode* pnode) {
 	if (pnode->vtree != NULL) {
 		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR9 TIKZ_FLAG_B(pnode->num, 8));
 	}
-}
+}/*}}}*/
 #endif
-
-int get_node_count() {
-	return n;
-}
-
 /* }}} */
-/* --- memory deallocation -----------------------------------------------{{{ */
 
+/* --- memory deallocation -----------------------------------------------{{{ */
+/*{{{*/
+/**
+ * @brief Frees a graph of Pnodes.
+ *
+ * @param pnode Pnode to start with (preferably the bottom right one)
+ */
 void free_graph(Pnode* pnode)
 {
 /* function would be able to start at the root,
  * but since the graph creation finishes at the bottom rightmost node,
  * we can start there */
 
-TIKZ(fprintf(tikz, TIKZ_SYMSCOPE(max_depth));)
+	TIKZ(fprintf(tikz, TIKZ_SYMSCOPE(max_depth));)
 
-while (pnode->left != NULL || pnode->parent != NULL
-		|| HAS_CHILD(pnode)) {
-	while (HAS_RIGHT(pnode) || HAS_CHILD(pnode)) {
-		move_down(&pnode);
-		move_rightmost(&pnode);
+	while (pnode->left != NULL || pnode->parent != NULL
+			|| HAS_CHILD(pnode)) {
+		while (HAS_RIGHT(pnode) || HAS_CHILD(pnode)) {
+			move_down(&pnode);
+			move_rightmost(&pnode);
+		}
+
+		TIKZ(print_flags(pnode);
+			if (HAS_SYMBOL(pnode)) {
+				fprintf(tikz, TIKZ_SYMNODE(pnode->num, *(pnode->symbol)));	
+				fprintf(tikz, TIKZ_SYMARROW(pnode->num));
+			}
+		)
+
+		if (pnode->parent != NULL && HAS_NFLAG_NEWC(pnode->parent)) {
+			free(*(pnode->symbol));
+			free(pnode->symbol);
+
+			free(pnode->child);
+			free(pnode->right);
+		}
+
+		/* TODO: free linked list of variables */
+		/*if (pnode->var != NULL) {
+			free(pnode->var);
+		}*/
+
+		if (pnode->left != NULL) {
+			move_left(&pnode);
+			free(*(pnode->right));
+			free(pnode->right);
+			pnode->right = NULL;
+		} else if (pnode->parent != NULL) {
+			move_up(&pnode);
+			free(*(pnode->child));
+			free(pnode->child);
+			pnode->child = NULL;
+		}
 	}
 
-	TIKZ(print_flags(pnode);
-	if (HAS_SYMBOL(pnode)) {
-		fprintf(tikz, TIKZ_SYMNODE(pnode->num, *(pnode->symbol)));	
-		fprintf(tikz, TIKZ_SYMARROW(pnode->num));
-	})
+	TIKZ(print_flags(pnode);)
 
-	if (pnode->parent != NULL && HAS_NFLAG_NEWC(pnode->parent)) {
-		free(*(pnode->symbol));
-		free(pnode->symbol);
-
-		free(pnode->child);
-		free(pnode->right);
-	}
-
-	//TODO: free linked list of variables
+	/* TODO: free linked list of variables */
 	/*if (pnode->var != NULL) {
 		free(pnode->var);
 	}*/
 
-	//redundant
-	/*if (pnode->num == (*(pnode->equalto))->pnode->num) {
-		free(*(pnode->equalto));
-		free(pnode->equalto);
-	}*/
+	free(pnode);
 
-	if (pnode->left != NULL) {
-		move_left(&pnode);
-		free(*(pnode->right));
-		free(pnode->right);
-		pnode->right = NULL;
-	} else if (pnode->parent != NULL) {
-		move_up(&pnode);
-		free(*(pnode->child));
-		free(pnode->child);
-		pnode->child = NULL;
-	}
-}
-
-TIKZ(print_flags(pnode);)
-
-//TODO: free linked list of variables
-/*if (pnode->var != NULL) {
-	free(pnode->var);
-}*/
-
-//redundant
-/*if (pnode->num == (*(pnode->equalto))->pnode->num) {
-	free(*(pnode->equalto));
-	free(pnode->equalto);
-}*/
-
-free(pnode);
-
-TIKZ(fprintf(tikz, TIKZ_ENDSCOPE);)
-}
+	TIKZ(fprintf(tikz, TIKZ_ENDSCOPE);)
+}/*}}}*/
 /* }}} */

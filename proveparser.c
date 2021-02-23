@@ -405,7 +405,7 @@ void parse_statement(unsigned short int veri_ref) /* {{{ */
 					if (strcmp(*((*(ptmp->child))->symbol),
 								*((*(pnode->child))->symbol)) == 0) {
 						found = TRUE;
-						equate(ptmp, pnode);
+						/*equate(ptmp, pnode);*/
 						free(*((*(pnode->child))->symbol));
 						free((*(pnode->child))->symbol);
 						(*(pnode->child))->symbol =
@@ -446,7 +446,7 @@ void parse_statement(unsigned short int veri_ref) /* {{{ */
 
 		/* TODO: handle equalities */
 		if (HAS_NFLAG_EQTY(pnode)) {
-			equate(prev_node, pnode);
+			/*equate(prev_node, pnode);*/
 			prev_node = pnode;
 		}
 
