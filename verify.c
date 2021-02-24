@@ -26,7 +26,7 @@
 #include "stdio.h"
 #endif
 
-/* --- preprocessor directives -------------------------------------------{{{ */
+/* --- preprocessor directives ---------------------------------------------- */
 #define TRUE 1
 #define FALSE 0
 
@@ -37,17 +37,13 @@
 	(HAS_CHILD((*pexplorer)) && (HAS_NFLAG_IMPL((*((*pexplorer)->child)))\
 			|| (!HAS_NFLAG_FRST((*pexplorer))\
 				&& HAS_NFLAG_EQTY((*((*pexplorer)->child))))))
-/*}}}*/
 
-/* --- function prototypes -----------------------------------------------{{{ */
+/* --- function prototypes ---------------------------------------------------*/
 unsigned short int check_asmp(Pnode* perspective, Pnode** pexplorer,
 		unsigned short int exst);
 void finish_sub(VFlags* vflags, SUB** subd);
-/*}}}*/
 
-/* --- verification specific movement functions --------------------------{{{ */
-/* move right; if already at the right-most node, move to the left-most node */
-/*{{{*/
+/* --- verification specific movement functions ----------------------------- */
 /**
  * @brief Moves pexplorer to the right, if possible. Wrap around to the left, if
  * VFLAG_WRAP is set.
@@ -69,11 +65,9 @@ unsigned short int wrap_right(Pnode** pexplorer, Eqwrapper** eqwrapper,
 		}
 	}
 	return TRUE;
-}/*}}}*/
-/*}}}*/
+}
 
-/* --- substitution ------------------------------------------------------{{{ */
-/*{{{*/
+/* --- substitution --------------------------------------------------------- */
 /**
  * @brief Initialises known_const field in SUB structure to first eligible
  * constants or ids.
@@ -107,8 +101,8 @@ unsigned short int init_known_const(Pnode* perspective, SUB* s,
 	}
 
 	return (s->known_const != NULL);
-}/*}}}*/
-/*{{{*/
+}
+
 /**
  * @brief Substitutes variable specified in SUB by current value of known_const.
  *
@@ -139,8 +133,8 @@ void sub_var(SUB* s)
 	/* number has to be substituted to ensure correct handling of existential
 	 * quantifiers */
 	s->vtree->pnode->parent->num = s->known_const->num;
-}/*}}}*/
-/*{{{*/
+}
+
 /**
  * @brief Performs next substitution of variables specified in SUB. If last
  * eligible constant is reached, recursively perform next substitution on
@@ -181,8 +175,8 @@ unsigned short int next_sub(Pnode* perspective, SUB* s,
 			}
 	}
 	return FALSE; /* finish substitution */
-}/*}}}*/
-/*{{{*/
+}
+
 /**
  * @brief Initialises SUB structure for substitution.
  *
@@ -243,8 +237,8 @@ unsigned short int init_sub(Pnode* perspective, VTree* vtree, VFlags* vflags,
 	} else {
 		return FALSE;
 	}
-}/*}}}*/
-/*{{{*/
+}
+
 /**
  * @brief Substitutes original identifiers back into variable Pnodes.
  *
@@ -275,10 +269,9 @@ void finish_sub(VFlags* vflags, SUB** subd)
 		free(*subd);
 		*subd = prev_sub;
 	} while (*subd != NULL);
-}/*}}}*/
+}
 
 #ifdef DVERIFY
-/*{{{*/
 /**
  * @brief Prints debugging information about substitution.
  *
@@ -305,12 +298,10 @@ void print_sub(SUB** subd)
 
 		sub_iter = sub_iter->prev;
 	}
-}/*}}}*/
+}
 #endif
-/*}}}*/
 
-/* --- branching ---------------------------------------------------------{{{ */
-/*{{{*/
+/* --- branching ------------------------------------------------------------ */
 /**
  * @brief Pushes a new branch checkpoint on a stack.
  *
@@ -333,8 +324,8 @@ void bc_push(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 	bctos->pendwrap = (*eqwrapper)->pendwrap;
 	bctos->above = *checkpoint;
 	*checkpoint = bctos;
-}/*}}}*/
-/*{{{*/
+}
+
 /**
  * @brief Pops information from the BC stack and copies it over to the
  * corresponding variables.
@@ -370,8 +361,8 @@ void bc_pop(Pnode** pnode, Eqwrapper** eqwrapper, BC** checkpoint,
 
 	*checkpoint = (*checkpoint)->above;
 	free(bcold);
-}/*}}}*/
-/*{{{*/
+}
+
 /**
  * @brief Moves pexplorer to its child node, if it is considered EXPLORABLE.
  *
@@ -399,8 +390,8 @@ unsigned short int explore_branch(Pnode** pexplorer, Eqwrapper** eqwrapper,
 	} else {
 		return FALSE;
 	}
-}/*}}}*/
-/*{{{*/
+}
+
 /**
  * @brief Moves pexplorer back to parent level and restores all relevant
  * information.
@@ -418,8 +409,8 @@ void exit_branch(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 	}
 	UNSET_VFLAG_BRCH(*vflags)
 	UNSET_VFLAG_FRST(*vflags)
-}/*}}}*/
-/* ------ PREPROCESSOR DIRECTIVES for branching --------------------------{{{ */
+}
+/* ------ PREPROCESSOR DIRECTIVES for branching ----------------------------- */
 #define POP \
 	if ((*checkpoint)->above == NULL) {\
 		return FALSE; /* last pop is done by exit_branch */\
@@ -453,8 +444,7 @@ void exit_branch(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 	do {\
 		wrap_right(pexplorer, eqwrapper, vflags);\
 	} while (HAS_SYMBOL((*pexplorer)));
-/*}}}*/
-/*{{{*/
+
 /**
  * @brief Move up in branch and proceed with exploration to the right, if
  * possible.
@@ -476,8 +466,8 @@ unsigned short int branch_proceed(Pnode** pexplorer, Eqwrapper** eqwrapper,
 		}
 	}
 	return TRUE;
-}/*}}}*/
-/*{{{*/
+}
+
 /**
  * @brief Move pexplorer to next reachable Pnode in branch or return FALSE.
  *
@@ -601,8 +591,8 @@ unsigned short int next_in_branch(Pnode* perspective, Pnode** pexplorer,
 	} while (proceed);
 
 	return FALSE;
-}/*}}}*/
-/*{{{*/
+}
+
 /**
  * @brief Moves pexplorer to next unchecked Pnode (for existence and case-based
  * verification); basically a copy on next_in_branch with some small
@@ -652,8 +642,8 @@ unsigned short int next_unchecked(Pnode** pexplorer,
 	} while (proceed);
 
 	return TRUE;
-}/*}}}*/
-/*{{{*/
+}
+
 /**
  * @brief Attempts to explore a new branch (as opposed to trying to explore a
  * sub-branch)
@@ -693,8 +683,8 @@ unsigned short int attempt_explore(Pnode* veri_perspec, Pnode* sub_perspec,
 		UNSET_VFLAG_BRCH(*vflags)
 	}
 	return TRUE;
-}/*}}}*/
-/*{{{*/
+}
+
 /**
  * @brief Clone of attempt_explore for case-based verification;
  * TODO: To be merged with attempt_explore in future.
@@ -724,18 +714,16 @@ unsigned short int attempt_explore_c(Pnode* sub_perspec, Pnode** pexplorer,
 					FALSE)) {
 			exit_branch(pexplorer, eqwrapper, checkpoint, vflags);
 			return next_conclusion(sub_perspec, pexplorer, eqwrapper,
-					checkpoint, vflags, subd);
-		}
-	} else {
-		UNSET_VFLAG_BRCH(*vflags)
+				checkpoint, vflags, subd);
 	}
-	return TRUE;
-}/*}}}*/
-/*}}}*/
+} else {
+	UNSET_VFLAG_BRCH(*vflags)
+}
+return TRUE;
+}
 
-/* --- backtracking ------------------------------------------------------{{{ */
+/* --- backtracking --------------------------------------------------------- */
 
-/*{{{*/
 /**
  * @brief Moves pexplorer to next reachable constant sub-tree, using branching
  * and substitution if necessary.
@@ -812,7 +800,7 @@ unsigned short int next_reachable_const(Pnode* veri_perspec,
 	} while (proceed);
 
 	return FALSE;
-}/*}}}*/
+}
 
 unsigned short int next_conclusion(Pnode* sub_perspec, Pnode** pexplorer,
 		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags, SUB** subd)
@@ -870,10 +858,8 @@ unsigned short int next_conclusion(Pnode* sub_perspec, Pnode** pexplorer,
 
 	return FALSE;
 }
-/*}}}*/
 
-/* --- verification ------------------------------------------------------{{{ */
-/*{{{*/
+/* --- verification --------------------------------------------------------- */
 /**
  * @brief Compares two constant sub-trees.
  *
@@ -927,8 +913,8 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 	equal &= (IS_EMPTY(p1) == IS_EMPTY(p2));
 	
 	return equal;
-}/*}}}*/
-/*{{{*/
+}
+
 /**
  * @brief Compares two sub-trees with each other by calling const_equal. The
  * function is basically just a safety net for the case, when pnode or pexplorer
@@ -949,10 +935,8 @@ unsigned short int verify(Pnode* pnode, Pnode** pexplorer)
 	}
 	return const_equal(*((*pexplorer)->child), *(pnode->child));
 	/* TODO: only when other verification fails, take equalities into account */
-}/*}}}*/
+}
 
-/* checks assumption in pexplorer from the perspective of 'perspective' */
-/*{{{*/
 /**
  * @brief Tries to verify an assumption
  *
@@ -978,11 +962,10 @@ unsigned short int check_asmp(Pnode* perspective, Pnode** pexplorer,
 		}
 	}
 	return FALSE;
-}/*}}}*/
+}
 
 #if 0
 /* REDUNDANT? */
-/*{{{*/
 /**
  * @brief Triggers universal verification of a Pnode
  *
@@ -1049,10 +1032,9 @@ unsigned short int verify_universal(Pnode* pn)
 		}*/
 	}
 	return TRUE;
-}/*}}}*/
+}
 #endif
 
-/*{{{*/
 /**
  * @brief Recursively tries to verified a list of nodes for existence.
  *
@@ -1184,8 +1166,8 @@ unsigned short int ve_recursion(Pnode* pexstart,
 	free(subd);
 
 	return success;
-}/*}}}*/
-/*{{{*/
+}
+
 /**
  * @brief Collects variables for forward substituion during existence
  * verification - currently only at top-most level.
@@ -1220,8 +1202,8 @@ VTree* collect_forward_vars(Pnode* pcollector)
 	}
 
 	return vtree;
-}/*}}}*/
-/*{{{*/
+}
+
 /**
  * @brief Triggers existence verification of a list of Pnodes.
  *
@@ -1295,8 +1277,8 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart,
 	free(subd);
 
 	return HAS_GFLAG_VRFD;
-}/*}}}*/
-/*{{{*/
+}
+
 /**
  * @brief Attempts to verify a Pnode based on the consideration of different
  * cases.
@@ -1342,8 +1324,8 @@ unsigned short int verify_cases(Pnode* pn)
 	free(pexplorer);
 
 	return FALSE;
-}/*}}}*/
-/*{{{*/
+}
+
 /**
  * @brief Cleanly finishes verification by exiting explored branches and
  * finishing substitution.
@@ -1363,5 +1345,4 @@ void finish_verify(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 	if (HAS_VFLAG_SUBD(*vflags)) {
 		finish_sub(vflags, subd);
 	}
-}/*}}}*/
-/*}}}*/
+}
