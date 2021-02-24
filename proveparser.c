@@ -231,7 +231,7 @@ void parse_formula(void) /* {{{ */
 	
 	if (token.type == TOK_SYM) {
 		set_symbol(pnode, token.id);	
-		DBG_PARSER(fprintf(stderr, "%s", *(pnode->symbol));)
+		DBG_PARSER(fprintf(stderr, "%s", *(pnode->symbol)););
 		next_token(&token);
 		if (token.type == TOK_RBRACK) {
 			/* token is an identifier */
@@ -248,12 +248,12 @@ void parse_formula(void) /* {{{ */
 		}
 	} else if (IS_IMPL_TYPE_TOK(token.type)) {
 		set_symbol(pnode, token.id);	
-		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1, recall_chars());)
-		DBG_PARSER(fprintf(stderr, "%s", token.id);)
+		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1, recall_chars()););
+		DBG_PARSER(fprintf(stderr, "%s", token.id););
 		/* token is an implication symbol */
 		veri_ref = (token.type == TOK_REF);
 		next_token(&token);
-		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1, recall_chars());)
+		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1, recall_chars()););
 		if (token.type == TOK_RBRACK) {
 			/* statements must not contain only an implication symbol */
 			/* ERROR */
@@ -269,7 +269,7 @@ void parse_formula(void) /* {{{ */
 			return;
 		}
 	} else if (token.type == TOK_EQ) {
-		DBG_PARSER(fprintf(stderr, "%s", token.id);)
+		DBG_PARSER(fprintf(stderr, "%s", token.id););
 		/* statements must not begin with an equality token */
 		/* ERROR */
 		return;
@@ -289,7 +289,7 @@ void parse_formula(void) /* {{{ */
 	/* TODO perform some check for ERRORS (wrt to EQ and IMP positioning */
 	while (proceed) {
 		if (IS_FORMULATOR(token.type)) {
-			DBG_PARSER(fprintf(stderr, "%s", token.id);)
+			DBG_PARSER(fprintf(stderr, "%s", token.id););
 			set_symbol(pnode, token.id);
 			check_conflict(pnode, token.type);
 
@@ -306,7 +306,7 @@ void parse_formula(void) /* {{{ */
 			if (!IS_FORMULATOR(token.type)) {
 				return;
 			} else {
-				DBG_PARSER(fprintf(stderr, "%s", token.id);)
+				DBG_PARSER(fprintf(stderr, "%s", token.id););
 
 				create_right(pnode);
 				move_right(&pnode);
@@ -347,19 +347,19 @@ void parse_statement(unsigned short int veri_ref) /* {{{ */
 		found = FALSE;
 		lvl++;
 		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1,
-					recall_chars());)
-		DBG_PARSER(fprintf(stderr, "%s", token.id);)
+					recall_chars()););
+		DBG_PARSER(fprintf(stderr, "%s", token.id););
 
 		/*neg = FALSE;
 		if (token.type == TOK_NOT) {
 			neg = TRUE;
 			next_token(&token);
-			DBG_PARSER(fprintf(stderr, "%s", token.id);)
+			DBG_PARSER(fprintf(stderr, "%s", token.id););
 		}*/
 
 		expect(TOK_LBRACK);
 		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1,
-					recall_chars());)
+					recall_chars()););
 		if (HAS_GFLAG_VRFD) {
 			UNSET_GFLAG_VRFD
 		}
@@ -377,8 +377,8 @@ void parse_statement(unsigned short int veri_ref) /* {{{ */
 		parse_expr();
 
 		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1,
-					recall_chars());)
-		DBG_PARSER(fprintf(stderr, "%s", token.id);)
+					recall_chars()););
+		DBG_PARSER(fprintf(stderr, "%s", token.id););
 		expect(TOK_RBRACK);
 		lvl--;
 
@@ -397,7 +397,7 @@ void parse_statement(unsigned short int veri_ref) /* {{{ */
 			SET_GFLAG_PSTP
 			pexstart = pnode;
 			DBG_VERIFY(fprintf(stderr, SHELL_BOLD "{%d}>"
-						SHELL_RESET2, pnode->num);)
+						SHELL_RESET2, pnode->num););
 		}
 
 		/* check whether a new identifier was introduced */
@@ -489,7 +489,7 @@ void parse_statement(unsigned short int veri_ref) /* {{{ */
 						} else {
 							fprintf(stderr, SHELL_BOLD "|" SHELL_RESET2);
 						}
-				)
+				);
 				create_right_dummy(pnode);
 
 				/* TODO: Introduce precedence for verification functions.
@@ -510,22 +510,40 @@ void parse_statement(unsigned short int veri_ref) /* {{{ */
 								SHELL_BROWN
 								"<verification postponed to parent level>"
 								SHELL_RESET1
-								"\n",
-								cursor.line, cursor.col);
+								"\n");
 					} else {
 						/* TODO: Try different verification strategies here.
 						 * Next strategy to implement: Consideration of cases.
 						 **/
-						fprintf(stderr,
-								SHELL_RED
-								"verification failed on line %d, column %d"
-								SHELL_RESET1
-								"\n",
-								cursor.line, cursor.col);
-						if (!DBG_FINISH_IS_SET) {
-							exit(EXIT_FAILURE);
+						if (pnode->num != pexstart->num) {
+							fprintf(stderr,
+									SHELL_RED
+									"verification failed on line %d, column %d"
+									SHELL_RESET1
+									"\n",
+									cursor.line, cursor.col);
+							if (!DBG_FINISH_IS_SET) {
+								exit(EXIT_FAILURE);
+							} else {
+								success = EXIT_FAILURE;
+							}
 						} else {
-							success = EXIT_FAILURE;
+							fprintf(stderr,
+									SHELL_BROWN
+									"<trying case-based verification>"
+									SHELL_RESET1);
+							if (!verify_cases(pnode)) {
+								fprintf(stderr,
+										SHELL_RED
+										"verification failed on line %d, "
+										"column %d" SHELL_RESET1 "\n",
+										cursor.line, cursor.col);
+								if (!DBG_FINISH_IS_SET) {
+									exit(EXIT_FAILURE);
+								} else {
+									success = EXIT_FAILURE;
+								}
+							}
 						}
 					}
 				}	
@@ -535,7 +553,7 @@ void parse_statement(unsigned short int veri_ref) /* {{{ */
 			}
 		}
 		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1,
-					recall_chars());) 
+					recall_chars());); 
 	}
 }
 /* }}} */
@@ -578,7 +596,7 @@ void check_conflict(Pnode* pnode, TType ttype)
 			for (int i = 0; i < lvl; i++ ) {
 				fprintf(stderr, "\t");
 			}
-		}) */
+		}); */
 
 		if (!HAS_FFLAGS(pnode)) {
 			SET_NFLAG_IMPL(pnode)
