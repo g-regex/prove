@@ -15,6 +15,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/* definition of error exit codes */
+#define ERR_SYNTAX 2
+
+/* help text */
 #ifdef DEBUG
 #ifdef MD
 #define MDC "`"
@@ -31,18 +35,22 @@
 	"<filename>" MDC "\n" MDN
 
 #define HELP \
-	"\n" MDS "GENERAL options:" MDS "\n\n" MDN\
+		"\n" MDS "GENERAL options:" MDS "\n\n" MDN\
 	MDC "--help" MDC "\tdisplay this message\n" MDN\
-	"\n" MDS "DEBUGGING options:" MDS "\n\n" MDN\
+		"\n" MDS "DEBUGGING options:" MDS "\n\n" MDN\
 	MDC "--dparser" MDC "  \tactivate debugging output for parser\n" MDN\
-	MDC "--dequal" MDC "  \tactivate debugging output for circular linked list for equalities\n" MDN\
+	MDC "--dequal" MDC "  \tactivate debugging output for circular linked "\
+		"list for equalities\n" MDN\
 	MDC "--dgraph" MDC "   \tactivate debugging output for graph creation "\
 	 			"(implies " MDC "--dparser" MDC ")\n" MDN\
 	MDC "--dverify" MDC "  \tactivate debugging output for verification "\
 	 			"(implies " MDC "--dparser" MDC ")\n" MDN\
-	MDC "--dtikz" MDC "    \tgenerate TikZ graph representation in ./debug/\n" MDN\
-	MDC "--dcomplete" MDC "\tdo not break verification loop after first success\n" MDN\
-	MDC "--dfinish" MDC "  \tfinish execution, even if verification fails\n" MDN\
+	MDC "--dtikz" MDC "    \tgenerate TikZ graph representation in "\
+		"./debug/\n" MDN\
+	MDC "--dcomplete" MDC "\tdo not break verification loop after first "\
+		"success\n" MDN\
+	MDC "--dfinish" MDC "  \tfinish execution, even if verification "\
+		"fails\n" MDN\
 	MDC "--dall" MDC "     \tactivate all debugging options\n" MDN
 
 #else

@@ -59,12 +59,20 @@ unsigned short int success = EXIT_SUCCESS;
 unsigned short int do_veri = TRUE;
 /* }}} */
 
-int main(int argc, char *argv[]) /* {{{ */
+/*{{{*/
+/**
+ * @brief main function of the [prove]-parser
+ *
+ * @param argc number of command-line arguments
+ * @param argv[] command-line arguments
+ *
+ * @return 0 or error code
+ */
+int main(int argc, char *argv[])
 {
 	struct stat st = {0};			/* for checking directory existence */
 	unsigned short int i;
 
-	/* {{{ */
 	dbgops = DBG_NONE;
 #ifdef DTIKZ
 	char* tikzfile;
@@ -181,11 +189,7 @@ int main(int argc, char *argv[]) /* {{{ */
 	prev_node = NULL;
 	init_pgraph(&pnode);
 
-	/* <expr>
-	 * (loop probably not needed) */
-	//while (token.type != TOK_EOF) {
-		parse_expr();
-	//}
+	parse_expr();
 	expect(TOK_EOF);
 
 	TIKZ(fprintf(tikz, TIKZ_ENDSCOPE);)
@@ -201,16 +205,16 @@ int main(int argc, char *argv[]) /* {{{ */
 			get_node_count());
 	mpz_out_str(stdout, 10, comp_count);
 	mpz_clear(comp_count);
-	printf("\n" SHELL_RESET1); /* }}} */
+	printf("\n" SHELL_RESET1);
 
 	if (!do_veri) {
 		return EXIT_SUCCESS;
 	} else {
 		return success;
 	}
-} /* }}} */
+}/*}}}*/
 
-/* --- parser functions ----------------------------------------------------- */
+/* --- parser functions --------------------------------------------------{{{ */
 void parse_expr(void) /* {{{ */
 {
 	/* maybe the EBNF should be altered a bit,
@@ -331,10 +335,10 @@ void parse_statement(unsigned short int veri_ref) /* {{{ */
 									   found during backtracking */
 	/*unsigned short int neg;*/		/* set, if current pair of brackets is
 									   negated */
-	unsigned short int vstatus;		/* verification status */
+	/*unsigned short int vstatus;*/	/* verification status */
 
 	proceed = TRUE;
-	vstatus = TRUE;
+	/*vstatus = TRUE;*/
 
 	pexstart = NULL; /* NULLed to make sure that existence will only be
 						verified on the same level */
@@ -451,6 +455,7 @@ void parse_statement(unsigned short int veri_ref) /* {{{ */
 		}
 
 		/* FIXME: Has this become redundant? */
+#if 0
 		if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)
 				&& !HAS_GFLAG_VRFD && !HAS_GFLAG_PSTP) {
 			/* universal verification is triggered here */
@@ -469,19 +474,29 @@ void parse_statement(unsigned short int veri_ref) /* {{{ */
 				}
 			}
 		}
+#endif
 
-		/* TODO: Introduce precedence for verification functions. Implement this
-		 * through an array of function pointers */
 		if (token.type != TOK_LBRACK /*&& token.type != TOK_NOT*/) {
 			proceed = FALSE;
 
 			/* trigger existence verification here */
 			if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)
 					&& HAS_GFLAG_PSTP && pexstart != NULL) {
-				DBG_VERIFY(fprintf(stderr, SHELL_BOLD "<{%d}" SHELL_RESET2,
-							pnode->num);)
+				DBG_VERIFY(
+						if (pnode->num != pexstart->num) {
+							fprintf(stderr, SHELL_BOLD "<{%d}" SHELL_RESET2,
+								pnode->num);
+						} else {
+							fprintf(stderr, SHELL_BOLD "|" SHELL_RESET2);
+						}
+				)
 				create_right_dummy(pnode);
 
+				/* TODO: Introduce precedence for verification functions.
+				 * Implement this through an array of function pointers.
+				 * Currently "reference implication" _enforces_ id-only
+				 * substitution, but it should be handled as a _hint_ only
+				 * without changing the actual meaning of an implication. */
 				if (veri_ref) {
 					DBG_PARSER(fprintf(stderr, SHELL_MAGENTA "<REF>"
 								SHELL_RESET1);)
@@ -501,7 +516,6 @@ void parse_statement(unsigned short int veri_ref) /* {{{ */
 						/* TODO: Try different verification strategies here.
 						 * Next strategy to implement: Consideration of cases.
 						 **/
-
 						fprintf(stderr,
 								SHELL_RED
 								"verification failed on line %d, column %d"
@@ -525,11 +539,15 @@ void parse_statement(unsigned short int veri_ref) /* {{{ */
 	}
 }
 /* }}} */
+/*}}}*/
 
-/* --- helpers -------------------------------------------------------------- */
-/* void expect(TType type) {{{
- * checks, whether the current token is of desired type and reports an
- * error otherwise
+/* --- helpers -----------------------------------------------------------{{{ */
+/*{{{*/
+/**
+ * @brief Checks, whether the current token is of desired type and reports an
+ * error otherwise.
+ *
+ * @param type type of the current token
  */
 void expect(TType type)
 {
@@ -540,13 +558,16 @@ void expect(TType type)
 		fprintf(stderr, "unexpected token on line %d, column %d; expected %s, "
 				"but found %s\n",
 				 cursor.line, cursor.col, toktype[type], toktype[token.type]);
-		exit(EXIT_FAILURE);
+		exit(ERR_SYNTAX);
 	}
-}
-/* }}} */
-/* void check_conflict(Pnode* pnode, TType ttype) {{{
- * checks, whether the current formulator type is conflicting with other
- * formulators in the current formula
+}/*}}}*/
+/*{{{*/
+/**
+ * @brief Checks whether the current formulator type is conflicting with other
+ * formulators in the currently processed formula.
+ *
+ * @param pnode pointer to current node
+ * @param ttype type of currently processed token
  */
 void check_conflict(Pnode* pnode, TType ttype)
 {
@@ -566,7 +587,7 @@ void check_conflict(Pnode* pnode, TType ttype)
 		} else {
 			fprintf(stderr, "unexpected IMPL_TYPE_TOK "
 				"on line %d, column %d\n", cursor.line, cursor.col);
-			exit(EXIT_FAILURE);
+			exit(ERR_SYNTAX);
 		}
 	} else if (ttype == TOK_EQ) {
 		if (!HAS_FFLAGS(pnode)) {
@@ -578,7 +599,7 @@ void check_conflict(Pnode* pnode, TType ttype)
 		} else {
 			fprintf(stderr, "unexpected TOK_EQ "
 				"on line %d, column %d\n", cursor.line, cursor.col);
-			exit(EXIT_FAILURE);
+			exit(ERR_SYNTAX);
 		}
 	} else if (ttype == TOK_SYM) {
 		if (!HAS_FFLAGS(pnode)) {
@@ -588,12 +609,12 @@ void check_conflict(Pnode* pnode, TType ttype)
 		} else {
 			fprintf(stderr, "unexpected TOK_SYM "
 				"on line %d, column %d\n", cursor.line, cursor.col);
-			exit(EXIT_FAILURE);
+			exit(ERR_SYNTAX);
 		}
 	} else {
 		fprintf(stderr, "unexpected error "
 			"on line %d, column %d\n", cursor.line, cursor.col);
-		exit(EXIT_FAILURE);
+		exit(ERR_SYNTAX);
 	}
-}
-/* }}} */
+}/*}}}*/
+/*}}}*/

@@ -291,9 +291,14 @@ void print_sub(SUB** subd)
 	sub_iter = *subd;
 
 	while (sub_iter != NULL) {
-		fprintf(stderr,
-			"(%s=%d<-%d)", sub_iter->sym, sub_iter->known_const->num_c,
-			sub_iter->known_const->num);
+		if (sub_iter->known_const->num_c != sub_iter->known_const->num) {
+			fprintf(stderr,
+				"(%s=%d<-%d)", sub_iter->sym, sub_iter->known_const->num_c,
+				sub_iter->known_const->num);
+		} else {
+			fprintf(stderr,
+				"(%s=%d)", sub_iter->sym, sub_iter->known_const->num_c);
+		}
 		if (HAS_VARFLAG_FRST(sub_iter->vtree->flags)) {
 			fprintf(stderr, "*");
 		}

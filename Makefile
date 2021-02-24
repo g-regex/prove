@@ -103,7 +103,12 @@ runchecks:
 	for T in `ls testcases/valid/*.prove |  sort -V`
 	do
 		$(BINDIR)/proveparser $$T $(CHECKARGS) 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
-		if (test $$? -eq 1)
+		SUCCESS=$$?
+		if (test $$SUCCESS -eq 2)
+		then
+			rm -f debug/$$(basename $$T .prove).tex &> /dev/null
+		fi
+		if (test $$SUCCESS -ne 0)
 		then
 			printf "%-50s[\033[0;31m failure \033[0;0m]\n" $$T
 			printf ">>> [VALID] $$(basename $$T):\n" >> testcases/out/report_failure.txt
@@ -130,9 +135,13 @@ runchecks:
 	for T in `ls testcases/invalid/*.prove |  sort -V`
 	do
 		$(BINDIR)/proveparser $$T $(CHECKARGS) 2> testcases/out/$$(basename $$T).err > testcases/out/$$(basename $$T).out
-		if (test $$? -eq 0)
+		SUCCESS=$$?
+		if (test $$SUCCESS -eq 2)
 		then
 			rm -f debug/$$(basename $$T .prove).tex &> /dev/null
+		fi
+		if (test $$SUCCESS -eq 0)
+		then
 			printf "%-50s[\033[0;31m failure \033[0;0m]\n" $$T
 			printf ">>> [INVALID] $$(basename $$T):\n" >> testcases/out/report_failure.txt
 			printf " >> original file:\n" >> testcases/out/report_failure.txt
@@ -144,7 +153,6 @@ runchecks:
 			printf "\n" >> testcases/out/report_failure.txt
 			S=1
 		else
-			rm -f debug/$$(basename $$T .prove).tex &> /dev/null
 			printf "%-50s[\033[0;32m success \033[0;0m]\n" $$T
 			printf ">>> [INVALID] $$(basename $$T):\n" >> testcases/out/report_success.txt
 			printf " >> original file:\n" >> testcases/out/report_success.txt
