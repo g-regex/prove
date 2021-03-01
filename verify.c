@@ -824,7 +824,7 @@ unsigned short int next_conclusion(Pnode* sub_perspec, Pnode** pexplorer,
 		}
 
 		/* substitution */
-		if (HAS_VFLAG_SUBD(*vflags)) {
+		/*if (HAS_VFLAG_SUBD(*vflags)) {
 
 			if (next_sub(sub_perspec, *subd, FALSE, FALSE, 0)) {
 				return attempt_explore_c(sub_perspec, pexplorer,
@@ -834,7 +834,7 @@ unsigned short int next_conclusion(Pnode* sub_perspec, Pnode** pexplorer,
 				proceed = TRUE;
 				continue;
 			}
-		}
+		}*/
 
 		/* backtracking */
 		do {
@@ -851,10 +851,10 @@ unsigned short int next_conclusion(Pnode* sub_perspec, Pnode** pexplorer,
 		} /*else {
 			return TRUE;
 		}*/ else {
-			if ((*pexplorer)->vtree != NULL) {
+			/*if ((*pexplorer)->vtree != NULL) {
 				init_sub(sub_perspec, (*pexplorer)->vtree,
 						vflags, subd, FALSE, FALSE, 0);
-			}
+			}*/
 			return attempt_explore_c(sub_perspec, pexplorer,
 					eqwrapper, checkpoint, vflags, subd);
 		}/**/
@@ -1314,14 +1314,14 @@ unsigned short int verify_cases(Pnode* pn)
 
 		/* FIXME: This is not working because another substitution mechanism
 		 * (or no substitution) is needed. Proceed work here. */
-		if (verify(pn, pexplorer)) {
+		/*if (verify(pn, pexplorer)) {*/
 			DBG_VERIFY(
 					fprintf(stderr, SHELL_MAGENTA "<%d:",
 						(*pexplorer)->num_c);
 					print_sub(subd);
 					fprintf(stderr, ">" SHELL_RESET1);
 					);
-		}
+		/*}*/
 
 	}
 
