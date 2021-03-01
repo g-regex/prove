@@ -28,13 +28,13 @@
 #include "pgraph.h"
 #include "error.h"
 
-/* --- preprocessor directives -------------------------------------------{{{ */
+/* --- preprocessor directives ---------------------------------------------- */
 #define TRUE 1
 #define FALSE 0
 
 #define NOVERINUM 0
-/* }}} */
-/* --- global variables --------------------------------------------------{{{ */
+
+/* --- global variables ----------------------------------------------------- */
 
 char* toktype[] = {"TOK_EOF", "TOK_LBRACK", "TOK_RBRACK", "TOK_IMPLY",
 	"TOK_REF", "TOK_EQ", /*"TOK_NOT",*/ "TOK_SYM"};
@@ -46,8 +46,8 @@ FILE*    file;                      /* [prove] source file					*/
 
 static unsigned short int lvl;      /* level/depth of current node in tree	*/
 
-/* }}} */
-/* --- function prototypes -----------------------------------------------{{{ */
+
+/* --- function prototypes -------------------------------------------------- */
 void parse_expr(void);
 void parse_formula(void);
 void parse_statement(unsigned short int veri_ref);
@@ -57,9 +57,7 @@ void check_conflict(Pnode* pnode, TType ttype);
 
 unsigned short int success = EXIT_SUCCESS;
 unsigned short int do_veri = TRUE;
-/* }}} */
 
-/*{{{*/
 /**
  * @brief main function of the [prove]-parser
  *
@@ -214,15 +212,15 @@ int main(int argc, char *argv[])
 	}
 }/*}}}*/
 
-/* --- parser functions --------------------------------------------------{{{ */
-void parse_expr(void) /* {{{ */
+/* --- parser functions ----------------------------------------------------- */
+void parse_expr(void)
 {
 	/* maybe the EBNF should be altered a bit,
 	 * this seems to be a bit non-sensical */
 	parse_formula();
 }
-/* }}} */
-void parse_formula(void) /* {{{ */
+
+void parse_formula(void)
 {
 	int proceed;
 	unsigned short int veri_ref;
@@ -324,8 +322,8 @@ void parse_formula(void) /* {{{ */
 	}
 	prev_node = NULL;
 }
-/* }}} */
-void parse_statement(unsigned short int veri_ref) /* {{{ */
+
+void parse_statement(unsigned short int veri_ref)
 {
 	Pnode* ptmp;
 	Pnode* pexstart;				/* to remember first node for verifying
@@ -333,12 +331,8 @@ void parse_statement(unsigned short int veri_ref) /* {{{ */
 	int proceed;
 	unsigned short int found;		/* indicating whether an identifier has been
 									   found during backtracking */
-	/*unsigned short int neg;*/		/* set, if current pair of brackets is
-									   negated */
-	/*unsigned short int vstatus;*/	/* verification status */
 
 	proceed = TRUE;
-	/*vstatus = TRUE;*/
 
 	pexstart = NULL; /* NULLed to make sure that existence will only be
 						verified on the same level */
@@ -349,13 +343,6 @@ void parse_statement(unsigned short int veri_ref) /* {{{ */
 		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1,
 					recall_chars()););
 		DBG_PARSER(fprintf(stderr, "%s", token.id););
-
-		/*neg = FALSE;
-		if (token.type == TOK_NOT) {
-			neg = TRUE;
-			next_token(&token);
-			DBG_PARSER(fprintf(stderr, "%s", token.id););
-		}*/
 
 		expect(TOK_LBRACK);
 		DBG_PARSER(fprintf(stderr, SHELL_CYAN "%s" SHELL_RESET1,
@@ -368,9 +355,6 @@ void parse_statement(unsigned short int veri_ref) /* {{{ */
 			create_right(pnode);
 			move_right(&pnode);
 		}
-		/*if (neg) {
-			TOGGLE_NFLAG_TRUE(pnode)
-		}*/
 		create_child(pnode);
 		move_down(&pnode);
 
@@ -402,7 +386,6 @@ void parse_statement(unsigned short int veri_ref) /* {{{ */
 
 		/* check whether a new identifier was introduced */
 		if (CONTAINS_ID(pnode)) {
-
 			ptmp = pnode->prev_const;
 			while (ptmp != NULL) {
 				if (CONTAINS_ID(ptmp)) {
@@ -436,17 +419,7 @@ void parse_statement(unsigned short int veri_ref) /* {{{ */
 					(Pnode**) malloc(sizeof(struct Pnode*));
 				*((*(pnode->child))->right) = NULL;
 			}
-		} /* else if (!HAS_FFLAGS((*(pnode->child)))) {
-			OLD relic from NFLAG_TRUE
-			verify children, if we have nested statements
-			if (!HAS_NFLAG_ASMP(pnode)) {
-				ptmp = *(pnode->child);
-				do {
-					trigger_verify(ptmp);	
-				} while (ptmp->right != NULL &&
-						((ptmp = *(ptmp->right)) != NULL));
-			}
-		}*/
+		}
 
 		/* TODO: handle equalities */
 		if (HAS_NFLAG_EQTY(pnode)) {
@@ -556,11 +529,9 @@ void parse_statement(unsigned short int veri_ref) /* {{{ */
 					recall_chars());); 
 	}
 }
-/* }}} */
-/*}}}*/
 
-/* --- helpers -----------------------------------------------------------{{{ */
-/*{{{*/
+/* --- helpers -------------------------------------------------------------- */
+
 /**
  * @brief Checks, whether the current token is of desired type and reports an
  * error otherwise.
@@ -579,7 +550,7 @@ void expect(TType type)
 		exit(ERR_SYNTAX);
 	}
 }/*}}}*/
-/*{{{*/
+
 /**
  * @brief Checks whether the current formulator type is conflicting with other
  * formulators in the currently processed formula.
@@ -635,4 +606,3 @@ void check_conflict(Pnode* pnode, TType ttype)
 		exit(ERR_SYNTAX);
 	}
 }/*}}}*/
-/*}}}*/
