@@ -18,7 +18,7 @@
 #ifndef PGRAPH_H
 #define PGRAPH_H
 
-/* ----------------------------- GLOBAL FLAGS ----------------------------{{{ */
+/* ----------------------------- GLOBAL FLAGS ------------------------------- */
 
 /* global flags needed for verification status and hints */
 typedef enum {
@@ -38,8 +38,7 @@ GFlags gflags;  /* accessed by verify.c and proveparser.c */
 #define UNSET_GFLAG_VRFD gflags &= ~GFLAG_VRFD;
 #define UNSET_GFLAG_PSTP gflags &= ~GFLAG_PSTP;
 
-/* }}} */
-/* ------------------------------- VARIABLES -----------------------------{{{ */
+/* ------------------------------- VARIABLES -------------------------------- */
 
 typedef enum {
 	VARFLAG_NONE = 0,
@@ -72,8 +71,7 @@ typedef struct VTree {
 	VarFlags flags;
 } VTree;
 
-/* }}} */
-/* --------------------------------- NODES -------------------------------{{{ */
+/* --------------------------------- NODES ---------------------------------- */
 
 typedef enum {
 	NFLAG_NONE = 0,
@@ -153,8 +151,7 @@ typedef struct Pnode {
 	(!HAS_CHILD(pnode) && !HAS_SYMBOL(pnode))
 #define IS_INTERNAL(pnode) (pnode->symbol == NULL)
 
-/* }}} */
-/* ------------------------------- FUNCTIONS -----------------------------{{{ */
+/* ------------------------------- FUNCTIONS -------------------------------- */
 
 /* graph creation */
 void init_pgraph(Pnode** root);
@@ -185,4 +182,3 @@ int get_node_count();
 
 #endif
 
-/* }}} */

@@ -84,6 +84,10 @@ unsigned short int wrap_right(Pnode** pexplorer, Eqwrapper** eqwrapper,
 unsigned short int init_known_const(Pnode* perspective, SUB* s,
 		unsigned short int idonly, unsigned short int exst, int exnum)
 {
+	if (!HAS_VARFLAG_FRST(s->vtree->flags)) {
+		idonly = TRUE;
+	}
+
 	if (idonly) {
 		s->known_const = perspective->prev_id;
 	} else {
@@ -153,11 +157,11 @@ unsigned short int next_sub(Pnode* perspective, SUB* s,
 		unsigned short int idonly, unsigned short int exst, int exnum)
 {
 	SUB* s_iter;
-
+	
 	s_iter = s;
 
 	while (s_iter != NULL) {
-			if (idonly) {
+			if (idonly || !HAS_VARFLAG_FRST(s->vtree->flags)) {
 				s_iter->known_const = s_iter->known_const->prev_id;
 			} else {
 				s_iter->known_const = s_iter->known_const->prev_const;

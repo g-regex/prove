@@ -24,7 +24,7 @@
 #include <string.h>
 #include <stdio.h>
 
-/* --- preprocessor directives -------------------------------------------{{{ */
+/* --- preprocessor directives ---------------------------------------------- */
 #define TRUE 1
 #define FALSE 0
 
@@ -32,11 +32,9 @@
 
 static short int n = 0;		/* node counter */
 
-/* }}} */
 
-/* --- navigation through graph ------------------------------------------{{{ */
+/* --- navigation through graph --------------------------------------------- */
 
-/*{{{*/
 /**
  * @brief Moves Pnode pointer to the right.
  *
@@ -52,9 +50,8 @@ unsigned short int move_right(Pnode** pnode)
 		*pnode = *((*pnode)->right);
 		return TRUE;
 	}
-}/*}}}*/
+}
 
-/*{{{*/
 /**
  * @brief Moves Pnode pointer down.
  *
@@ -70,9 +67,8 @@ unsigned short int move_down(Pnode** pnode)
 		*pnode = *((*pnode)->child);
 		return TRUE;
 	}
-}/*}}}*/
+}
 
-/*{{{*/
 /**
  * @brief Moves Pnode pointer to the left.
  *
@@ -88,9 +84,8 @@ unsigned short int move_left(Pnode** pnode)
 		*pnode = (*pnode)->left;
 		return TRUE;
 	}
-}/*}}}*/
+}
 
-/*{{{*/
 /**
  * @brief Moves Pnode pointer up.
  *
@@ -106,10 +101,9 @@ unsigned short int move_up(Pnode** pnode)
 		*pnode = (*pnode)->parent;
 		return TRUE;
 	}
-}/*}}}*/
+}
 
 /* move to the right-most node in the current subtree */
-/*{{{*/
 /**
  * @brief Move Pnode pointer to the right-most node of current level.
  *
@@ -118,12 +112,10 @@ unsigned short int move_up(Pnode** pnode)
 void move_rightmost(Pnode** pnode)
 {
 	while (move_right(pnode));
-}/*}}}*/
+}
 
-/* }}} */
 
-/* --- graph creation ----------------------------------------------------{{{ */
-/*{{{*/
+/* --- graph creation ------------------------------------------------------- */
 /**
  * @brief Initialises a graph of Pnodes.
  *
@@ -151,8 +143,7 @@ void init_pgraph(Pnode** root)
 	(*root)->num_c = n;
 	n++;
 //#endif
-}/*}}}*/
-/*{{{*/
+}
 /**
  * @brief Creates a child for the current node.
  *
@@ -194,8 +185,7 @@ void create_child(Pnode* pnode)
 	child->num = n;
 	child->num_c = n;
 	n++;
-}/*}}}*/
-/*{{{*/
+}
 /**
  * @brief Creates a node to the right of the current node.
  *
@@ -285,8 +275,7 @@ void create_right(Pnode* pnode)
 	right->num_c = n;
 	n++;
 //#endif
-}/*}}}*/
-/*{{{*/
+}
 /**
  * @brief Creates a dummy node (i.e. temporary ) to the right of the current
  * node to provide a substitution perspective for existence verification.
@@ -333,8 +322,7 @@ void create_right_dummy(Pnode* pnode)
 
 	right->num = -1;
 	right->num_c = -1;
-}/*}}}*/
-/*{{{*/
+}
 /**
  * @brief Frees the temporary dummy Pnode.
  *
@@ -345,8 +333,7 @@ void free_right_dummy(Pnode* pnode)
 	free(*(pnode->right));
 	free(pnode->right);
 	pnode->right = NULL;
-}/*}}}*/
-/*{{{*/
+}
 /**
  * @brief Moves leftwards through the sub-tree, copying over formulator NFLAGS
  * from right to left and creating a VTree for quick retrieval of variables;
@@ -416,8 +403,7 @@ void move_and_sum_up(Pnode** pnode)
 		*pnode = (*pnode)->parent;
 		(*pnode)->vtree = vtree;
 	}
-}/*}}}*/
-/*{{{*/
+}
 /**
  * @brief Sets the symbol field of a Pnode (i.e. when encountering an id or a
  * formualtor)
@@ -430,11 +416,9 @@ void set_symbol(Pnode* pnode, char* symbol)
 	pnode->symbol = (char**) malloc(sizeof(char*));
 	*(pnode->symbol) = (char*) malloc(sizeof(char) * MAX_ID_LENGTH);
 	strcpy(*(pnode->symbol), symbol);
-}/*}}}*/
-/*}}}*/
+}
 
-/* --- VTree creation ----------------------------------------------------{{{ */
-/* ------ PREPROCESSOR DIRECTIVES for VTree ------------------------------{{{ */
+
 #define VTREE_MOVE_UP \
 	if (vtree->parent != NULL) {\
 		vtree = vtree->parent;\
@@ -443,8 +427,7 @@ void set_symbol(Pnode* pnode, char* symbol)
 	if (vtree->left != NULL) {\
 		vtree = vtree->left;\
 	}
-/*}}}*/
-/*{{{*/
+
 /**
  * @brief Move to the right-most position in VTree to prepare for reverser
  * post-order traversal (optimal for substitution).
@@ -463,8 +446,7 @@ VTree* pos_in_vtree(VTree* vtree)
 		vtree = vtree->right;
 	}
 	return vtree;
-}/*}}}*/
-/*{{{*/
+}
 /**
  * @brief Moves to next position in VTree reverse post-order traversal.
  *
@@ -492,11 +474,10 @@ VTree* next_var(VTree* vtree)
 	}
 
 	return vtree;
-}/*}}}*/
-/*}}}*/
+}
 
-/* --- debugging ---------------------------------------------------------{{{ */
-/*{{{*/
+
+/* --- debugging ------------------------------------------------------------ */
 /**
  * @brief Returns current value of node counter.
  *
@@ -504,10 +485,9 @@ VTree* next_var(VTree* vtree)
  */
 int get_node_count() {
 	return n;
-}/*}}}*/
+}
 
 #ifdef DTIKZ
-/*{{{*/
 /**
  * @brief Add flags to TIKZ graph; to be called when freeing the graph.
  *
@@ -543,12 +523,10 @@ void print_flags(Pnode* pnode) {
 	if (pnode->vtree != NULL) {
 		fprintf(tikz, TIKZ_FLAG_A TIKZ_COLOR9 TIKZ_FLAG_B(pnode->num, 8));
 	}
-}/*}}}*/
+}
 #endif
-/* }}} */
 
-/* --- memory deallocation -----------------------------------------------{{{ */
-/*{{{*/
+/* --- memory deallocation -------------------------------------------------- */
 /**
  * @brief Frees a graph of Pnodes.
  *
@@ -612,5 +590,4 @@ void free_graph(Pnode* pnode)
 	free(pnode);
 
 	TIKZ(fprintf(tikz, TIKZ_ENDSCOPE);)
-}/*}}}*/
-/* }}} */
+}
