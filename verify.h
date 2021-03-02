@@ -47,6 +47,9 @@ typedef enum {
 #define UNSET_VFLAG_FRST(vflags) vflags &= ~VFLAG_FRST;
 #define UNSET_VFLAG_FAIL(vflags) vflags &= ~VFLAG_FAIL;
 
+#define POS_FRST(pexplorer, vflags) \
+	(HAS_NFLAG_FRST((*pexplorer)) || HAS_VFLAG_FRST((*vflags)))
+
 typedef struct Eqwrapper {
 	Pnode* pwrapper;
 	Pnode* pendwrap;
@@ -85,12 +88,11 @@ void finish_verify();
 unsigned short int verify(Pnode* pnode, Pnode** pexplorer);
 
 /* for backtracking */
-unsigned short int next_reachable_const(Pnode* veri_perspec,
+unsigned short int next_backwards(Pnode* veri_perspec,
 		Pnode* sub_perspec, Pnode** pexplorer, Eqwrapper** eqwrapper,
 		BC** checkpoint, VFlags* vflags, SUB** subd,
-		unsigned short int idonly, unsigned short int exst, int exnum);
-unsigned short int next_conclusion(Pnode* sub_perspec, Pnode** pexplorer,
-		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags, SUB** subd);
+		unsigned short int idonly, unsigned short int exst, int exnum,
+		unsigned short int do_sub, unsigned short int p_a);
 
 mpz_t comp_count;
 #endif
