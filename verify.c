@@ -342,11 +342,15 @@ void bc_push(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
  * @param checkpoint BC stack to be popped from
  * @param vflags Vflags to be restored
  */
-void bc_pop(Pnode** pnode, Eqwrapper** eqwrapper, BC** checkpoint,
-		VFlags* vflags)
+unsigned short int bc_pop(Pnode** pnode, Eqwrapper** eqwrapper, BC** checkpoint,
+		VFlags* vflags, unsigned short int force)
 {
 	BC* bcold;
 	unsigned short int wrap;
+
+	if (!force && (*checkpoint)->above == NULL) {
+		return FALSE;
+	}
 
 	bcold = *checkpoint;
 
@@ -368,6 +372,8 @@ void bc_pop(Pnode** pnode, Eqwrapper** eqwrapper, BC** checkpoint,
 
 	*checkpoint = (*checkpoint)->above;
 	free(bcold);
+
+	return TRUE;
 }
 
 /**
@@ -412,23 +418,12 @@ void exit_branch(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 		VFlags* vflags)
 {
 	while (*checkpoint != NULL) {
-		bc_pop(pexplorer, eqwrapper, checkpoint, vflags);
+		bc_pop(pexplorer, eqwrapper, checkpoint, vflags, TRUE);
 	}
 	UNSET_VFLAG_BRCH(*vflags)
 	UNSET_VFLAG_FRST(*vflags)
 }
 /* ------ PREPROCESSOR DIRECTIVES for branching ----------------------------- */
-#define POP \
-	if ((*checkpoint)->above == NULL) {\
-		return FALSE; /* last pop is done by exit_branch */\
-	} else {\
-		bc_pop(pexplorer, eqwrapper, checkpoint, vflags);\
-	}
-
-#define PROCEED \
-	proceed = TRUE;\
-	continue;
-
 #define BRANCH_PROCEED \
 	if (!branch_proceed(pexplorer, eqwrapper, checkpoint, vflags)) {\
 		return FALSE;\
@@ -436,20 +431,18 @@ void exit_branch(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 			!POS_FRST(pexplorer, vflags)) {\
 		return TRUE;\
 	} else {\
-		PROCEED\
+		proceed = TRUE;\
+		continue;\
 	}
 
 #define POP_PROCEED \
 	do {\
-		POP\
+		if (!bc_pop(pexplorer, eqwrapper, checkpoint, vflags, FALSE)) {\
+			return FALSE;\
+		}\
 	} while (HAS_NFLAG_IMPL((*pexplorer))\
 				&& HAS_NFLAG_FRST((*pexplorer)));\
 	BRANCH_PROCEED
-
-/*#define SKIP_FORMULATORS \
-	do {\
-		wrap_right(pexplorer, eqwrapper, vflags);\
-	} while (HAS_SYMBOL((*pexplorer)));*/
 
 /**
  * @brief Move up in branch and proceed with exploration to the right, if
@@ -465,144 +458,13 @@ void exit_branch(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 unsigned short int branch_proceed(Pnode** pexplorer, Eqwrapper** eqwrapper,
 		BC** checkpoint, VFlags* vflags)
 {
-	/*while (!wrap_right(pexplorer, eqwrapper, vflags)) {
-		POP
-		if (wrap_right(pexplorer, eqwrapper, vflags)) {
-			break;
-		}
-	}*/
 	if (!wrap_right(pexplorer, eqwrapper, vflags)) {
-		POP
+		if (!bc_pop(pexplorer, eqwrapper, checkpoint, vflags, FALSE)) {
+			return FALSE;
+		}
 	}
 	return TRUE;
 }
-
-#if 0
-/**
- * @brief Move pexplorer to next reachable Pnode in branch or return FALSE.
- *
- * @param perspective Pnode from whose perspective assumptions are to be checked
- * @param pexplorer Pnode pointer to be moved
- * @param eqwrapper Wrapping information
- * @param checkpoint BC stack to (re)store information of current/parent level
- * @param vflags verification flags
- *
- * @return FALSE, if no reachable Pnodes in branch are left.
- */
-unsigned short int next_forwards_(Pnode* perspective, Pnode** pexplorer,
-		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags)
-{
-	/* FIXME: too much recursion */
-	unsigned short int proceed;
-	unsigned short int justfailed;
-
-	do {
-		proceed = FALSE;
-
-		/* skip formulators */
-		if (HAS_SYMBOL((*pexplorer))) {
-			if (HAS_NFLAG_IMPL((*pexplorer))) {
-				if (HAS_VFLAG_FAIL((*vflags))) {
-					POP_PROCEED
-				} else {
-					BRANCH_PROCEED
-				}
-			} else {
-				BRANCH_PROCEED
-			}
-		}
-
-		/* explore EXPLORABLE subbranches */
-		if (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {
-			PROCEED
-		}
-
-		if (HAS_NFLAG_IMPL((*pexplorer))) {
-
-			/* if processing an assumption, verify it */
-			justfailed = FALSE;
-			/* don't check assumptions, when branching through claimed
-			 * existence */
-			if (!check_asmp(perspective, pexplorer, FALSE)) {
-				SET_VFLAG_FAIL((*vflags))
-				justfailed = TRUE;
-			}
-
-			if ((HAS_NFLAG_FRST((*pexplorer))
-						|| HAS_VFLAG_FRST(*vflags))) {
-				if (justfailed) {
-					/* pop through branch checkpoints until node is not part
-					 * of an assumption TODO: add a nice example here */
-					POP_PROCEED
-				} else if (!move_right(pexplorer)) {
-					/* When VFLAG_FRST is set, it might happen that we cannot
-					 * move right and have to pop back to proceed with the next
-					 * node at a lower level */
-					BRANCH_PROCEED
-				} else {
-					PROCEED
-				}
-			} else {
-				
-				if (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {
-					PROCEED
-				} else {
-					if (!branch_proceed(pexplorer, eqwrapper, checkpoint, vflags)) {
-						return FALSE;
-					} else if (explore_branch(pexplorer, eqwrapper, checkpoint,
-								vflags)) {
-						PROCEED
-					} else if (!HAS_SYMBOL((*pexplorer))) {\
-						return TRUE;\
-					} else {
-						proceed = TRUE;
-						continue;
-					}
-				}
-			}
-		} else if (HAS_NFLAG_EQTY((*pexplorer))) {
-			if (HAS_VFLAG_WRAP(*vflags)) {
-				/* proceed with branch after cycling through equality */
-				if ((*eqwrapper)->pendwrap == *pexplorer) {
-					UNSET_VFLAG_WRAP(*vflags)
-					BRANCH_PROCEED
-				}
-				SKIP_FORMULATORS
-				return TRUE;
-			} else {
-				/* remember first node in equality for wrapping */
-				if (HAS_NFLAG_FRST((*pexplorer))) {
-					(*eqwrapper)->pwrapper = *pexplorer;
-				}
-
-				/* do not check any assumptions whe branching through claimed
-				 * existence */
-				do {
-					/* loop through nodes in equality to find a valid assumption
-					 * and stop at the first reachable _after_ it */
-
-					if (HAS_SYMBOL((*pexplorer))){ /* skip "=" */
-						continue;
-					} else if (check_asmp(perspective, pexplorer, FALSE)) {
-						SET_VFLAG_WRAP(*vflags)
-						(*eqwrapper)->pendwrap = *pexplorer;
-
-						SKIP_FORMULATORS
-						return TRUE;
-					}
-
-				} while (move_right(pexplorer));
-
-				POP
-				wrap_right(pexplorer, eqwrapper, vflags);
-				BRANCH_PROCEED
-			}
-		}
-	} while (proceed);
-
-	return FALSE;
-}
-#endif
 
 unsigned short int  process_assumptions(Pnode* perspective, Pnode** pexplorer,
 		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags, unsigned short
@@ -613,9 +475,6 @@ unsigned short int  process_assumptions(Pnode* perspective, Pnode** pexplorer,
 
 	if (HAS_NFLAG_IMPL((*pexplorer))) {
 		do {
-			proceed = FALSE;
-			justfailed = FALSE;
-
 			/* skip formulators */
 			if (HAS_SYMBOL((*pexplorer))) {
 				BRANCH_PROCEED
@@ -627,44 +486,34 @@ unsigned short int  process_assumptions(Pnode* perspective, Pnode** pexplorer,
 
 			if (!check_asmp(perspective, pexplorer, FALSE)) {
 				SET_VFLAG_FAIL((*vflags))
-				justfailed = TRUE;
-			}
-
-			if (justfailed) {
 				/* pop through branch checkpoints until node is not part
 				 * of an assumption TODO: add a nice example here */
 				do {
-					POP
-
-					if ((*checkpoint)->above == NULL) {\
-						return FALSE; /* last pop is done by exit_branch */\
-					} else {\
-						bc_pop(pexplorer, eqwrapper, checkpoint, vflags);\
+					if (!bc_pop(pexplorer, eqwrapper, checkpoint, vflags, FALSE)) {
+						return FALSE;
 					}
 				} while (HAS_NFLAG_IMPL((*pexplorer))
 						&& POS_FRST(pexplorer, vflags));
 				break;
 			} else if (!move_right(pexplorer)) {
-				BRANCH_PROCEED
-			} else {
-				PROCEED
+				if (!bc_pop(pexplorer, eqwrapper, checkpoint, vflags, FALSE)) {
+					return FALSE;
+				}
 			}
 
-		} while (proceed);
+		} while (TRUE);
 	} else if (HAS_NFLAG_EQTY((*pexplorer))) {
 		(*eqwrapper)->pwrapper = *pexplorer;
 
 		do {
 			/* loop through nodes in equality to find a valid assumption
 			 * and stop at the first reachable _after_ it */
-
 			if (HAS_SYMBOL((*pexplorer))){ /* skip "=" */
 				continue;
 			} else if (check_asmp(perspective, pexplorer, FALSE)) {
 				SET_VFLAG_WRAP(*vflags)
 				(*eqwrapper)->pendwrap = *pexplorer;
 
-				//SKIP_FORMULATORS
 				/* skip formulators */
 				do {
 					wrap_right(pexplorer, eqwrapper, vflags);
@@ -680,7 +529,9 @@ unsigned short int  process_assumptions(Pnode* perspective, Pnode** pexplorer,
 
 		} while (move_right(pexplorer));
 
-		POP
+		if (!bc_pop(pexplorer, eqwrapper, checkpoint, vflags, FALSE)) {
+			return FALSE;
+		}
 	}
 }
 
@@ -699,13 +550,14 @@ unsigned short int next_forwards(Pnode* perspective, Pnode** pexplorer,
 				checkpoint, vflags, p_a);
 	} else if ((*eqwrapper)->pendwrap == *pexplorer ||
 			!wrap_right(pexplorer, eqwrapper, vflags)) {
-		POP;
+		if (!bc_pop(pexplorer, eqwrapper, checkpoint, vflags, FALSE)) {
+			return FALSE;
+		}
 	} else if (!HAS_NFLAG_FRST((*pexplorer))) {
 		while (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {};
 	
 		do {
 			proceed = FALSE;
-
 			/* skip all assumptions, when checking existence */
 			if (p_a) {
 				while (HAS_NFLAG_FRST((*pexplorer))
@@ -728,7 +580,8 @@ unsigned short int next_forwards(Pnode* perspective, Pnode** pexplorer,
 
 			/* explore EXPLORABLE subbranches */
 			if (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {
-				PROCEED
+				proceed = TRUE;
+				continue;
 			}
 
 		} while (proceed);
@@ -737,57 +590,6 @@ unsigned short int next_forwards(Pnode* perspective, Pnode** pexplorer,
 
 	return TRUE;
 }
-
-/**
- * @brief Moves pexplorer to next unchecked Pnode (for existence and case-based
- * verification); basically a copy on next_forwards with some small
- * adjustments; TODO: to be merged with next_forwards in future.
- *
- * @param pexplorer Pnode pointer to be moved
- * @param eqwrapper Wrapping information
- * @param checkpoint BC stack to (re)store information of current/parent level
- * @param vflags verification flags
- *
- * @return FALSE, if no reachable Pnodes in branch are left.
- */
-#if 0
-unsigned short int next_unchecked(Pnode** pexplorer,
-		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags)
-{
-	unsigned short int proceed;
-
-	if (!wrap_right(pexplorer, eqwrapper, vflags)) {
-		POP;
-	} else if (!HAS_NFLAG_FRST((*pexplorer))) {
-		while (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {};
-	
-		do {
-			proceed = FALSE;
-
-			/* skip all assumptions, when checking existence */
-			while (HAS_NFLAG_FRST((*pexplorer))
-					&& HAS_NFLAG_IMPL((*pexplorer))) {
-				if (!branch_proceed(pexplorer, eqwrapper, checkpoint, vflags)) {
-					return FALSE;
-				}
-			}
-
-			/* skip formulators */
-			if (HAS_SYMBOL((*pexplorer))) {
-				BRANCH_PROCEED
-			}
-
-			/* explore EXPLORABLE subbranches */
-			if (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {
-				PROCEED
-			}
-		} while (proceed);
-	
-	}
-
-	return TRUE;
-}
-#endif
 
 /**
  * @brief Attempts to explore a new branch (as opposed to trying to explore a
@@ -1206,7 +1008,7 @@ unsigned short int ve_recursion(Pnode* pexstart,
 						(*p_pexplorer)->num_c, (*pexplorer)->num_c);
 				print_sub(subd);
 				fprintf(stderr, ">" SHELL_RESET1);
-			)
+			);
 		}
 	}
 
@@ -1333,7 +1135,7 @@ unsigned short int verify_existence(Pnode* pn, Pnode* pexstart,
 	}
 	DBG_VERIFY(fprintf(stderr, SHELL_RESET1););	
 	
-	bc_pop(pexplorer, &eqwrapper, checkpoint, &vflags);
+	bc_pop(pexplorer, &eqwrapper, checkpoint, &vflags, TRUE);
 
 	free(eqwrapper);
 	free(pexplorer);
