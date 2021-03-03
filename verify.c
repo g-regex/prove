@@ -762,16 +762,16 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 
 			/******************************************************************/
 			/* BIG TODO!!! We have to decide on how identifiers may be
-			 * introduced. Ideally we'd just have one line here:
-			 */ return (*(p1->symbol) == *(p2->symbol));/*	
+			 * introduced. Ideally we would just have one line here:
+			 */ /*return (*(p1->symbol) == *(p2->symbol));	
 			 *
-			 * Instead of:*/
+			 * Instead of (currently needed for verify_cases):*/
 
-			 /*if (*(p1->symbol) != *(p2->symbol)) {
+			 if (*(p1->symbol) != *(p2->symbol)) {
 				return (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
 			 } else {
 				return TRUE;
-			 }*/
+			 }
 		} else {
 			return FALSE;
 		}
