@@ -560,7 +560,8 @@ unsigned short int next_forwards(Pnode* perspective, Pnode** pexplorer,
 		while (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {};
 	
 		do {
-			/* skip all assumptions, when checking existence */
+			/* skip all assumptions (after further exploration),
+			 * when asked to do so */
 			if (!p_a) {
 				while (HAS_NFLAG_FRST((*pexplorer))
 						&& HAS_NFLAG_IMPL((*pexplorer))) {
@@ -571,24 +572,22 @@ unsigned short int next_forwards(Pnode* perspective, Pnode** pexplorer,
 				}
 			}
 
-			/* explore EXPLORABLE subbranches */
-			if (EXPLORABLE) {
-				return next_forwards(perspective, pexplorer, eqwrapper,
-						checkpoint, vflags, p_a);
-			}
-
-			/* skip formulators */
-			if (HAS_SYMBOL((*pexplorer))) {
-				//BRANCH_PROCEED
-				if (!branch_proceed(pexplorer, eqwrapper, checkpoint, vflags)) {\
-					return FALSE;\
-				} else if (!HAS_SYMBOL((*pexplorer)) &&\
-						!POS_FRST(pexplorer, vflags)) {\
-					return TRUE;\
+			while (HAS_SYMBOL((*pexplorer)) || EXPLORABLE) {
+				/* skip formulators */
+				if (HAS_SYMBOL((*pexplorer))) {
+					if (!branch_proceed(pexplorer, eqwrapper, checkpoint, vflags)) {\
+						return FALSE;\
+					}
+					continue;
 				}
-				continue;
-			}
 
+				/* explore EXPLORABLE subbranches */
+				if (EXPLORABLE) {
+					while (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {};
+				} else {
+					break;
+				}
+			}
 			break;
 		} while (TRUE);
 	}
@@ -1183,10 +1182,8 @@ unsigned short int verify_cases(Pnode* pn)
 		 * (or no substitution) is needed. Proceed work here. */
 		/*if (verify(pn, pexplorer)) {*/
 			DBG_VERIFY(
-					fprintf(stderr, SHELL_MAGENTA "<%d:",
+					fprintf(stderr, SHELL_MAGENTA "<%d>",
 						(*pexplorer)->num_c);
-					print_sub(subd);
-					fprintf(stderr, ">" SHELL_RESET1);
 					);
 		/*}*/
 
