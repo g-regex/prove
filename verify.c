@@ -470,14 +470,18 @@ unsigned short int process_assumptions(Pnode* perspective, Pnode** pexplorer,
 		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags, unsigned short
 		int p_a)
 {
-	unsigned short int proceed;
-	unsigned short int justfailed;
-
 	if (HAS_NFLAG_IMPL((*pexplorer))) {
 		do {
 			/* skip formulators */
 			if (HAS_SYMBOL((*pexplorer))) {
-				BRANCH_PROCEED
+				//BRANCH_PROCEED
+				if (!branch_proceed(pexplorer, eqwrapper, checkpoint, vflags)) {\
+					return FALSE;\
+				} else if (!HAS_SYMBOL((*pexplorer)) &&\
+						!POS_FRST(pexplorer, vflags)) {\
+					return TRUE;\
+				}
+				continue;
 			}
 
 			if (!POS_FRST(pexplorer, vflags)) {
@@ -542,9 +546,6 @@ unsigned short int next_forwards(Pnode* perspective, Pnode** pexplorer,
 		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags, unsigned short
 		int p_a)
 {
-	unsigned short int proceed;
-	unsigned short int justfailed;
-
 	if (p_a && !HAS_VFLAG_WRAP((*vflags)) && POS_FRST(pexplorer, vflags)) {
 		while (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {};
 
@@ -559,9 +560,8 @@ unsigned short int next_forwards(Pnode* perspective, Pnode** pexplorer,
 		while (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {};
 	
 		do {
-			proceed = FALSE;
 			/* skip all assumptions, when checking existence */
-			if (p_a) {
+			if (!p_a) {
 				while (HAS_NFLAG_FRST((*pexplorer))
 						&& HAS_NFLAG_IMPL((*pexplorer))) {
 					if (!branch_proceed(pexplorer, eqwrapper, checkpoint,
@@ -569,25 +569,28 @@ unsigned short int next_forwards(Pnode* perspective, Pnode** pexplorer,
 						return FALSE;
 					}
 				}
-			} else if (POS_FRST(pexplorer, vflags)
-					&& HAS_NFLAG_IMPL((*pexplorer))) {
+			}
+
+			/* explore EXPLORABLE subbranches */
+			if (EXPLORABLE) {
 				return next_forwards(perspective, pexplorer, eqwrapper,
 						checkpoint, vflags, p_a);
 			}
 
 			/* skip formulators */
 			if (HAS_SYMBOL((*pexplorer))) {
-				BRANCH_PROCEED
-			}
-
-			/* explore EXPLORABLE subbranches */
-			if (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {
-				proceed = TRUE;
+				//BRANCH_PROCEED
+				if (!branch_proceed(pexplorer, eqwrapper, checkpoint, vflags)) {\
+					return FALSE;\
+				} else if (!HAS_SYMBOL((*pexplorer)) &&\
+						!POS_FRST(pexplorer, vflags)) {\
+					return TRUE;\
+				}
 				continue;
 			}
 
-		} while (proceed);
-	
+			break;
+		} while (TRUE);
 	}
 
 	return TRUE;
