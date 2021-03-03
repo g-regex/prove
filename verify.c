@@ -466,7 +466,7 @@ unsigned short int branch_proceed(Pnode** pexplorer, Eqwrapper** eqwrapper,
 	return TRUE;
 }
 
-unsigned short int  process_assumptions(Pnode* perspective, Pnode** pexplorer,
+unsigned short int process_assumptions(Pnode* perspective, Pnode** pexplorer,
 		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags, unsigned short
 		int p_a)
 {
@@ -499,6 +499,9 @@ unsigned short int  process_assumptions(Pnode* perspective, Pnode** pexplorer,
 				if (!bc_pop(pexplorer, eqwrapper, checkpoint, vflags, FALSE)) {
 					return FALSE;
 				}
+			} else {
+				return next_forwards(perspective, pexplorer, eqwrapper,
+					checkpoint, vflags, p_a);
 			}
 
 		} while (TRUE);
@@ -541,7 +544,6 @@ unsigned short int next_forwards(Pnode* perspective, Pnode** pexplorer,
 {
 	unsigned short int proceed;
 	unsigned short int justfailed;
-
 
 	if (p_a && !HAS_VFLAG_WRAP((*vflags)) && POS_FRST(pexplorer, vflags)) {
 		while (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {};
