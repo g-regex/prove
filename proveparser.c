@@ -452,7 +452,7 @@ void parse_statement(unsigned short int veri_ref)
 		if (token.type != TOK_LBRACK /*&& token.type != TOK_NOT*/) {
 			proceed = FALSE;
 
-			/* trigger existence verification here */
+			/* trigger quantifier verification here */
 			if (HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)
 					&& HAS_GFLAG_PSTP && pexstart != NULL) {
 				DBG_VERIFY(
@@ -476,7 +476,7 @@ void parse_statement(unsigned short int veri_ref)
 				}
 
 				if (pnode->num > NOVERINUM && /* DEBUG!!!! */
-					do_veri && !verify_existence(*(pnode->right), pexstart,
+					do_veri && !verify_quantifiers(*(pnode->right), pexstart,
 						veri_ref)) {
 					if (lvl != 0) {
 						fprintf(stderr,

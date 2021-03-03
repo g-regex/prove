@@ -76,8 +76,8 @@ typedef struct substitution_status {
 	struct substitution_status* next;
 } SUB;
 
-unsigned short int verify_universal(Pnode* pn);
-unsigned short int verify_existence(Pnode* pn, Pnode* pexstart,
+//unsigned short int verify_universal(Pnode* pn);
+unsigned short int verify_quantifiers(Pnode* pn, Pnode* pexstart,
 		unsigned short int idonly);
 unsigned short int verify_cases(Pnode* pn);
 

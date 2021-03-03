@@ -33,7 +33,7 @@
 /* explorable are branches, which contain either an implication or an equality,
  * which is not an assumption
  * TODO: verify equalities, which are assumptions - but not by exploration */
-#define EXPLORABLE \
+#define EXPLORABLE(pexplorer) \
 	(HAS_CHILD((*pexplorer)) && (HAS_NFLAG_IMPL((*((*pexplorer)->child)))\
 			|| (!HAS_NFLAG_FRST((*pexplorer))\
 				&& HAS_NFLAG_EQTY((*((*pexplorer)->child))))))
@@ -389,7 +389,7 @@ unsigned short int bc_pop(Pnode** pnode, Eqwrapper** eqwrapper, BC** checkpoint,
 unsigned short int explore_branch(Pnode** pexplorer, Eqwrapper** eqwrapper,
 		BC** checkpoint, VFlags* vflags)
 {
-	if (EXPLORABLE) {
+	if (EXPLORABLE(pexplorer)) {
 		if (HAS_NFLAG_FRST((*pexplorer))) {
 			bc_push(pexplorer, eqwrapper, checkpoint, vflags);
 			*pexplorer = *((*pexplorer)->child);
@@ -423,26 +423,6 @@ void exit_branch(Pnode** pexplorer, Eqwrapper** eqwrapper, BC** checkpoint,
 	UNSET_VFLAG_BRCH(*vflags)
 	UNSET_VFLAG_FRST(*vflags)
 }
-/* ------ PREPROCESSOR DIRECTIVES for branching ----------------------------- */
-#define BRANCH_PROCEED \
-	if (!branch_proceed(pexplorer, eqwrapper, checkpoint, vflags)) {\
-		return FALSE;\
-	} else if (!HAS_SYMBOL((*pexplorer)) &&\
-			!POS_FRST(pexplorer, vflags)) {\
-		return TRUE;\
-	} else {\
-		proceed = TRUE;\
-		continue;\
-	}
-
-#define POP_PROCEED \
-	do {\
-		if (!bc_pop(pexplorer, eqwrapper, checkpoint, vflags, FALSE)) {\
-			return FALSE;\
-		}\
-	} while (HAS_NFLAG_IMPL((*pexplorer))\
-				&& HAS_NFLAG_FRST((*pexplorer)));\
-	BRANCH_PROCEED
 
 /**
  * @brief Move up in branch and proceed with exploration to the right, if
@@ -510,6 +490,10 @@ unsigned short int process_assumptions(Pnode* perspective, Pnode** pexplorer,
 
 		} while (TRUE);
 	} else if (HAS_NFLAG_EQTY((*pexplorer))) {
+		/* TODO: Handle equality as such (i.e. equalities create new
+		 * substitution rules). Currently equalities are just two-sided
+		 * implications. */
+
 		(*eqwrapper)->pwrapper = *pexplorer;
 
 		do {
@@ -542,54 +526,96 @@ unsigned short int process_assumptions(Pnode* perspective, Pnode** pexplorer,
 	}
 }
 
+unsigned short int skip_assumptions(Pnode** pexplorer, Eqwrapper** eqwrapper,
+		BC** checkpoint, VFlags* vflags)
+{
+	while (HAS_NFLAG_FRST((*pexplorer))
+			&& HAS_NFLAG_IMPL((*pexplorer))) {
+		if (!branch_proceed(pexplorer, eqwrapper, checkpoint,
+					vflags)) {
+			return FALSE;
+		}
+	}
+
+	/* skip following formulator */
+	if (HAS_SYMBOL((*pexplorer))) {
+		if (!branch_proceed(pexplorer, eqwrapper, checkpoint,
+					vflags)) {
+			return FALSE;
+		}
+	}
+
+	return TRUE;
+}
+
 unsigned short int next_forwards(Pnode* perspective, Pnode** pexplorer,
 		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags, unsigned short
 		int p_a)
 {
-	if (p_a && !HAS_VFLAG_WRAP((*vflags)) && POS_FRST(pexplorer, vflags)) {
-		while (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {};
+	if (p_a && !HAS_VFLAG_WRAP((*vflags)) && 
+			(HAS_NFLAG_EQTY((*pexplorer)) ||
+			 (HAS_NFLAG_IMPL((*pexplorer)) && POS_FRST(pexplorer, vflags)))) {
 
+		/* process assumptions, if
+		 *  - asked to do so
+		 *  - assumption in equality has not yet been verified
+		 *  - node is in eligible position */
+
+		while (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {};
 		return process_assumptions(perspective, pexplorer, eqwrapper,
 				checkpoint, vflags, p_a);
+
 	} else if ((*eqwrapper)->pendwrap == *pexplorer ||
 			!wrap_right(pexplorer, eqwrapper, vflags)) {
+
+		/* move/wrap right or finish wrapping */
+
 		if (!bc_pop(pexplorer, eqwrapper, checkpoint, vflags, FALSE)) {
 			return FALSE;
 		}
+
 	} else if (!HAS_NFLAG_FRST((*pexplorer))) {
+
+		/* explore everything after the first "=>" of the current formula */
+
 		while (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {};
 	
 		do {
-			/* skip all assumptions (after further exploration),
-			 * when asked to do so */
-			if (!p_a) {
-				while (HAS_NFLAG_FRST((*pexplorer))
-						&& HAS_NFLAG_IMPL((*pexplorer))) {
+			do {
+				/* skip formulators */
+				if (HAS_SYMBOL((*pexplorer))) {
 					if (!branch_proceed(pexplorer, eqwrapper, checkpoint,
 								vflags)) {
 						return FALSE;
-					}
-				}
-			}
-
-			while (HAS_SYMBOL((*pexplorer)) || EXPLORABLE) {
-				/* skip formulators */
-				if (HAS_SYMBOL((*pexplorer))) {
-					if (!branch_proceed(pexplorer, eqwrapper, checkpoint, vflags)) {\
-						return FALSE;\
 					}
 					continue;
 				}
 
 				/* explore EXPLORABLE subbranches */
-				if (EXPLORABLE) {
-					while (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {};
-				} else {
-					break;
+				if (EXPLORABLE(pexplorer)) {
+					while (explore_branch(pexplorer, eqwrapper, checkpoint,
+								vflags)) {};
+					continue;
 				}
+
+				break;
+			} while (TRUE);
+
+			/* skip all assumptions (after further exploration),
+			 * when asked to do so */
+			if (!p_a && !skip_assumptions(pexplorer, eqwrapper, checkpoint,
+						vflags)) {
+				return FALSE;
 			}
+
 			break;
 		} while (TRUE);
+	} else if (!p_a && !skip_assumptions(pexplorer, eqwrapper, checkpoint,
+						vflags)) {
+
+		/* skip all assumptions, when asked to do so */
+
+		return FALSE;
 	}
 
 	return TRUE;
@@ -619,7 +645,7 @@ unsigned short int attempt_explore(Pnode* veri_perspec, Pnode* sub_perspec,
 		unsigned short int exst, int exnum, unsigned short int do_sub,
 		unsigned short int p_a)
 {
-	if (EXPLORABLE) {
+	if (EXPLORABLE(pexplorer)) {
 		bc_push(pexplorer, eqwrapper, checkpoint, vflags);
 		*pexplorer = *((*pexplorer)->child);
 		SET_VFLAG_BRCH(*vflags)
@@ -664,11 +690,7 @@ unsigned short int next_backwards(Pnode* veri_perspec,
 		unsigned short int exst, int exnum, unsigned short int do_sub,
 		unsigned short int p_a)
 {
-	unsigned short int proceed;
-
 	do {
-		proceed = FALSE;
-
 		/* branch exploration */
 		if (HAS_VFLAG_BRCH(*vflags)) {
 			if (!next_forwards(veri_perspec, pexplorer, eqwrapper, checkpoint,
@@ -687,7 +709,6 @@ unsigned short int next_backwards(Pnode* veri_perspec,
 						exnum, do_sub, p_a);
 			} else {
 				finish_sub(vflags, subd);
-				proceed = TRUE;
 				continue;
 			}
 		}
@@ -702,7 +723,6 @@ unsigned short int next_backwards(Pnode* veri_perspec,
 		} while (TRUE);
 
 		if (HAS_SYMBOL((*pexplorer))) {
-			proceed = TRUE;
 			continue;
 		} else {
 			if (do_sub && (*pexplorer)->vtree != NULL) {
@@ -713,7 +733,8 @@ unsigned short int next_backwards(Pnode* veri_perspec,
 					eqwrapper, checkpoint, vflags, subd, idonly,
 					exst, exnum, do_sub, p_a);
 		}
-	} while (proceed);
+		break;
+	} while (TRUE);
 
 	return FALSE;
 }
@@ -742,15 +763,15 @@ unsigned short int const_equal(Pnode* p1, Pnode* p2)
 			/******************************************************************/
 			/* BIG TODO!!! We have to decide on how identifiers may be
 			 * introduced. Ideally we'd just have one line here:
-			 * return (*(p1->symbol) == *(p2->symbol));	
+			 */ return (*(p1->symbol) == *(p2->symbol));/*	
 			 *
 			 * Instead of:*/
 
-			 if (*(p1->symbol) != *(p2->symbol)) {
+			 /*if (*(p1->symbol) != *(p2->symbol)) {
 				return (strcmp(*(p1->symbol), *(p2->symbol)) == 0);	
 			 } else {
 				return TRUE;
-			 }
+			 }*/
 		} else {
 			return FALSE;
 		}
@@ -1074,7 +1095,7 @@ VTree* collect_forward_vars(Pnode* pcollector)
 }
 
 /**
- * @brief Triggers existence verification of a list of Pnodes.
+ * @brief Triggers quantifier verification of a list of Pnodes.
  *
  * @param pn Pnode to be verified
  * @param pexstart Pnode at the beginning of the list
@@ -1082,7 +1103,7 @@ VTree* collect_forward_vars(Pnode* pcollector)
  *
  * @return TRUE, if verification was successful
  */
-unsigned short int verify_existence(Pnode* pn, Pnode* pexstart,
+unsigned short int verify_quantifiers(Pnode* pn, Pnode* pexstart,
 		unsigned short int idonly)
 {
 	int exnum;
@@ -1180,12 +1201,12 @@ unsigned short int verify_cases(Pnode* pn)
 
 		/* FIXME: This is not working because another substitution mechanism
 		 * (or no substitution) is needed. Proceed work here. */
-		/*if (verify(pn, pexplorer)) {*/
-			DBG_VERIFY(
+		if (verify(pn, pexplorer)) {
+			DBG_EPATH(
 					fprintf(stderr, SHELL_MAGENTA "<%d>",
 						(*pexplorer)->num_c);
 					);
-		/*}*/
+		}
 
 	}
 
