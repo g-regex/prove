@@ -49,7 +49,7 @@ typedef struct {
 } Token;
 
 int search(char *pat);
-int isspecial(char ch);
+unsigned short int isspecial(char ch);
 TType get_token_type(int cmp);
 
 #endif /* TOKEN_H */

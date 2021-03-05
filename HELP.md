@@ -10,13 +10,15 @@
 **DEBUGGING options:**
 
 
+`--noveri`  	do not perform any verification (useful, when creating TIKZ graphs)
+
 `--dparser`  	activate debugging output for parser
 
-`--dequal`  	activate debugging output for circular linked list for equalities
-
-`--dgraph`   	activate debugging output for graph creation (implies `--dparser`)
-
 `--dverify`  	activate debugging output for verification (implies `--dparser`)
+
+`--dpath`  	print list of successfully verified nodes, which were discarded (implies `--dverify`)
+
+`--dfail`  	print list of failed verifications (implies `--dverify`)
 
 `--dtikz`    	generate TikZ graph representation in ./debug/
 

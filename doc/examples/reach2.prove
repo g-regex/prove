@@ -1,1 +1,6 @@
-[a][[b]prop][[[a]prop]=>[[a]prop2]]=>[[a]prop]=>[[a]prop2]
+[a] [[b]prop] [
+	[[a]prop] =>
+	[[a]prop2]
+] =>
+[[a]prop] =>
+[[a]prop2]

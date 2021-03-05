@@ -308,7 +308,7 @@ void print_sub(SUB** subd)
 }
 #endif
 
-/* --- branching ------------------------------------------------------------ */
+/* --- tree exploration ----------------------------------------------------- */
 /**
  * @brief Pushes a new branch checkpoint on a stack.
  *
@@ -446,9 +446,21 @@ unsigned short int branch_proceed(Pnode** pexplorer, Eqwrapper** eqwrapper,
 	return TRUE;
 }
 
-unsigned short int process_assumptions(Pnode* perspective, Pnode** pexplorer,
-		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags, unsigned short
-		int p_a)
+/**
+ * @brief Processes statements in implications and equalities, which are
+ * assumptions and leaves pexplorer at the first node, which is not assumed
+ * anymore.
+ *
+ * @param veri_persp Pnode from whose perspective assumptions are to be verified
+ * @param pexplorer Pointer to current position of explorer in the tree
+ * @param eqwrapper Structure storing wrapping information
+ * @param checkpoint Checkpoint for (re)storing level information
+ * @param vflags verification flags
+ *
+ * @return FALSE if the assumption(s) could not be verified
+ */
+unsigned short int process_assumptions(Pnode* veri_persp, Pnode** pexplorer,
+		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags)
 {
 	if (HAS_NFLAG_IMPL((*pexplorer))) {
 		do {
@@ -468,7 +480,7 @@ unsigned short int process_assumptions(Pnode* perspective, Pnode** pexplorer,
 				break;
 			}
 
-			if (!check_asmp(perspective, pexplorer, FALSE)) {
+			if (!check_asmp(veri_persp, pexplorer, FALSE)) {
 				SET_VFLAG_FAIL((*vflags))
 				/* pop through branch checkpoints until node is not part
 				 * of an assumption TODO: add a nice example here */
@@ -484,8 +496,8 @@ unsigned short int process_assumptions(Pnode* perspective, Pnode** pexplorer,
 					return FALSE;
 				}
 			} else {
-				return next_forwards(perspective, pexplorer, eqwrapper,
-					checkpoint, vflags, p_a);
+				return next_forwards(veri_persp, pexplorer, eqwrapper,
+					checkpoint, vflags, TRUE);
 			}
 
 		} while (TRUE);
@@ -501,7 +513,7 @@ unsigned short int process_assumptions(Pnode* perspective, Pnode** pexplorer,
 			 * and stop at the first reachable _after_ it */
 			if (HAS_SYMBOL((*pexplorer))){ /* skip "=" */
 				continue;
-			} else if (check_asmp(perspective, pexplorer, FALSE)) {
+			} else if (check_asmp(veri_persp, pexplorer, FALSE)) {
 				SET_VFLAG_WRAP(*vflags)
 				(*eqwrapper)->pendwrap = *pexplorer;
 
@@ -512,8 +524,8 @@ unsigned short int process_assumptions(Pnode* perspective, Pnode** pexplorer,
 
 				if (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {
 					while (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {};
-					return next_forwards(perspective, pexplorer, eqwrapper,
-						checkpoint, vflags, p_a);
+					return next_forwards(veri_persp, pexplorer, eqwrapper,
+						checkpoint, vflags, TRUE);
 				}
 				return TRUE;
 			}
@@ -526,6 +538,17 @@ unsigned short int process_assumptions(Pnode* perspective, Pnode** pexplorer,
 	}
 }
 
+/**
+ * @brief Skips all assumptions and leaves the explorer at the first Pnode,
+ * which is not an assumption (in forwards direction).
+ *
+ * @param pexplorer pointer to current position of explorer
+ * @param eqwrapper structure for (re)storing wrapping information
+ * @param checkpoint structure for (re)storing level information
+ * @param vflags verification flags
+ *
+ * @return FALSE, if no Pnode left in branch to leave explorer at
+ */
 unsigned short int skip_assumptions(Pnode** pexplorer, Eqwrapper** eqwrapper,
 		BC** checkpoint, VFlags* vflags)
 {
@@ -548,7 +571,19 @@ unsigned short int skip_assumptions(Pnode** pexplorer, Eqwrapper** eqwrapper,
 	return TRUE;
 }
 
-unsigned short int next_forwards(Pnode* perspective, Pnode** pexplorer,
+/**
+ * @brief Moves explorer to next Pnode in tree in forwards direction.
+ *
+ * @param veri_persp Pnode from whose position verification is to be performed
+ * @param pexplorer pointer to current position of explorer
+ * @param eqwrapper structure for (re)storing wrapping information
+ * @param checkpoint structure for (re)storing level information
+ * @param vflags verification flags
+ * @param p_a TRUE if assumptions are to be processed
+ *
+ * @return TRUE, if explorer could successfully be moved
+ */
+unsigned short int next_forwards(Pnode* veri_persp, Pnode** pexplorer,
 		Eqwrapper** eqwrapper, BC** checkpoint, VFlags* vflags, unsigned short
 		int p_a)
 {
@@ -562,8 +597,8 @@ unsigned short int next_forwards(Pnode* perspective, Pnode** pexplorer,
 		 *  - node is in eligible position */
 
 		while (explore_branch(pexplorer, eqwrapper, checkpoint, vflags)) {};
-		return process_assumptions(perspective, pexplorer, eqwrapper,
-				checkpoint, vflags, p_a);
+		return process_assumptions(veri_persp, pexplorer, eqwrapper,
+				checkpoint, vflags);
 
 	} else if ((*eqwrapper)->pendwrap == *pexplorer ||
 			!wrap_right(pexplorer, eqwrapper, vflags)) {
@@ -636,6 +671,8 @@ unsigned short int next_forwards(Pnode* perspective, Pnode** pexplorer,
  * @param exst TRUE if doing a backwards substitution for existence verification
  * @param exnum Pnode number which must not be exceeded by replaced constants
  * (not carrying the FRST NFLAG)
+ * @param do_sub TRUE, if substitutions are to be made
+ * @param p_a TRUE, if assumptions are to be processed
  *
  * @return FALSE, if attempt fails
  */
@@ -663,8 +700,6 @@ unsigned short int attempt_explore(Pnode* veri_perspec, Pnode* sub_perspec,
 	return TRUE;
 }
 
-/* --- backtracking --------------------------------------------------------- */
-
 /**
  * @brief Moves pexplorer to next reachable constant sub-tree, using branching
  * and substitution if necessary.
@@ -680,6 +715,8 @@ unsigned short int attempt_explore(Pnode* veri_perspec, Pnode* sub_perspec,
  * @param exst TRUE if doing a backwards substitution for existence verification
  * @param exnum Pnode number which must not be exceeded by replaced constants
  * (not carrying the FRST NFLAG)
+ * @param do_sub TRUE, if substitutions are to be made
+ * @param p_a TRUE, if assumptions are to be processed
  *
  * @return FALSE, if no reachable sub-trees are left
  */
@@ -740,6 +777,7 @@ unsigned short int next_backwards(Pnode* veri_perspec,
 }
 
 /* --- verification --------------------------------------------------------- */
+
 /**
  * @brief Compares two constant sub-trees.
  *
@@ -835,7 +873,7 @@ unsigned short int check_asmp(Pnode* perspective, Pnode** pexplorer,
 			pconst = pconst->prev_const) {
 		if (verify(pconst, pexplorer)) {
 			if (exst) {
-				DBG_VERIFY(fprintf(stderr, SHELL_MAGENTA "<%d:#%d>",
+				DBG_VERIFY(fprintf(stderr, SHELL_MAGENTA "<%d:%d>",
 							(*pexplorer)->num_c, pconst->num_c););
 			}
 			return TRUE;
@@ -916,7 +954,8 @@ unsigned short int verify_universal(Pnode* pn)
 #endif
 
 /**
- * @brief Recursively tries to verified a list of nodes for existence.
+ * @brief Recursive verification of quantifiers (helper function for
+ * verify_quantifiers).
  *
  * @param pexstart Pnode at the beginning of the list
  * @param p_perspective perspective taken, while moving through the list
@@ -928,10 +967,12 @@ unsigned short int verify_universal(Pnode* pn)
  * @param idonly TRUE, if only ids are considered eligible for substitution
  * @param exnum Pnode number which must not be exceeded by replaced constants
  * (not carrying the FRST NFLAG)
+ * @param carry_over TRUE, if node has been verified and status of successful
+ * verification is to be carried over to parent level
  *
  * @return TRUE, if verification of current node in list was successful
  */
-unsigned short int ve_recursion(Pnode* pexstart,
+unsigned short int vq_recurs(Pnode* pexstart,
 		Pnode* p_perspective, Pnode** p_pexplorer, Eqwrapper** p_eqwrapper,
 		BC** p_checkpoint, VFlags* p_vflags, unsigned short int dbg,
 		unsigned short int idonly, int exnum, unsigned short int carry_over)
@@ -967,7 +1008,7 @@ unsigned short int ve_recursion(Pnode* pexstart,
 		exnum, TRUE, TRUE)) {
 		if (carry_over || verify(*p_pexplorer, pexplorer)) {	
 
-			DBG_EPATH(
+			DBG_PATH(
 					fprintf(stderr, SHELL_MAGENTA "<%d:%d",
 						(*p_pexplorer)->num_c, (*pexplorer)->num_c);
 					print_sub(subd);
@@ -1000,7 +1041,7 @@ unsigned short int ve_recursion(Pnode* pexstart,
 						fprintf(stderr, SHELL_GREEN "<%d:co>" SHELL_RESET1,
 								expl_cp->num_c);
 						} else {
-						fprintf(stderr, SHELL_GREEN "<%d:#%d",
+						fprintf(stderr, SHELL_GREEN "<%d:%d",
 								expl_cp->num_c, (*pexplorer)->num_c);
 						print_sub(subd);
 						fprintf(stderr, ">" SHELL_RESET1);
@@ -1017,7 +1058,7 @@ unsigned short int ve_recursion(Pnode* pexstart,
 				return TRUE;
 			}
 
-			if (ve_recursion(pexstart, p_perspective,
+			if (vq_recurs(pexstart, p_perspective,
 					p_pexplorer, p_eqwrapper, p_checkpoint, p_vflags,
 					FALSE, idonly, exnum, rightmost)) {
 				success = TRUE;
@@ -1028,7 +1069,7 @@ unsigned short int ve_recursion(Pnode* pexstart,
 			}
 
 		} else {
-			DBG_EFAIL(
+			DBG_FAIL(
 				fprintf(stderr, SHELL_RED "<%d:%d",
 						(*p_pexplorer)->num_c, (*pexplorer)->num_c);
 				print_sub(subd);
@@ -1041,7 +1082,7 @@ unsigned short int ve_recursion(Pnode* pexstart,
 			fprintf(stderr, SHELL_GREEN "<%d:co>" SHELL_RESET1,
 					(*p_pexplorer)->num_c);
 			} else if (success) {
-			fprintf(stderr, SHELL_GREEN "<%d:#%d",
+			fprintf(stderr, SHELL_GREEN "<%d:%d",
 					(*p_pexplorer)->num_c, (*pexplorer)->num_c);
 			print_sub(subd);
 			fprintf(stderr, ">" SHELL_RESET1);
@@ -1129,7 +1170,7 @@ unsigned short int verify_quantifiers(Pnode* pn, Pnode* pexstart,
 
 	bc_push(pexplorer, &eqwrapper, checkpoint, &vflags);
 
-	if (ve_recursion(pexstart, pn, pexplorer, &eqwrapper, checkpoint,
+	if (vq_recurs(pexstart, pn, pexplorer, &eqwrapper, checkpoint,
 			&vflags, TRUE, idonly, exnum, FALSE)) {
 		SET_GFLAG_VRFD
 	} else {
@@ -1138,7 +1179,6 @@ unsigned short int verify_quantifiers(Pnode* pn, Pnode* pexstart,
 
 		fw_vtree = collect_forward_vars(pexstart);
 		if (fw_vtree != NULL) {
-			//init_sub(pn, fw_vtree, &vflags, subd, TRUE);
 			if (init_sub(pexstart, fw_vtree, &vflags, subd, TRUE, FALSE,
 						exnum)) {
 				do {
@@ -1147,7 +1187,7 @@ unsigned short int verify_quantifiers(Pnode* pn, Pnode* pexstart,
 							print_sub(subd);
 							fprintf(stderr, ">" SHELL_RESET1);
 							);
-					if (ve_recursion(pexstart, pn, pexplorer, &eqwrapper,
+					if (vq_recurs(pexstart, pn, pexplorer, &eqwrapper,
 								checkpoint, &vflags, TRUE, idonly, exnum,
 								FALSE)) {
 						SET_GFLAG_VRFD
@@ -1199,10 +1239,10 @@ unsigned short int verify_cases(Pnode* pn)
 	while (next_backwards(NULL, pn, pexplorer, &eqwrapper, checkpoint,
 				&vflags, subd, FALSE, FALSE, 0, FALSE, FALSE)) {
 
-		/* FIXME: This is not working because another substitution mechanism
-		 * (or no substitution) is needed. Proceed work here. */
+		/* TODO: Actual implementation. Currently only prints debugging
+		 * information about where the same conclusion has been made before. */
 		if (verify(pn, pexplorer)) {
-			DBG_EPATH(
+			DBG_PATH(
 					fprintf(stderr, SHELL_MAGENTA "<%d>",
 						(*pexplorer)->num_c);
 					);

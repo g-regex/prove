@@ -97,19 +97,19 @@ int main(int argc, char *argv[])
 				NOSUPPORT
 #endif
 				SET_DBG_EQUAL
-			} else if (strcmp(argv[i], "--depath") == 0) {
+			} else if (strcmp(argv[i], "--dpath") == 0) {
 #ifndef DPARSER
 				NOSUPPORT
 #endif
 				SET_DBG_VERIFY
-				SET_DBG_EPATH
-			} else if (strcmp(argv[i], "--defail") == 0) {
+				SET_DBG_PATH
+			} else if (strcmp(argv[i], "--dfail") == 0) {
 #ifndef DPARSER
 				NOSUPPORT
 #endif
 				SET_DBG_VERIFY
-				SET_DBG_EPATH
-				SET_DBG_EFAIL
+				SET_DBG_PATH
+				SET_DBG_FAIL
 			} else if (strcmp(argv[i], "--dtmp") == 0) {
 				SET_DBG_TMP
 			} else if (strcmp(argv[i], "--dtikz") == 0) {
@@ -135,6 +135,8 @@ int main(int argc, char *argv[])
 				SET_DBG_FINISH
 			} else if (strcmp(argv[i], "--dall") == 0) {
 				SET_DBG_PARSER
+				SET_DBG_FAIL
+				SET_DBG_PATH
 				SET_DBG_TIKZ
 				SET_DBG_COMPLETE
 				SET_DBG_FINISH
@@ -213,6 +215,9 @@ int main(int argc, char *argv[])
 }/*}}}*/
 
 /* --- parser functions ----------------------------------------------------- */
+/**
+ * @brief parser function for <expr>
+ */
 void parse_expr(void)
 {
 	/* maybe the EBNF should be altered a bit,
@@ -220,6 +225,9 @@ void parse_expr(void)
 	parse_formula();
 }
 
+/**
+ * @brief parser function for <formula>
+ */
 void parse_formula(void)
 {
 	int proceed;
@@ -323,6 +331,12 @@ void parse_formula(void)
 	prev_node = NULL;
 }
 
+/**
+ * @brief parser function for <statement>
+ *
+ * @param veri_ref TRUE if "ref=>" formulator was used; FIXME: currently
+ * enforces id-only substitution, but should just "suggest"
+ */
 void parse_statement(unsigned short int veri_ref)
 {
 	Pnode* ptmp;
@@ -373,17 +387,6 @@ void parse_statement(unsigned short int veri_ref)
 			prev_node = pnode->left->left; 
 		}
 
-		/* postpone verification for existence */
-		/* FIXME: put this at a better place */
-		if (pnode->left != NULL && HAS_SYMBOL(pnode->left) && !HAS_GFLAG_VRFD &&
-				HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)
-					&& !HAS_GFLAG_PSTP) {
-			SET_GFLAG_PSTP
-			pexstart = pnode;
-			DBG_VERIFY(fprintf(stderr, SHELL_BOLD "{%d}>"
-						SHELL_RESET2, pnode->num););
-		}
-
 		/* check whether a new identifier was introduced */
 		if (CONTAINS_ID(pnode)) {
 			ptmp = pnode->prev_const;
@@ -419,6 +422,17 @@ void parse_statement(unsigned short int veri_ref)
 					(Pnode**) malloc(sizeof(struct Pnode*));
 				*((*(pnode->child))->right) = NULL;
 			}
+		}
+
+		/* postpone verification for existence */
+		/* FIXME: put this at a better place */
+		if (pnode->left != NULL && HAS_SYMBOL(pnode->left) && !HAS_GFLAG_VRFD &&
+				HAS_NFLAG_IMPL(pnode) && !HAS_NFLAG_ASMP(pnode)
+					&& !HAS_GFLAG_PSTP) {
+			SET_GFLAG_PSTP
+			pexstart = pnode;
+			DBG_VERIFY(fprintf(stderr, SHELL_BOLD "{%d}>"
+						SHELL_RESET2, pnode->num););
 		}
 
 		/* TODO: handle equalities */

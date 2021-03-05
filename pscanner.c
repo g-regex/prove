@@ -40,7 +40,11 @@ static void next_char(void); /* advances the "cursor" to the next character */
 /* reads an identifier for a <symbol> or <operand> and stores it to token->id */
 static void process_string(Token *token);
 
-/* initialises the scanner */
+/**
+ * @brief Initialises the scanner.
+ *
+ * @param f file to be scanned
+ */
 void init_scanner(FILE *f)
 {
 	file = f;
@@ -49,6 +53,9 @@ void init_scanner(FILE *f)
 	next_char();
 }
 
+/**
+ * @brief Skips chars and remembers them (e.g. comments).
+ */
 void skip_char(){
 	if (sc_i < SKIP_BUFFER) {
 		skipped[sc_i] = ch;
@@ -57,15 +64,22 @@ void skip_char(){
 	next_char();
 }
 
+/**
+ * @brief Recalls skipped chars.
+ *
+ * @return pointer to string of recalled chars
+ */
 char* recall_chars() {
 	skipped[sc_i] = '\0';
 	sc_i = 0;
 	return skipped;
 }
 
-/*
- * advances the "cursor" to the next token and stores the token information
- * in the provided struct
+/**
+ * @brief Advances the "cursor" to the next token and stores the token
+ * information in the provided structure.
+ *
+ * @param token pointer to token structure
  */
 void next_token(Token *token)
 {
@@ -133,6 +147,9 @@ void next_token(Token *token)
 	}
 }
 
+/**
+ * @brief Moves "cursor" to the next char.
+ */
 void next_char(void)
 {
 	static char last_read = '\0';
@@ -150,6 +167,11 @@ void next_char(void)
 	col++;
 }
 
+/**
+ * @brief Processes a string and compares it with reserved strings.
+ *
+ * @param token pointer to token struct
+ */
 void process_string(Token *token)
 {
 	char string[MAX_ID_LENGTH+1];

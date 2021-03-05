@@ -85,7 +85,7 @@ docgen:
 	mkdir -p doc/examples/out
 	for T in `ls doc/examples/*.prove`
 	do
-		$(BINDIR)/proveparser $$T --dtikz --dfinish --dparser --dcomplete &> doc/examples/out/$$(basename $$T .prove).out
+		$(BINDIR)/proveparser $$T --dtikz --dfinish --dverify --dcomplete 2>&1 | fold -w80 -s - &> doc/examples/out/$$(basename $$T .prove).out
 		$(BINDIR)/docc
 		pdflatex -output-directory doc/tikz debug/$$(basename $$T .prove).tex
 	done

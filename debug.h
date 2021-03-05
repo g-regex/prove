@@ -30,8 +30,8 @@ typedef enum {
 	DBG_FINISH = 16,	/* finish execution, even if verification failed */
 	DBG_GRAPH = 32,
 	DBG_EQUAL = 64,
-	DBG_EPATH = 128,
-	DBG_EFAIL = 256,
+	DBG_PATH = 128,
+	DBG_FAIL = 256,
 	DBG_TMP = 512,
 } DBGops;
 
@@ -110,24 +110,24 @@ DBGops dbgops;
 
 #ifdef DVERIFY
 #define DEBUG
-#define DBG_EPATH_IS_SET (dbgops & DBG_EPATH)
-#define SET_DBG_EPATH dbgops |= DBG_EPATH;
-#define DBG_EPATH(cmd) \
-	if (DBG_EPATH_IS_SET) { cmd }
+#define DBG_PATH_IS_SET (dbgops & DBG_PATH)
+#define SET_DBG_PATH dbgops |= DBG_PATH;
+#define DBG_PATH(cmd) \
+	if (DBG_PATH_IS_SET) { cmd }
 #else
-#define DBG_EPATH(cmd)
-#define SET_DBG_EPATH
+#define DBG_PATH(cmd)
+#define SET_DBG_PATH
 #endif
 
 #ifdef DVERIFY
 #define DEBUG
-#define DBG_EFAIL_IS_SET (dbgops & DBG_EFAIL)
-#define SET_DBG_EFAIL dbgops |= DBG_EFAIL;
-#define DBG_EFAIL(cmd) \
-	if (DBG_EFAIL_IS_SET) { cmd }
+#define DBG_FAIL_IS_SET (dbgops & DBG_FAIL)
+#define SET_DBG_FAIL dbgops |= DBG_FAIL;
+#define DBG_FAIL(cmd) \
+	if (DBG_FAIL_IS_SET) { cmd }
 #else
-#define DBG_EFAIL(cmd)
-#define SET_DBG_EFAIL
+#define DBG_FAIL(cmd)
+#define SET_DBG_FAIL
 #endif
 
 #ifdef DCOLOUR
@@ -140,14 +140,14 @@ DBGops dbgops;
 #define SHELL_BOLD "\033[1m"
 #define SHELL_RESET2 "\033[0m"
 #else
-#define SHELL_RED
-#define SHELL_GREEN
-#define SHELL_BROWN
-#define SHELL_MAGENTA
-#define SHELL_CYAN
-#define SHELL_RESET1
-#define SHELL_BOLD
-#define SHELL_RESET2
+#define SHELL_RED ""
+#define SHELL_GREEN ""
+#define SHELL_BROWN ""
+#define SHELL_MAGENTA ""
+#define SHELL_CYAN ""
+#define SHELL_RESET1 ""
+#define SHELL_BOLD ""
+#define SHELL_RESET2 ""
 
 #endif
 

@@ -25,6 +25,14 @@
 #define DEBUG
 #include "error.h"
 
+/**
+ * @brief main function of helper tool for compiling the documentation
+ *
+ * @param argc number of command line arguments
+ * @param argv command line arguments
+ *
+ * @return 0
+ */
 int main(int argc, char *argv)
 {
 	struct stat st = {0};			/* for checking directory existence */

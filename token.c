@@ -18,6 +18,9 @@
 #include <string.h>
 #include "token.h"
 
+#define TRUE 1
+#define FALSE 0
+
 typedef struct {
 	char   *word;
 	TType  type;
@@ -30,7 +33,15 @@ Reserved reserved[] = {
 	{ "=",		TOK_EQ		},
 };
 
-int isspecial(char ch)
+/**
+ * @brief Checks whether a character is a legal special character according to
+ * the EBNF.
+ *
+ * @param ch character to be checked
+ *
+ * @return TRUE, if character is a legal special character
+ */
+unsigned short int isspecial(char ch)
 {
 	/* permitted special characters */
 	char special[] = {'+', '-', '/', '*', '%', '^', '&', '.', '?', ':', '!',
@@ -39,17 +50,33 @@ int isspecial(char ch)
 	
 	for (int i = 0; i < num_special; i++) {
 		if (ch == special[i]) {
-			return 1;
+			return TRUE;
 		}
 	}
-	return 0;
+	return FALSE;
 }
 
+/**
+ * @brief Gets the token type of a reserved string.
+ *
+ * @param cmp index of the reserved token
+ *
+ * @return type of reserved token
+ */
 TType get_token_type(int cmp)
 {
 	return reserved[cmp].type;
 }
 
+/**
+ * @brief Performs a binary search through the array of reserved token strings.
+ *
+ * @param pat pattern to be searched for
+ * @param min starting position in array
+ * @param max end position in array
+ *
+ * @return token position in array on success and -1 otherwise
+ */
 int search_binary(char *pat, int min, int max)
 {
 	int mid = min + ((max - min) / 2);
@@ -71,6 +98,13 @@ int search_binary(char *pat, int min, int max)
 	}
 }
 
+/**
+ * @brief Wrapper function for search_binary().
+ *
+ * @param pat pattern to be searched for
+ *
+ * @return whatever search_binary returns
+ */
 int search(char *pat)
 {
 	return search_binary(pat, 0,

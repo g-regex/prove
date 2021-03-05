@@ -38,13 +38,15 @@
 		"\n" MDS "GENERAL options:" MDS "\n\n" MDN\
 	MDC "--help" MDC "\tdisplay this message\n" MDN\
 		"\n" MDS "DEBUGGING options:" MDS "\n\n" MDN\
+	MDC "--noveri" MDC "  \tdo not perform any verification "\
+				"(useful, when creating TIKZ graphs)\n" MDN\
 	MDC "--dparser" MDC "  \tactivate debugging output for parser\n" MDN\
-	MDC "--dequal" MDC "  \tactivate debugging output for circular linked "\
-		"list for equalities\n" MDN\
-	MDC "--dgraph" MDC "   \tactivate debugging output for graph creation "\
-	 			"(implies " MDC "--dparser" MDC ")\n" MDN\
 	MDC "--dverify" MDC "  \tactivate debugging output for verification "\
 	 			"(implies " MDC "--dparser" MDC ")\n" MDN\
+	MDC "--dpath" MDC "  \tprint list of successfully verified nodes, "\
+				"which were discarded (implies " MDC "--dverify" MDC ")\n" MDN\
+	MDC "--dfail" MDC "  \tprint list of failed verifications "\
+				"(implies " MDC "--dverify" MDC ")\n" MDN\
 	MDC "--dtikz" MDC "    \tgenerate TikZ graph representation in "\
 		"./debug/\n" MDN\
 	MDC "--dcomplete" MDC "\tdo not break verification loop after first "\
