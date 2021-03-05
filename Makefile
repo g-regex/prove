@@ -75,11 +75,13 @@ checknd: all runchecks
 doc: DFLAGS+=-DDPARSER -DDTIKZ -DDVERIFY -DDGRAPH
 doc: cleanbin cleantex proveparser docc docgen
 
-pdf: cleanbin cleantex safecheck pdflatex
+pdf: cleanbin cleantex safenoveri pdflatex
 
 .ONESHELL:
-safecheck:
+safenoveri:
 	@-${MAKE} noveri &> /dev/null
+safecheck:
+	@-${MAKE} check &> /dev/null
 docgen:
 	mkdir -p doc/tikz
 	mkdir -p doc/examples/out
