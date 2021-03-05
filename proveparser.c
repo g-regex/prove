@@ -206,14 +206,14 @@ int main(int argc, char *argv[])
 
 	fclose(file);
 
-	printf(SHELL_CYAN "Nodes in tree:\t%d",
+	fprintf(stderr, SHELL_CYAN "Nodes in tree:\t%d",
 			get_node_count());
 #ifdef DGMP
-	printf("\nNodes compared:\t");
-	mpz_out_str(stdout, 10, comp_count);
+	fprintf(stderr, "\nNodes compared:\t");
+	mpz_out_str(stderr, 10, comp_count);
 	mpz_clear(comp_count);
 #endif
-	printf("\n" SHELL_RESET1);
+	fprintf(stderr, "\n" SHELL_RESET1);
 
 	if (!do_veri) {
 		return EXIT_SUCCESS;
