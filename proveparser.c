@@ -21,12 +21,15 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <libgen.h>
-#include <gmp.h>
 #include "pscanner.h"
 #include "debug.h"
 #include "verify.h"
 #include "pgraph.h"
 #include "error.h"
+
+#ifdef DGMP
+#include <gmp.h>
+#endif
 
 /* --- preprocessor directives ---------------------------------------------- */
 #define TRUE 1
@@ -169,8 +172,10 @@ int main(int argc, char *argv[])
 
 	lvl = 0;
 
+#ifdef DGMP
 	mpz_init(comp_count);
 	mpz_set_ui(comp_count,0);
+#endif
 
 	init_scanner(file);
 	next_token(&token);
@@ -201,10 +206,13 @@ int main(int argc, char *argv[])
 
 	fclose(file);
 
-	printf(SHELL_CYAN "Nodes in tree:\t%d\nNodes compared:\t",
+	printf(SHELL_CYAN "Nodes in tree:\t%d",
 			get_node_count());
+#ifdef DGMP
+	printf("\nNodes compared:\t");
 	mpz_out_str(stdout, 10, comp_count);
 	mpz_clear(comp_count);
+#endif
 	printf("\n" SHELL_RESET1);
 
 	if (!do_veri) {

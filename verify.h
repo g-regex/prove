@@ -94,5 +94,7 @@ unsigned short int next_backwards(Pnode* veri_perspec,
 		unsigned short int idonly, unsigned short int exst, int exnum,
 		unsigned short int do_sub, unsigned short int p_a);
 
+#ifdef DGMP
 mpz_t comp_count;
+#endif
 #endif
