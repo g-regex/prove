@@ -32,6 +32,41 @@ urlcolor=blue]{hyperref}
 %for EBNF:
 \usepackage{csquotes}
 
+%for console codes:
+\DeclareUnicodeCharacter{001B}{\ansi}
+\usepackage{fancyvrb}
+\usepackage{color}
+
+\def\defaultcode{[0;0}
+\def\defaultAcode{[0}
+\def\defaultBcode{[1}
+\def\bluecode{[0;34}
+\def\redcode{[0;31}
+\def\greencode{[0;32}
+\def\cyancode{[0;36}
+\def\browncode{[0;33}
+\def\magentacode{[0;35}
+\def\ansi#1m{%
+\def\colcode{#1}%
+
+\ifx\colcode\defaultcode\color{black}%
+\else\ifx\colcode\defaultAcode\color{black}%
+\else\ifx\colcode\defaultBcode\color{black}%
+\else\ifx\colcode\bluecode\color{blue}%
+\else\ifx\colcode\redcode\color{red}%
+\else\ifx\colcode\cyancode\color{cyan}%
+\else\ifx\colcode\browncode\color{brown}%
+\else\ifx\colcode\greencode\color{green}%
+\else\ifx\colcode\magentacode\color{magenta}%
+\fi\fi\fi\fi\fi\fi\fi\fi\fi}
+
+%%for multipage listings:
+\usepackage{tcolorbox}
+\usepackage{fvextra}
+%% tcolorbox libraries
+\tcbuselibrary{breakable,skins,listings}
+
+%commands:
 \newcommand\prv{bc}
 \newcommand\m[1]{\mintinline{\prv}{#1}}
 \newcommand\discuss[1]{\textcolor{dartmouthgreen}{#1}}
@@ -70,14 +105,13 @@ urlcolor=blue]{hyperref}
 	\begin{figure}[!h]
 	\caption{Representation of source~code~\ref{code:#1}}\label{fig:#1}
 	\centering
-	\includegraphics[width=\textwidth, height=8cm, keepaspectratio]{tikz/#1.pdf}
+	\includegraphics[width=\textwidth, keepaspectratio]{tikz/#1.pdf}
 	\end{figure}
 
-	\begin{code}
-	\captionof{listing}{\name\ output for \texttt{examples/#1.prove}}%
-	\label{code:#1out}
-	\inputminted[linenos]{\prv}{examples/out/#1.out}
-	\end{code}
+	\begin{tcolorbox}[breakable]%
+		\VerbatimInput[commandchars=\\\{\}, obeytabs]%
+		{examples/out/#1.out}%
+	\end{tcolorbox}%
 }
 
 \providecommand{\tabularnewline}{\\}

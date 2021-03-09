@@ -242,6 +242,5 @@ FILE* tikz;
 static unsigned short int rightmost_child;
 static unsigned short int max_depth;
 static unsigned short int cur_depth;
-#endif
-
-#endif
+#endif /* TIKZ_H */
+#endif /* DTIKZ */

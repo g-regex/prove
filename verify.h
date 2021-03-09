@@ -14,6 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 #ifndef VERIFY_H
 #define VERIFY_H
 
@@ -97,4 +98,4 @@ unsigned short int next_backwards(Pnode* veri_perspec,
 #ifdef DGMP
 mpz_t comp_count;
 #endif
-#endif
+#endif /* VERIFY_H */

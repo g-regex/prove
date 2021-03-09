@@ -72,7 +72,7 @@ checkcmplt: CHECKARGS=--dparser --dtikz --dcomplete --dfinish
 checkcmplt: debug runchecks
 checknd: all runchecks
 
-doc: DFLAGS+=-DDPARSER -DDTIKZ -DDVERIFY -DDGRAPH
+doc: DFLAGS+=-DDPARSER -DDTIKZ -DDVERIFY -DDGRAPH -DDCOLOUR
 doc: cleanbin cleantex proveparser docc docgen
 
 pdf: cleanbin cleantex safenoveri pdflatex
@@ -87,7 +87,9 @@ docgen:
 	mkdir -p doc/examples/out
 	for T in `ls doc/examples/*.prove`
 	do
-		$(BINDIR)/proveparser $$T --dtikz --dfinish --dverify --dcomplete 2>&1 | fold -w80 -s - &> doc/examples/out/$$(basename $$T .prove).out
+		#$(BINDIR)/proveparser $$T --dtikz --dfinish --dverify --dcomplete 2>&1 | fold -w80 -s - &> doc/examples/out/$$(basename $$T .prove).out
+		#$(BINDIR)/proveparser $$T --dtikz --dfinish --dverify --dcomplete &> doc/examples/out/$$(basename $$T .prove).out
+		$(BINDIR)/proveparser $$T --dtikz --dfinish --dverify --dcomplete 2>&1 | ./breaklines.sh > doc/examples/out/$$(basename $$T .prove).out
 		$(BINDIR)/docc
 		pdflatex -output-directory doc/tikz debug/$$(basename $$T .prove).tex
 	done

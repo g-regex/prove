@@ -181,4 +181,3 @@ VTree* next_var(VTree* vtree);
 int get_node_count();
 
 #endif
-
