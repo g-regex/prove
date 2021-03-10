@@ -72,7 +72,7 @@ checkcmplt: CHECKARGS=--dparser --dtikz --dcomplete --dfinish
 checkcmplt: debug runchecks
 checknd: all runchecks
 
-doc: DFLAGS+=-DDPARSER -DDTIKZ -DDVERIFY -DDGRAPH -DDCOLOUR
+doc: DFLAGS+=-DDPARSER -DDTIKZ -DDVERIFY -DDGRAPH -DDCOLOUR -DDGMP
 doc: cleanbin cleantex proveparser docc docgen
 
 pdf: cleanbin cleantex safenoveri pdflatex
@@ -85,14 +85,23 @@ safecheck:
 docgen:
 	mkdir -p doc/tikz
 	mkdir -p doc/examples/out
+	$(BINDIR)/docc
 	for T in `ls doc/examples/*.prove`
 	do
 		#$(BINDIR)/proveparser $$T --dtikz --dfinish --dverify --dcomplete 2>&1 | fold -w80 -s - &> doc/examples/out/$$(basename $$T .prove).out
 		#$(BINDIR)/proveparser $$T --dtikz --dfinish --dverify --dcomplete &> doc/examples/out/$$(basename $$T .prove).out
-		$(BINDIR)/proveparser $$T --dtikz --dfinish --dverify --dcomplete 2>&1 | ./breaklines.sh > doc/examples/out/$$(basename $$T .prove).out
-		$(BINDIR)/docc
-		pdflatex -output-directory doc/tikz debug/$$(basename $$T .prove).tex
+		#$(BINDIR)/proveparser $$T --dtikz --dfinish --dverify --dcomplete 2>&1 | ./breaklines.sh > doc/examples/out/$$(basename $$T .prove).out
+		$(BINDIR)/proveparser $$T --dtikz --dfinish --dverify --dcomplete &> doc/tmp.tex
+		SUCCESS=$$?
+		cat doc/tmp.tex | ./breaklines.sh > doc/examples/out/$$(basename $$T .prove).out
+		if (test $$SUCCESS -eq 2)
+		then
+			rm -f debug/$$(basename $$T .prove).tex &> /dev/null
+		else
+			pdflatex -output-directory doc/tikz debug/$$(basename $$T .prove).tex
+		fi
 	done
+	rm doc/tmp.tex
 	pdflatex -output-directory doc/tikz debug/legend.tex
 	cd doc
 	pdflatex --shell-escape doc.tex

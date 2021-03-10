@@ -21,13 +21,18 @@ urlcolor=blue]{hyperref}
 \usepackage{xcolor}
 \definecolor{magnolia}{rgb}{0.97, 0.96, 1.0}
 \definecolor{dartmouthgreen}{rgb}{0.05, 0.5, 0.06}
+\definecolor{darkpastelgreen}{rgb}{0.01, 0.75, 0.24}
+\definecolor{cornflowerblue}{rgb}{0.39, 0.58, 0.93}
+\definecolor{lapislazuli}{rgb}{0.15, 0.38, 0.61}
+\definecolor{manatee}{rgb}{0.59, 0.6, 0.67}
 
 \usepackage[newfloat]{minted}
 \setminted{bgcolor=magnolia}
 
 \usepackage{caption}
-\newenvironment{code}{\captionsetup{type=listing}}{}
-\SetupFloatingEnvironment{listing}{name=Source Code}
+\newenvironment{code}{\captionsetup{type=listing, skip=0pt}}{}
+%\SetupFloatingEnvironment{listing}{name=Source Code}
+\newenvironment{graph}{\captionsetup{type=figure, skip=0pt}}{}
 
 %for EBNF:
 \usepackage{csquotes}
@@ -54,64 +59,96 @@ urlcolor=blue]{hyperref}
 \else\ifx\colcode\defaultBcode\color{black}%
 \else\ifx\colcode\bluecode\color{blue}%
 \else\ifx\colcode\redcode\color{red}%
-\else\ifx\colcode\cyancode\color{cyan}%
+\else\ifx\colcode\cyancode\color{lapislazuli}%cyan
 \else\ifx\colcode\browncode\color{brown}%
-\else\ifx\colcode\greencode\color{green}%
+\else\ifx\colcode\greencode\color{darkpastelgreen}%
 \else\ifx\colcode\magentacode\color{magenta}%
 \fi\fi\fi\fi\fi\fi\fi\fi\fi}
+
+\usepackage[scaled=0.85]{beramono}
 
 %%for multipage listings:
 \usepackage{tcolorbox}
 \usepackage{fvextra}
+\usepackage{tikz}
 %% tcolorbox libraries
 \tcbuselibrary{breakable,skins,listings}
+\tcbset{listing engine=listings}
+
+\newtcbox{\pcode}[1][std]{on line, boxsep=0pt, boxrule=0pt, arc=1pt, outer arc=1pt,%
+top=3pt, bottom=3pt, left=1pt, right=1pt}
 
 %commands:
 \newcommand\prv{bc}
-\newcommand\m[1]{\mintinline{\prv}{#1}}
+%\newcommand\m[1]{\mintinline{\prv}{#1}}
+\newcommand\m[1]{\pcode{\texttt{#1}}}
 \newcommand\discuss[1]{\textcolor{dartmouthgreen}{#1}}
 \newcommand\name{\texttt{\textsc{[prove]}}}
-\newcommand\example[1]{
-	\begin{code}
-	\captionof{listing}{\texttt{examples/#1.prove}}\label{code:#1}
-	\inputminted[linenos]{\prv}{examples/#1.prove}
-	\end{code}
 
-	\begin{figure}[!h]
-	\caption{Representation of source~code~\ref{code:#1}}\label{fig:#1}
+\newcommand\tfigure[3]{%
+	\begin{graph}
+	\begin{tcolorbox}[breakable, colbacktitle=manatee,%
+		title=\captionof{figure}%
+	{#1}\label{fig:#2}]%
+	#3
+	\end{tcolorbox}%
+	\end{graph}
+}
+\newcommand\graphwithlegend[1]{%
+	\begin{graph}
+	\begin{tcolorbox}[breakable, colbacktitle=manatee,%
+		title=\captionof{figure}%
+	{Graph of \texttt{examples/#1.prove}}\label{fig:#1}]%
 	\centering
 	\subfloat[\centering Legend]{%
 		\includegraphics[width=\textwidth, height=8cm,
 		keepaspectratio]{tikz/legend.pdf}
 	}
-	\subfloat[\centering Graph of source~code~\ref{code:#1}]{%
+	\subfloat[\centering Graph]{%
 		\includegraphics[width=\textwidth, height=8cm,
 		keepaspectratio]{tikz/#1.pdf}
 	}
-	\end{figure}
-
+	\end{tcolorbox}%
+	\end{graph}
+}
+\newcommand\graphwolegend[2]{%
+	\begin{graph}
+	\begin{tcolorbox}[breakable, colbacktitle=manatee,%
+		title=\captionof{figure}%
+	{Graph of \texttt{examples/#1.prove}}\label{fig:#1}]%
+	\centering
+	\includegraphics[width=\textwidth, keepaspectratio, #2]{tikz/#1.pdf}
+	\end{tcolorbox}%
+	\end{graph}
+}
+\newcommand\sourcecode[1]{%
 	\begin{code}
-	\captionof{listing}{\name\ output for \texttt{examples/#1.prove}}%
-	\label{code:#1out}
-	\inputminted[linenos]{\prv}{examples/out/#1.out}
+		\begin{tcolorbox}[breakable, left=7mm, colbacktitle=manatee,%
+			title=\captionof{listing}{\texttt{examples/#1.prove}}\label{code:#1}]
+			\VerbatimInput[obeytabs, numbers=left]{examples/#1.prove}%
+	\end{tcolorbox}%
 	\end{code}
 }
-\newcommand\examplenl[1]{
+\newcommand\outputcode[1]{%
 	\begin{code}
-	\captionof{listing}{\texttt{examples/#1.prove}}\label{code:#1}
-	\inputminted[linenos]{\prv}{examples/#1.prove}
-	\end{code}
-
-	\begin{figure}[!h]
-	\caption{Representation of source~code~\ref{code:#1}}\label{fig:#1}
-	\centering
-	\includegraphics[width=\textwidth, keepaspectratio]{tikz/#1.pdf}
-	\end{figure}
-
-	\begin{tcolorbox}[breakable]%
+		\begin{tcolorbox}[breakable, left=7mm, colbacktitle=manatee,%
+		title=\captionof{listing}{Output for \texttt{examples/#1.prove}}%
+	\label{code:#1out}]%
 		\VerbatimInput[commandchars=\\\{\}, obeytabs]%
 		{examples/out/#1.out}%
 	\end{tcolorbox}%
+	\end{code}
+}
+
+\newcommand\example[1]{
+	\sourcecode{#1}
+	\graphwithlegend{#1}
+	\outputcode{#1}
+}
+\newcommand\examplenl[2]{
+	\sourcecode{#1}
+	\graphwolegend{#1}{#2}
+	\outputcode{#1}
 }
 
 \providecommand{\tabularnewline}{\\}
@@ -151,12 +188,6 @@ Let us start with some basic definitions
 		The empty string is a special case of a formula. Apart from this special
 		case every formula must contain at least one statement and at least
 		one formulator.
-%	\item
-%		A \emph{formulator }is a sequence of legal (see figure~\ref{fig:ebnf})
-%		characters. A formulator does not contain any square brackets but
-%		is delimited by a closing square bracket or the beginning of the file
-%		at its beginning and an opening square bracket or the end of the file
-%		at its end.
 	\item
 		A \emph{formulator} is a sequence of legal (see figure~\ref{fig:ebnf})
 		characters delimited by either square brackets or the beginning or the
@@ -180,10 +211,6 @@ Let us start with some basic definitions
 		(see figure~\ref{fig:ebnf}). Opening and closing square brackets, and
 		the reserved formulators \m{=}, \m{=>} are not referred to as characters
 		in this document.
-%	\item
-%		In the current implementation and negated statement is still a statement
-%		and not a formula. The \m{!} is currently not a formulator -\ probably
-%		this has to be discussed.
 	\item
 		The terms \emph{variable} and \emph{constant} can be used to refer
 		to an identifier. Which term is to be used depends on the context,
@@ -209,25 +236,40 @@ characters shown in figure~\ref{fig:meta}.
 
 \medskip{}
 
-\begin{figure}[!ht]
-\centering
-\begin{doublespace}
-\begin{tabular}{l|l}
-$|$ & indicates `or'\tabularnewline\
-$(\dots)$ & groups productions and/or terminals together; only useful in
-combination with $|$\tabularnewline\
-$[\dots]$ & indicates optionality\tabularnewline\
-$\{\dots\}$ & indicates zero or more repetitions\tabularnewline\
-\end{tabular}%\bigskip{}
-\caption{Meta characters of the Extended Backus-Naur Form}\label{fig:meta}
-\end{doublespace}
-\end{figure}
+%\begin{figure}[!ht]
+%\centering
+%\begin{doublespace}
+%\begin{tabular}{l|l}
+%$|$ & indicates `or'\tabularnewline\
+%$(\dots)$ & groups productions and/or terminals together; only useful in
+%combination with $|$\tabularnewline\
+%$[\dots]$ & indicates optionality\tabularnewline\
+%$\{\dots\}$ & indicates zero or more repetitions\tabularnewline\
+%\end{tabular}%\bigskip{}
+%\caption{Meta characters of the Extended Backus-Naur Form}\label{fig:meta}
+%\end{doublespace}
+%\end{figure}
+\tfigure{Meta characters of the Extended Backus-Naur Form}{meta}{%
+	\begin{doublespace}
+	\begin{tabular}{l|l}
+	$|$ & indicates `or'\tabularnewline\
+	$(\dots)$ & groups productions and/or terminals together; only useful in
+	combination with $|$\tabularnewline\
+	$[\dots]$ & indicates optionality\tabularnewline\
+	$\{\dots\}$ & indicates zero or more repetitions\tabularnewline\
+	\end{tabular}
+	\end{doublespace}
+}
 
-\begin{figure}[!ht]
-\centering
+%\begin{figure}[!ht]
+%\centering
+%\input{ebnf}
+%\caption{Extended Backus-Naur Form of the \name\ language}\label{fig:ebnf}
+%\end{figure}
+\tfigure{Extended Backus-Naur Form of the \name\ language}{ebnf}{%
 \input{ebnf}
-\caption{Extended Backus-Naur Form of the \name\ language}\label{fig:ebnf}
-\end{figure}
+\vspace{2mm}
+}
 
 Using this notation the \name\ language can be described by the EBNF shown in
 figure~\ref{fig:ebnf}.  Every EBNF needs to have an initial production as a
@@ -254,10 +296,9 @@ least not without introducing more conventions.
 \medskip{}
 
 Consider the following code:
+\newline
 
-\begin{minted}{\prv}
-[a]and[b]=[c]=>[b][c]
-\end{minted}
+\sourcecode{invalid}
 
 The use of \m{=} and \m{=>} is ambiguous in this context, since \m{=} could
 refer to everything on its right hand side or just to \m{[c]}. Similarly \m{=>}
@@ -306,11 +347,9 @@ Further, the following rule for implications is suggested:
 \section{Representation}
 
 Let us have a look at the following statement:
+\newline
 
-\begin{code}
-\captionof{listing}{Example}\label{code:ex1}
-\inputminted[linenos]{\prv}{examples/exmp1.prove}
-\end{code}
+\sourcecode{exmp1}
 
 An intuitive approach for representing the structure of this code is by thinking
 of it as a tree, where every statement and every formulator is represented by a
@@ -367,23 +406,12 @@ perform the following steps:
 \end{itemize}
 
 On the next page a graphical representation of
-source~code~\ref{code:ex1} can be found.
+listing~\ref{code:exmp1} can be found.
 \pagebreak{}
 
-\begin{figure}[!ht]
-\caption{Representation of source~code~\ref{code:ex1}}\label{fig:ex1}
-\centering
-\subfloat[\centering Legend]{%
-	\includegraphics[width=\textwidth, height=10cm,
-	keepaspectratio]{tikz/legend.pdf}
-}
-\subfloat[\centering Graph of source~code~\ref{code:ex1}]{%
-	\includegraphics[width=\textwidth, height=10cm,
-	keepaspectratio]{tikz/exmp1.pdf}
-}
-\end{figure}
+\graphwithlegend{exmp1}
 
-The tree shown in figure~\ref{fig:ex1} (b) was automatically generated by \name\
+The tree shown in figure~\ref{fig:exmp1} (b) was automatically generated by \name\
 following the steps described above. The nodes have been numbered in the order
 they have been created, which corresponds to a pre-order traversal numbering of
 the tree. The flags drawn on the righthand side of each node encode information,
@@ -497,26 +525,7 @@ The debugging output is a modified version the original \name\ code, in which
 verification information has been inserted. On the next page you will find a
 short explanation of the debugging information and an example.
 
-\pagebreak{}
-
-\begin{code}
-\captionof{listing}{Example}\label{code:impl1}
-\inputminted[linenos]{\prv}{examples/impl1.prove}
-\end{code}
-
-\begin{figure}[!h]
-\caption{Representation of source~code~\ref{code:impl1}}\label{fig:impl1}
-\centering
-\includegraphics[width=\textwidth, height=6cm, keepaspectratio]{tikz/impl1.pdf}
-\end{figure}
-
-\begin{code}
-\captionof{listing}{\name\ output for
-Source~Code~\ref{code:impl1}}\label{code:impl1out}
-\inputminted[linenos]{\prv}{examples/out/impl1.out}
-\end{code}
-
-Source~Code~\ref{code:impl1} shows a trivial example \name\ code, which requires
+Listing~\ref{code:impl1} shows a trivial example \name\ code, which requires
 a verification step after processing the last statement. As
 figure~\ref{fig:impl1} shows, node~7 has the \texttt{IMPL}~flag set and the
 \texttt{ASMP}~flag unset. Thus node~7 requires verification.
@@ -544,6 +553,10 @@ be interpreted as follows:
 
 \pagebreak{}
 
+\example{impl1}
+
+\pagebreak{}
+
 \subsection{Similarity of sub-trees}\label{sec:similar}
 Two sub-trees are usually compared to each other, after all variables (with
 respect to the parent of the root of the respective sub-tree) have been
@@ -564,7 +577,7 @@ be similar, when the following conditions hold:
 		same formulator.
 \end{itemize}
 
-In the example of source~code~\ref{code:impl1} the compared sub-trees consist of
+In the example of listing~\ref{code:impl1} the compared sub-trees consist of
 only a single node, each carrying a formulator. The similarity of the sub-trees
 under nodes 0 and 7 (with the nodes 1 and 8 as their roots respectively) is
 trivial. If we want to verify slightly more involved formulas, we have to
@@ -603,13 +616,14 @@ The state of an identifier can be determined by looking at the flags
 
 \subsubsection{Example}
 To illustrate the concept of variables and constants, let us slightly modify
-source~code~\ref{code:impl1} and put square brackets around the first two
+listing~\ref{code:impl1} and put square brackets around the first two
 statements:
+\newline
 
 \example{var1}
 
-In source~code~\ref{code:var1} the method of verification used for 
-source~code~\ref{code:impl1} fails, since node~1 is unkown from the perspective
+In listing~\ref{code:var1} the method of verification used for 
+listing~\ref{code:impl1} fails, since node~1 is unkown from the perspective
 of node~8. After this method fails, the identifiers which are constant from the
 perspective of node~7 (i.e.\ the \m{=>} before the nodes whose existence has to
 be verified now) are substituted in the unverified nodes with the \texttt{NEWC}
@@ -629,24 +643,7 @@ As mentioned before verification of a node involves comparing the sub-tree below
 the current node against a number of other sub-trees. To select the sub-trees
 eligible for comparison, we have to introduce the concept of
 \emph{reachability}.
-
-%\begin{code}
-%\captionof{listing}{Example}\label{code:reach1}
-%\inputminted[linenos]{\prv}{examples/reach1.prove}
-%\end{code}
-%
-%\begin{figure}[!h]
-%\caption{Representation of source~code~\ref{code:reach1}}\label{fig:reach1}
-%\centering
-%\subfloat[\centering Legend]{%
-%	\includegraphics[width=\textwidth, height=10cm,
-%	keepaspectratio]{tikz/legend.pdf}
-%}
-%\subfloat[\centering Graph of source~code~\ref{code:reach1}]{%
-%	\includegraphics[width=\textwidth, height=10cm,
-%	keepaspectratio]{tikz/reach1.pdf}
-%}
-%\end{figure}
+\newline
 
 \example{reach1}
 
@@ -676,7 +673,7 @@ statements are reachable from the current node. Further, the following holds:
 The verification of assumptions might depend on the substitution of variables.
 \newline
 
-Let us consider source~code~\ref{code:reach1}. Translated to English it says:
+Let us consider listing~\ref{code:reach1}. Translated to English it says:
 There is an identifier \m{a} and there is a property \m{[b]prop}, which can be
 applied to any variable \m{b}. It follows that \m{a} has this property.
 \newline
@@ -702,7 +699,7 @@ this case.
 \newline
 
 To get deeper insight in how the reachability in sub-trees is determined, let us
-look at a slightly more involved example. In source~code~\ref{code:reach2} we
+look at a slightly more involved example. In listing~\ref{code:reach2} we
 make three assumptions: There is an identifier \m{a}, there is a property
 \m{[b]prop}, which can by applied to any identifier (since \m{b} is unknown to
 the right of node~2), and if \m{a} has this property, then it also has a second
@@ -722,7 +719,7 @@ compared against all \emph{constant} nodes, which are directly reachable from
 node~22.
 \pagebreak{}
 
-\examplenl{reach2}
+\examplenl{reach2}{}
 
 \pagebreak{}
 
@@ -732,11 +729,11 @@ For interest's sake here are two proofs and the corresponding debugging output
 showing the current state of the software.
 
 \subsection{Russel's Paradox}
-\examplenl{russel}
+\examplenl{russel}{}
 \pagebreak{}
 
 \subsection{Incidence Relation Notes: Theorem 1}
-\examplenl{IncThm1}
+\examplenl{IncThm1}{}
 \pagebreak{}
 
 \begingroup

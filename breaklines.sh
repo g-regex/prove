@@ -2,8 +2,8 @@
 awk '
 { 
 	gsub(/\t/, " ")
-	gsub(/\{/, "\\\{")
-	gsub(/\}/, "\\\}")
+	gsub(/\{/, "\\textbf\{\\\{")
+	gsub(/\}/, "\\\}\}")
 	s = split($0, chars, "\033")
 	if (s > 1 && length(chars[1]) != 0 && !(chars[1] ~ /^[ ]/)) {
 		printf("\033")
@@ -15,8 +15,8 @@ awk '
 		split(chars[i], m, "m")	
 		l += length(chars[i]) - length(m[1]) - 1
 		if (l > 80) {
-			printf("\n")
-			l = length(chars[i]) - length(m[1]) - 1
+				printf("\\color{black}\n\\ensuremath{\\color{cornflowerblue}\\hookrightarrow\\space}")
+			l = length(chars[i]) - length(m[1]) + 2
 		}
 		printf("\033%s", chars[i])
 	}
