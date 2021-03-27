@@ -18,7 +18,6 @@
 #ifndef SCANNER_H
 #define SCANNER_H
 
-#include <stdio.h>
 #include "token.h"
 
 /* current position of token in source file */

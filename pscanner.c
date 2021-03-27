@@ -19,6 +19,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include "pscanner.h"
 #include "token.h"
 #include "debug.h"

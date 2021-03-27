@@ -3,6 +3,7 @@ OPTIMISE = -O0
 WARNINGS = -Wall -Wextra -Wno-variadic-macros -Wno-overlength-strings -pedantic
 CC       = gcc
 LDFLAGS  = -lgmp
+CFLAGS   += -fcommon
 RM       = rm -f
 COMPILE  = $(CC) $(CFLAGS) $(DFLAGS) $(LDFLAGS) $(DEBUG)
 EXES     = proveparser pscanner
@@ -108,6 +109,7 @@ docgen:
 	biber -E utf8 doc
 	pdflatex --shell-escape doc.tex
 	pdflatex --shell-escape doc.tex
+
 runchecks:
 	@rm -rf testcases/out
 	mkdir -p testcases/out

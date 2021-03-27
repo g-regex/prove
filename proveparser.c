@@ -17,6 +17,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -39,8 +40,12 @@
 
 /* --- global variables ----------------------------------------------------- */
 
+#if 0
 char* toktype[] = {"TOK_EOF", "TOK_LBRACK", "TOK_RBRACK", "TOK_IMPLY",
 	"TOK_REF", "TOK_EQ", /*"TOK_NOT",*/ "TOK_SYM"};
+#endif
+char* toktype[] = {"end of file", "left bracket", "right bracket", "'=>'",
+	"'ref=>'", "'='", "string"};
 
 Token    token;                     /* current token						*/
 Pnode*   pnode;                     /* current node in graph				*/
@@ -596,7 +601,8 @@ void check_conflict(Pnode* pnode, TType ttype)
 		} else if (HAS_NFLAG_IMPL(pnode)) {
 			return;
 		} else {
-			fprintf(stderr, "unexpected IMPL_TYPE_TOK "
+			/*fprintf(stderr, "unexpected IMPL_TYPE_TOK "*/
+			fprintf(stderr, "unexpected implication token "
 				"on line %d, column %d\n", cursor.line, cursor.col);
 			exit(ERR_SYNTAX);
 		}
@@ -608,7 +614,8 @@ void check_conflict(Pnode* pnode, TType ttype)
 			/* TODO: maybe only allow equalities of the form [...]=[...] */
 			return;
 		} else {
-			fprintf(stderr, "unexpected TOK_EQ "
+			/*fprintf(stderr, "unexpected TOK_EQ "*/
+			fprintf(stderr, "unexpected '=' "
 				"on line %d, column %d\n", cursor.line, cursor.col);
 			exit(ERR_SYNTAX);
 		}
@@ -618,7 +625,8 @@ void check_conflict(Pnode* pnode, TType ttype)
 		} else if (HAS_NFLAG_FMLA(pnode)) {
 			return;
 		} else {
-			fprintf(stderr, "unexpected TOK_SYM "
+			/*fprintf(stderr, "unexpected TOK_SYM "*/
+			fprintf(stderr, "unexpected string "
 				"on line %d, column %d\n", cursor.line, cursor.col);
 			exit(ERR_SYNTAX);
 		}
