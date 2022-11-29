@@ -90,7 +90,7 @@ OutputFormat latex
 \begin_inset Formula 
 \begin{align*}
 \langle\texttt{expression}\rangle & =\langle\texttt{statement}\rangle\Big|\langle\texttt{formula}\rangle\\
-\langle\texttt{formula}\rangle & =\langle\texttt{formulator\ensuremath{\rangle}}\Bigg|\bigg\{\langle\texttt{formulator}\rangle\langle\texttt{statement}\rangle\bigg\}\\
+\langle\texttt{formula}\rangle & =\bigg\{\langle\texttt{formulator}\rangle\langle\texttt{statement}\rangle\Bigg|\langle\texttt{statement}\rangle\langle\texttt{formulator\ensuremath{\rangle}}\bigg\}\\
 \langle\texttt{statement}\rangle & =\textrm{`['}\langle\texttt{expression}\rangle\textrm{{`]'}}\Big\{\textrm{`['}\langle\texttt{expression}\rangle\textrm{`]'}\Big\}\\
 \langle\texttt{formulator\ensuremath{\rangle}} & =\textrm{`='\Big|`=>'\Big|`ref=>'\Big|}\Big\{\langle\texttt{character}\rangle\Big\}\\
 \langle\texttt{character\ensuremath{\rangle}} & =\textrm{`a'}\Big|\dots\Big|\textrm{`z'}\Big|\textrm{`A'}\Big|\dots\Big|\textrm{`Z'}\Big|\textrm{`0'}\Big|\dots\Big|\textrm{`9'}\Big|\textrm{`+'\Big|\textrm{`-'}\Big|\textrm{`/'\Big|\textrm{`*'}\Big|\textrm{`\%'\Big|\textrm{`\textasciicircum'}\Big|\textrm{`\&'}\Big|\textrm{`.'}\Big|\textrm{`?'}\Big|`!'\Big|\textrm{`:'}}}}\Big|\textrm{`\_'}
