@@ -2,7 +2,7 @@
 
 [prove] is a proof verification system using bracketed expressions.
 
-This system is of experimental nature and is not being developed any further. The insights gained during the work on this project lead to a first [Python implementation](https://www.zurab.online/2022/02/lesson-1-python-based-introduction-to.html) of the SOFiA proof assistant and to a later [Haskell prototype](https://github.com/g-regex/sofia_haskell) thereof.
+This system is of experimental nature and is not being developed any further. The insights gained during the work on this project lead to a first [Python implementation](https://www.zurab.online/2022/02/lesson-1-python-based-introduction-to.html) of the [SOFiA proof assistant](https://www.zurab.online/2022/08/the-sofia-proof-assistant-project.html) and to a later [Haskell prototype](https://github.com/g-regex/sofia_haskell) thereof.
 
 ## Installation
 
