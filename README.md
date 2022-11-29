@@ -38,4 +38,4 @@ For information on the usage of \[prove\] refer to the [HELP.md](https://github.
 Refer to the [doc.pdf](https://github.com/g-regex/prove/blob/main/doc/doc.pdf) in the doc/ folder.
 
 ## License
-[prove] is distributed under the [GPL 3.0 license](https://github.com/g-regex/prove/blob/master/LICENSE.md).
+[prove] is published under the [GPL 3.0 license](https://github.com/g-regex/prove/blob/master/LICENSE.md).
